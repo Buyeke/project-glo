@@ -11,6 +11,10 @@ import Home from "./pages/Home";
 import About from "./pages/About";
 import Auth from "./pages/Auth";
 import Services from "./pages/Services";
+import Dashboard from "./pages/Dashboard";
+import Resources from "./pages/Resources";
+import Blog from "./pages/Blog";
+import Donate from "./pages/Donate";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,12 +32,13 @@ const App = () => (
               <Route path="about" element={<About />} />
               <Route path="auth" element={<Auth />} />
               <Route path="services" element={<Services />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="resources" element={<Resources />} />
+              <Route path="blog" element={<Blog />} />
+              <Route path="donate" element={<Donate />} />
               {/* Placeholder routes for other pages */}
-              <Route path="resources" element={<div className="p-8 text-center">Resources page coming soon!</div>} />
               <Route path="shop" element={<div className="p-8 text-center">Shop page coming soon!</div>} />
-              <Route path="blog" element={<div className="p-8 text-center">Blog page coming soon!</div>} />
               <Route path="contact" element={<div className="p-8 text-center">Contact page coming soon!</div>} />
-              <Route path="donate" element={<div className="p-8 text-center">Donation page coming soon!</div>} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
