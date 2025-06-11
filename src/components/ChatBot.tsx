@@ -10,7 +10,7 @@ const ChatBot = () => {
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: "Hi! I'm Glo's AI assistant. I'm here to help you find resources, answer questions about our services, or guide you to the support you need. How can I help you today?",
+      text: "Hi! I'm Glo's AI assistant. I'm here to help you navigate our services and find the support you need. We've helped 50+ women and 100+ children through our network of 10+ shelter partners. How can I assist you today?",
       isBot: true,
     },
   ]);
@@ -28,7 +28,7 @@ const ChatBot = () => {
     setMessages([...messages, userMessage]);
     setInputValue('');
 
-    // Simulate bot response (in real implementation, this would call your AI service)
+    // Simulate bot response
     setTimeout(() => {
       const botResponse = {
         id: messages.length + 2,
@@ -42,16 +42,28 @@ const ChatBot = () => {
   const getBotResponse = (input: string) => {
     const lowerInput = input.toLowerCase();
     
-    if (lowerInput.includes('shelter') || lowerInput.includes('housing')) {
-      return "I can help you find emergency shelter and housing options. Would you like me to show you available shelters in your area? I can also connect you with our housing specialists.";
-    } else if (lowerInput.includes('job') || lowerInput.includes('employment')) {
-      return "Our job placement program can help you find employment opportunities. We offer resume building, interview prep, and connections to employers who support our mission.";
-    } else if (lowerInput.includes('mental health') || lowerInput.includes('counseling')) {
-      return "We provide mental health support including counseling services, support groups, and crisis intervention. Would you like me to connect you with a mental health specialist?";
-    } else if (lowerInput.includes('donation') || lowerInput.includes('donate')) {
-      return "Thank you for wanting to support our mission! You can make a secure donation through our donation page. Every contribution helps us provide essential services to women and children in need.";
+    if (lowerInput.includes('shelter') || lowerInput.includes('housing') || lowerInput.includes('emergency')) {
+      return "Glo provides emergency shelter access through our network of 10+ partner facilities. We offer safe housing, essential resources, and 24/7 support. I can help connect you with immediate shelter placement. Would you like me to find available shelters in your area?";
+    } else if (lowerInput.includes('job') || lowerInput.includes('employment') || lowerInput.includes('work')) {
+      return "Our Job & Skills Support program offers training, resume building, interview preparation, and job placement assistance. We've helped many women gain independence through employment. Would you like information about our current training programs or job opportunities?";
+    } else if (lowerInput.includes('mental health') || lowerInput.includes('counseling') || lowerInput.includes('therapy')) {
+      return "Glo's Personalized Referrals service uses AI to connect you with mental health professionals and counseling services. We work with community partners to provide therapy, support groups, and crisis intervention. Would you like me to help match you with mental health resources?";
+    } else if (lowerInput.includes('addiction') || lowerInput.includes('recovery') || lowerInput.includes('substance')) {
+      return "We provide connections to addiction recovery programs through our AI-powered referral system. Our partners offer detox services, rehabilitation programs, and ongoing support for substance abuse recovery. Can I help you find recovery resources in your area?";
+    } else if (lowerInput.includes('children') || lowerInput.includes('kids') || lowerInput.includes('family')) {
+      return "Glo has supported over 100 children alongside their mothers. We provide family-friendly shelter options, parenting workshops, childcare resources, and educational support. Our services ensure both you and your children receive comprehensive care. What specific support do you need for your family?";
+    } else if (lowerInput.includes('education') || lowerInput.includes('skills') || lowerInput.includes('training')) {
+      return "Our Education & Life Skills program offers workshops on financial literacy, parenting, wellness, and digital literacy. These classes help build the foundation for long-term independence and stability. Would you like to know about upcoming workshops or specific skill-building programs?";
+    } else if (lowerInput.includes('legal') || lowerInput.includes('lawyer') || lowerInput.includes('court')) {
+      return "Through our Community Integration services, we can connect you with legal aid organizations that provide assistance with housing issues, family law, immigration, and other legal matters. Would you like me to help you find legal assistance in your area?";
+    } else if (lowerInput.includes('donation') || lowerInput.includes('donate') || lowerInput.includes('support glo')) {
+      return "Thank you for wanting to support our mission! You can make a secure donation through our donation page, which accepts PayPal and other payment methods. Every contribution helps us provide essential services to homeless women and children. You can also support us by shopping our handmade goods created by residents and local women.";
+    } else if (lowerInput.includes('volunteer') || lowerInput.includes('help out') || lowerInput.includes('get involved')) {
+      return "We welcome volunteers! You can help by mentoring women, teaching skills workshops, providing childcare during services, or assisting with our resource directory. Please create an account and specify that you're interested in volunteering, and we'll connect you with opportunities that match your skills and availability.";
+    } else if (lowerInput.includes('glo') || lowerInput.includes('about') || lowerInput.includes('what is')) {
+      return "Glo is an AI-powered social platform supporting homeless women and children. We've helped 50+ women and 100+ children through our comprehensive services including shelter access, job placement, mental health support, education, and community integration. Our AI system provides personalized referrals to match users with the most relevant resources and services.";
     } else {
-      return "I'm here to help you navigate our services. I can assist with finding shelter, job opportunities, mental health resources, addiction recovery, or answer questions about our programs. What would you like to know more about?";
+      return "I'm here to help you navigate Glo's comprehensive support services. I can assist with finding shelter (emergency and transitional housing), job placement and skills training, mental health and addiction recovery resources, education and life skills workshops, legal aid, and community integration services. What specific support are you looking for today?";
     }
   };
 

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -7,9 +6,9 @@ import { Heart, Users, Home as HomeIcon, Search, Gift } from 'lucide-react';
 
 const Home = () => {
   const stats = [
-    { number: '500+', label: 'Women Helped', icon: Users },
-    { number: '200+', label: 'Children Supported', icon: Heart },
-    { number: '50+', label: 'Shelter Partners', icon: HomeIcon },
+    { number: '50+', label: 'Women Supported', icon: Users },
+    { number: '100+', label: 'Children Helped', icon: Heart },
+    { number: '10+', label: 'Shelter Partners', icon: HomeIcon },
     { number: '24/7', label: 'AI Support', icon: Search },
   ];
 

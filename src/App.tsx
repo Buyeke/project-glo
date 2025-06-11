@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Auth from "./pages/Auth";
+import Services from "./pages/Services";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,8 +27,8 @@ const App = () => (
               <Route index element={<Home />} />
               <Route path="about" element={<About />} />
               <Route path="auth" element={<Auth />} />
+              <Route path="services" element={<Services />} />
               {/* Placeholder routes for other pages */}
-              <Route path="services" element={<div className="p-8 text-center">Services page coming soon!</div>} />
               <Route path="resources" element={<div className="p-8 text-center">Resources page coming soon!</div>} />
               <Route path="shop" element={<div className="p-8 text-center">Shop page coming soon!</div>} />
               <Route path="blog" element={<div className="p-8 text-center">Blog page coming soon!</div>} />
