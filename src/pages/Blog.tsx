@@ -1,9 +1,11 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Calendar, Clock } from 'lucide-react';
 
 const Blog = () => {
@@ -135,12 +137,12 @@ const Blog = () => {
               Join our community and help us create more positive impact stories together.
             </p>
             <div className="space-x-4">
-              <button className="bg-white text-purple-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-                Get Support
-              </button>
-              <button className="border-2 border-white text-white px-6 py-2 rounded-lg font-semibold hover:bg-white hover:text-purple-600 transition-colors">
-                Volunteer with Us
-              </button>
+              <Button variant="secondary" asChild>
+                <Link to="/services">Get Support</Link>
+              </Button>
+              <Button variant="outline" className="border-white text-white hover:bg-white hover:text-purple-600" asChild>
+                <Link to="/auth">Volunteer with Us</Link>
+              </Button>
             </div>
           </CardContent>
         </Card>
