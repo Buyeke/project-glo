@@ -53,7 +53,7 @@ const Home = () => {
               <Button size="lg" variant="secondary" asChild>
                 <Link to="/auth">Get Support Now</Link>
               </Button>
-              <Button size="lg" variant="outline" className="text-white border-white hover:bg-white hover:text-purple-600" asChild>
+              <Button size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white hover:text-purple-600" asChild>
                 <Link to="/donate">Make a Donation</Link>
               </Button>
             </div>
@@ -123,7 +123,7 @@ const Home = () => {
             <Button size="lg" variant="secondary" asChild>
               <Link to="/auth">Join Our Community</Link>
             </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary" asChild>
+            <Button size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white hover:text-primary" asChild>
               <Link to="/resources">Browse Resources</Link>
             </Button>
           </div>
