@@ -94,6 +94,83 @@ export type Database = {
           },
         ]
       }
+      chat_interactions: {
+        Row: {
+          confidence_score: number | null
+          created_at: string | null
+          detected_language: string | null
+          id: string
+          matched_intent: string | null
+          original_message: string
+          response: string
+          translated_message: string | null
+          translated_response: string | null
+          user_id: string | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string | null
+          detected_language?: string | null
+          id?: string
+          matched_intent?: string | null
+          original_message: string
+          response: string
+          translated_message?: string | null
+          translated_response?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string | null
+          detected_language?: string | null
+          id?: string
+          matched_intent?: string | null
+          original_message?: string
+          response?: string
+          translated_message?: string | null
+          translated_response?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_interactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chatbot_intents: {
+        Row: {
+          category: string
+          created_at: string | null
+          id: string
+          intent_key: string
+          keywords: Json
+          response_template: Json
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          id?: string
+          intent_key: string
+          keywords: Json
+          response_template: Json
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          id?: string
+          intent_key?: string
+          keywords?: Json
+          response_template?: Json
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       donations: {
         Row: {
           amount: number

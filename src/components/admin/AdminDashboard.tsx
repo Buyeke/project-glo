@@ -1,13 +1,10 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell, LineChart, Line, ResponsiveContainer } from 'recharts';
-import { CalendarDays, Users, MessageSquare, Clock, TrendingUp, Globe } from 'lucide-react';
+import { Users, MessageSquare, Star, TrendingUp, Globe, Target } from 'lucide-react';
+import ChatInteractionsPanel from './ChatInteractionsPanel';
 
 const AdminDashboard = () => {
   const [timeRange, setTimeRange] = useState('7'); // days
@@ -58,89 +55,82 @@ const AdminDashboard = () => {
     },
   });
 
-  // Calculate metrics
-  const calculateMetrics = () => {
-    if (!serviceRequests || !feedback || !usageStats) return null;
+  // Fetch overall stats
+  const { data: overallStats, isLoading: statsLoading } = useQuery({
+    queryKey: ['admin-stats'],
+    queryFn: async () => {
+      // Get user stats
+      const { data: users } = await supabase.from('profiles').select('id, user_type');
+      
+      // Get service request stats
+      const { data: requests } = await supabase.from('service_requests_tracking').select('status, service_type');
+      
+      // Get feedback stats
+      const { data: feedback } = await supabase.from('user_feedback').select('rating');
+      
+      // Get chat interaction stats
+      const { data: chatStats } = await supabase.from('chat_interactions').select('detected_language, matched_intent');
+      
+      return {
+        totalUsers: users?.length || 0,
+        individualUsers: users?.filter(u => u.user_type === 'individual').length || 0,
+        ngoUsers: users?.filter(u => u.user_type === 'ngo').length || 0,
+        serviceRequests: requests?.length || 0,
+        completedRequests: requests?.filter(r => r.status === 'completed').length || 0,
+        avgRating: feedback?.length ? feedback.reduce((sum, f) => sum + f.rating, 0) / feedback.length : 0,
+        chatInteractions: chatStats?.length || 0,
+        languagesUsed: new Set(chatStats?.map(c => c.detected_language)).size || 0,
+      };
+    },
+  });
 
-    const totalRequests = serviceRequests.length;
-    const completedRequests = serviceRequests.filter(r => r.status === 'completed').length;
-    const avgRating = feedback.length > 0 ? feedback.reduce((sum, f) => sum + f.rating, 0) / feedback.length : 0;
-    const avgResponseTime = serviceRequests
-      .filter(r => r.response_time_hours)
-      .reduce((sum, r) => sum + r.response_time_hours, 0) / serviceRequests.filter(r => r.response_time_hours).length || 0;
-
-    // Language distribution
-    const languageStats = serviceRequests.reduce((acc, req) => {
-      acc[req.language_used] = (acc[req.language_used] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    // Service type distribution
-    const serviceTypeStats = serviceRequests.reduce((acc, req) => {
-      acc[req.service_type] = (acc[req.service_type] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    // Daily requests for chart
-    const dailyRequests = serviceRequests.reduce((acc, req) => {
-      const date = new Date(req.created_at).toISOString().split('T')[0];
-      acc[date] = (acc[date] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    return {
-      totalRequests,
-      completedRequests,
-      completionRate: totalRequests > 0 ? (completedRequests / totalRequests) * 100 : 0,
-      avgRating,
-      avgResponseTime,
-      languageStats,
-      serviceTypeStats,
-      dailyRequests: Object.entries(dailyRequests).map(([date, count]) => ({ date, count })),
-    };
-  };
-
-  const metrics = calculateMetrics();
-
-  const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00ff00'];
-
-  if (loadingRequests || loadingFeedback || loadingUsage) {
-    return (
-      <div className="p-8">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Loading dashboard data...</div>
-        </div>
-      </div>
-    );
+  if (statsLoading) {
+    return <div className="p-8">Loading dashboard...</div>;
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="container mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Impact Analytics Dashboard</h1>
-        <Select value={timeRange} onValueChange={setTimeRange}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Select time range" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="7">Last 7 days</SelectItem>
-            <SelectItem value="30">Last 30 days</SelectItem>
-            <SelectItem value="90">Last 90 days</SelectItem>
-          </SelectContent>
-        </Select>
+        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
       </div>
 
-      {/* Key Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Overview Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics?.totalRequests || 0}</div>
+            <div className="text-2xl font-bold">{overallStats?.totalUsers}</div>
             <p className="text-xs text-muted-foreground">
-              {metrics?.completionRate.toFixed(1)}% completion rate
+              {overallStats?.individualUsers} individuals, {overallStats?.ngoUsers} NGOs
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Service Requests</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{overallStats?.serviceRequests}</div>
+            <p className="text-xs text-muted-foreground">
+              {overallStats?.completedRequests} completed
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Chat Interactions</CardTitle>
+            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{overallStats?.chatInteractions}</div>
+            <p className="text-xs text-muted-foreground">
+              {overallStats?.languagesUsed} languages used
             </p>
           </CardContent>
         </Card>
@@ -148,128 +138,65 @@ const AdminDashboard = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Average Rating</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+            <Star className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics?.avgRating.toFixed(1) || 0}/5</div>
+            <div className="text-2xl font-bold">
+              {overallStats?.avgRating ? overallStats.avgRating.toFixed(1) : 'N/A'}
+            </div>
             <p className="text-xs text-muted-foreground">
-              From {feedback?.length || 0} feedback responses
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Response Time</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics?.avgResponseTime.toFixed(1) || 0}h</div>
-            <p className="text-xs text-muted-foreground">
-              Time to first response
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{usageStats?.length || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              User interactions
+              User satisfaction score
             </p>
           </CardContent>
         </Card>
       </div>
 
+      {/* Main Dashboard Tabs */}
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="languages">Languages</TabsTrigger>
+          <TabsTrigger value="chat-interactions">Chat Interactions</TabsTrigger>
+          <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="services">Services</TabsTrigger>
-          <TabsTrigger value="feedback">Feedback</TabsTrigger>
+          <TabsTrigger value="reports">Reports</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Daily Service Requests</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={metrics?.dailyRequests || []}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="count" stroke="#8884d8" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Request Status Distribution</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {serviceRequests && ['submitted', 'in_progress', 'completed', 'cancelled'].map(status => {
-                    const count = serviceRequests.filter(r => r.status === status).length;
-                    const percentage = serviceRequests.length > 0 ? (count / serviceRequests.length) * 100 : 0;
-                    return (
-                      <div key={status} className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Badge variant={status === 'completed' ? 'default' : 'secondary'}>
-                            {status.replace('_', ' ')}
-                          </Badge>
-                          <span className="text-sm">{count} requests</span>
-                        </div>
-                        <span className="text-sm text-muted-foreground">{percentage.toFixed(1)}%</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="languages" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Language Usage Distribution</CardTitle>
+              <CardTitle>Platform Overview</CardTitle>
               <CardDescription>
-                Languages used during service interactions
+                Key metrics and performance indicators for the Glo platform
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={Object.entries(metrics?.languageStats || {}).map(([language, count]) => ({
-                      name: language,
-                      value: count,
-                    }))}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {Object.entries(metrics?.languageStats || {}).map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">
+                  Overview dashboard with key metrics, recent activity, and platform health indicators.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="chat-interactions" className="space-y-4">
+          <ChatInteractionsPanel />
+        </TabsContent>
+
+        <TabsContent value="users" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>User Management</CardTitle>
+              <CardDescription>
+                Manage users, review profiles, and monitor user activity
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">
+                  User management interface coming soon...
+                </p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -277,76 +204,37 @@ const AdminDashboard = () => {
         <TabsContent value="services" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Service Type Requests</CardTitle>
+              <CardTitle>Service Management</CardTitle>
+              <CardDescription>
+                Monitor service requests, NGO partnerships, and resource allocation
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={Object.entries(metrics?.serviceTypeStats || {}).map(([service, count]) => ({
-                  service,
-                  count,
-                }))}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="service" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#8884d8" />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">
+                  Service management interface coming soon...
+                </p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="feedback" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Rating Distribution</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={[1, 2, 3, 4, 5].map(rating => ({
-                    rating: `${rating} Star`,
-                    count: feedback?.filter(f => f.rating === rating).length || 0,
-                  }))}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="rating" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#82ca9d" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Feedback</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4 max-h-80 overflow-y-auto">
-                  {feedback?.slice(0, 10).map((item) => (
-                    <div key={item.id} className="border-b pb-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="flex">
-                          {[...Array(5)].map((_, i) => (
-                            <span key={i} className={i < item.rating ? 'text-yellow-400' : 'text-gray-300'}>
-                              ⭐
-                            </span>
-                          ))}
-                        </div>
-                        <span className="text-sm text-muted-foreground">
-                          {new Date(item.created_at).toLocaleDateString()}
-                        </span>
-                      </div>
-                      {item.comment && (
-                        <p className="text-sm text-gray-600">{item.comment}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+        <TabsContent value="reports" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Reports & Analytics</CardTitle>
+              <CardDescription>
+                Generate reports and analyze platform performance
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">
+                  Reporting interface coming soon...
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
