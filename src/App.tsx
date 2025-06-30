@@ -12,6 +12,7 @@ import About from "./pages/About";
 import Auth from "./pages/Auth";
 import Services from "./pages/Services";
 import Dashboard from "./pages/Dashboard";
+import AdminPanel from "./pages/AdminPanel";
 import Resources from "./pages/Resources";
 import Blog from "./pages/Blog";
 import Donate from "./pages/Donate";
@@ -33,6 +34,7 @@ const App = () => (
               <Route path="auth" element={<Auth />} />
               <Route path="services" element={<Services />} />
               <Route path="dashboard" element={<Dashboard />} />
+              <Route path="admin" element={<AdminPanel />} />
               <Route path="resources" element={<Resources />} />
               <Route path="blog" element={<Blog />} />
               <Route path="donate" element={<Donate />} />

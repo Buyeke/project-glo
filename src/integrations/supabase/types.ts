@@ -9,6 +9,41 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_reports: {
+        Row: {
+          generated_at: string | null
+          generated_by: string | null
+          id: string
+          metrics: Json
+          report_date: string
+          report_type: string
+        }
+        Insert: {
+          generated_at?: string | null
+          generated_by?: string | null
+          id?: string
+          metrics: Json
+          report_date: string
+          report_type: string
+        }
+        Update: {
+          generated_at?: string | null
+          generated_by?: string | null
+          id?: string
+          metrics?: Json
+          report_date?: string
+          report_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_reports_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_posts: {
         Row: {
           content: string | null
@@ -338,6 +373,157 @@ export type Database = {
           },
           {
             foreignKeyName: "service_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_requests_tracking: {
+        Row: {
+          completed_at: string | null
+          completion_time_hours: number | null
+          created_at: string | null
+          id: string
+          language_used: string | null
+          priority: string | null
+          referral_made: boolean | null
+          referral_successful: boolean | null
+          responded_at: string | null
+          response_time_hours: number | null
+          service_type: string
+          status: string | null
+          submitted_at: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          completion_time_hours?: number | null
+          created_at?: string | null
+          id?: string
+          language_used?: string | null
+          priority?: string | null
+          referral_made?: boolean | null
+          referral_successful?: boolean | null
+          responded_at?: string | null
+          response_time_hours?: number | null
+          service_type: string
+          status?: string | null
+          submitted_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          completion_time_hours?: number | null
+          created_at?: string | null
+          id?: string
+          language_used?: string | null
+          priority?: string | null
+          referral_made?: boolean | null
+          referral_successful?: boolean | null
+          responded_at?: string | null
+          response_time_hours?: number | null
+          service_type?: string
+          status?: string | null
+          submitted_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_requests_tracking_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      usage_stats: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          device_type: string | null
+          id: string
+          language_preference: string | null
+          page_visited: string | null
+          session_duration_minutes: number | null
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          device_type?: string | null
+          id?: string
+          language_preference?: string | null
+          page_visited?: string | null
+          session_duration_minutes?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          device_type?: string | null
+          id?: string
+          language_preference?: string | null
+          page_visited?: string | null
+          session_duration_minutes?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usage_stats_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_feedback: {
+        Row: {
+          anonymous: boolean | null
+          comment: string | null
+          created_at: string | null
+          feedback_type: string | null
+          id: string
+          rating: number
+          service_request_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          anonymous?: boolean | null
+          comment?: string | null
+          created_at?: string | null
+          feedback_type?: string | null
+          id?: string
+          rating: number
+          service_request_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          anonymous?: boolean | null
+          comment?: string | null
+          created_at?: string | null
+          feedback_type?: string | null
+          id?: string
+          rating?: number
+          service_request_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_feedback_service_request_id_fkey"
+            columns: ["service_request_id"]
+            isOneToOne: false
+            referencedRelation: "service_requests_tracking"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_feedback_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"

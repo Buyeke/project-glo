@@ -1,216 +1,153 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
-import { Home, Users, Briefcase, GraduationCap, Heart, Search, HandHeart, BookOpen } from 'lucide-react';
+import { Heart, Home, Briefcase, Scale, Stethoscope, GraduationCap, Baby, Utensils } from 'lucide-react';
+import ServiceRequestForm from '@/components/services/ServiceRequestForm';
+import { usePageTracking } from '@/hooks/useDataTracking';
 
 const Services = () => {
+  usePageTracking();
+
   const services = [
     {
-      title: 'Shelter Access',
-      description: 'Safe housing and essential resources through partner facilities',
       icon: Home,
-      features: [
-        'Emergency shelter placement',
-        'Safe, secure accommodations',
-        'Essential supplies and amenities',
-        'Temporary and transitional housing',
-        '24/7 support and security'
-      ]
+      title: 'Emergency Shelter',
+      description: 'Immediate safe housing and emergency accommodation for women and children in need.',
+      features: ['24/7 availability', 'Safe environment', 'Temporary housing', 'Crisis intervention'],
+      availability: 'Available',
     },
     {
-      title: 'Personalized Referrals',
-      description: 'AI-powered matching connects users to NGOs and community services for mental health, addiction recovery, and health care',
-      icon: Search,
-      features: [
-        'AI-powered service matching',
-        'Mental health referrals',
-        'Addiction recovery programs',
-        'Healthcare connections',
-        'Community service coordination'
-      ]
+      icon: Scale,
+      title: 'Legal Aid',
+      description: 'Legal assistance for housing rights, family law, and other legal matters.',
+      features: ['Housing rights', 'Family law', 'Legal consultation', 'Court representation'],
+      availability: 'Available',
     },
     {
-      title: 'Job & Skills Support',
-      description: 'Training programs and links to employment opportunities to foster independence',
+      icon: Heart,
+      title: 'Mental Health Support',
+      description: 'Counseling, therapy, and emotional support services for trauma recovery.',
+      features: ['Individual counseling', 'Group therapy', 'Trauma recovery', 'Crisis support'],
+      availability: 'Available',
+    },
+    {
       icon: Briefcase,
-      features: [
-        'Skills assessment and training',
-        'Resume building workshops',
-        'Interview preparation',
-        'Job placement assistance',
-        'Career development planning'
-      ]
+      title: 'Job Placement',
+      description: 'Employment opportunities, skills training, and career development support.',
+      features: ['Job matching', 'Skills training', 'Interview preparation', 'Career guidance'],
+      availability: 'Available',
     },
     {
-      title: 'Education & Life Skills',
-      description: 'Workshops on financial literacy, parenting, and wellness',
+      icon: Stethoscope,
+      title: 'Healthcare',
+      description: 'Basic healthcare services, maternal health support, and wellness programs.',
+      features: ['Primary care', 'Maternal health', 'Health screenings', 'Wellness education'],
+      availability: 'Available',
+    },
+    {
       icon: GraduationCap,
-      features: [
-        'Financial literacy training',
-        'Parenting workshops',
-        'Health and wellness education',
-        'Digital literacy classes',
-        'Life skills development'
-      ]
+      title: 'Educational Support',
+      description: 'School enrollment assistance and educational resources for children.',
+      features: ['School enrollment', 'Educational materials', 'Tutoring support', 'Adult education'],
+      availability: 'Available',
     },
     {
-      title: 'Community Integration',
-      description: 'Pathways to housing, legal aid, and social reintegration',
-      icon: Users,
-      features: [
-        'Permanent housing assistance',
-        'Legal aid connections',
-        'Social reintegration support',
-        'Community networking',
-        'Long-term stability planning'
-      ]
-    }
-  ];
-
-  const stats = [
-    { number: '50+', label: 'Women Supported', icon: Users },
-    { number: '100+', label: 'Children Helped', icon: Heart },
-    { number: '10+', label: 'Shelter Partners', icon: Home },
-    { number: '24/7', label: 'AI Support', icon: Search },
+      icon: Baby,
+      title: 'Childcare Support',
+      description: 'Childcare services and parenting support for mothers in need.',
+      features: ['Daycare services', 'Parenting classes', 'Child development', 'Family support'],
+      availability: 'Limited',
+    },
+    {
+      icon: Utensils,
+      title: 'Food Assistance',
+      description: 'Nutritional support and food security programs for families.',
+      features: ['Food distribution', 'Nutrition education', 'Meal programs', 'Emergency food aid'],
+      availability: 'Available',
+    },
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              Comprehensive Support Services
-            </h1>
-            <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
-              Empowering homeless women and children with AI-powered support, 
-              resources, and pathways to independence and stability.
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Our Services</h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Comprehensive support services designed to help homeless women and children rebuild their lives with dignity and hope.
+          </p>
+        </div>
+
+        {/* Service Request Form */}
+        <div className="mb-16">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Request Support</h2>
+            <p className="text-gray-600">
+              Need help? Fill out the form below and we'll connect you with the right resources.
             </p>
           </div>
+          <ServiceRequestForm />
         </div>
-      </section>
 
-      {/* Impact Stats */}
-      <section className="py-12 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Impact So Far</h2>
-            <p className="text-xl text-gray-600">Making a difference one person at a time</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="flex justify-center mb-4">
-                  <stat.icon className="h-12 w-12 text-primary" />
-                </div>
-                <div className="text-3xl font-bold text-gray-900 mb-2">{stat.number}</div>
-                <div className="text-gray-600">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Services Grid */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Services</h2>
-            <p className="text-xl text-gray-600">Comprehensive support for every stage of your journey</p>
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Services Grid */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">Available Services</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {services.map((service, index) => (
               <Card key={index} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
-                  <div className="flex items-center space-x-4">
-                    <div className="flex-shrink-0">
-                      <service.icon className="h-10 w-10 text-primary" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-xl">{service.title}</CardTitle>
-                      <CardDescription className="mt-2">{service.description}</CardDescription>
-                    </div>
+                  <div className="flex items-center justify-between mb-4">
+                    <service.icon className="h-10 w-10 text-primary" />
+                    <Badge 
+                      variant={service.availability === 'Available' ? 'default' : 'secondary'}
+                      className={service.availability === 'Available' ? 'bg-green-100 text-green-800' : ''}
+                    >
+                      {service.availability}
+                    </Badge>
                   </div>
+                  <CardTitle className="text-xl">{service.title}</CardTitle>
+                  <CardDescription className="text-base">
+                    {service.description}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-2">
-                    {service.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-center space-x-2">
-                        <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
-                        <span className="text-gray-700">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm text-gray-700">Key Features:</h4>
+                    <ul className="space-y-1">
+                      {service.features.map((feature, featureIndex) => (
+                        <li key={featureIndex} className="flex items-center text-sm text-gray-600">
+                          <div className="w-1.5 h-1.5 bg-primary rounded-full mr-2 flex-shrink-0" />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </CardContent>
               </Card>
             ))}
           </div>
         </div>
-      </section>
 
-      {/* How It Works */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">How Glo Works</h2>
-            <p className="text-xl text-gray-600">Your journey to independence starts here</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-primary">1</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Connect</h3>
-              <p className="text-gray-600">
-                Reach out through our AI chatbot or contact our support team to begin your journey.
+        {/* Call to Action */}
+        <Card className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+          <CardContent className="p-8 text-center">
+            <h2 className="text-2xl font-bold mb-4">Emergency Support</h2>
+            <p className="text-lg mb-6">
+              If you need immediate assistance or are in crisis, don't wait. Reach out now.
+            </p>
+            <div className="space-y-4">
+              <Button size="lg" variant="secondary">
+                Call Emergency Hotline: 911
+              </Button>
+              <p className="text-sm opacity-90">
+                Available 24/7 for immediate crisis support and emergency services
               </p>
             </div>
-            
-            <div className="text-center">
-              <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-primary">2</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Match</h3>
-              <p className="text-gray-600">
-                Our AI system matches you with the most relevant services and support resources.
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-primary">3</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Thrive</h3>
-              <p className="text-gray-600">
-                Access comprehensive support and build the skills needed for independence.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Call to Action */}
-      <section className="py-16 bg-primary text-primary-foreground">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to Get Support?</h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto">
-            Take the first step towards independence and stability. Our team is here to help you access the resources you need.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" asChild>
-              <Link to="/auth">Get Started Today</Link>
-            </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary" asChild>
-              <Link to="/resources">Browse Resources</Link>
-            </Button>
-          </div>
-        </div>
-      </section>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
