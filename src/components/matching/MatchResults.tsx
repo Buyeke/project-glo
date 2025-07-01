@@ -28,7 +28,20 @@ const MatchResults = () => {
         .order('matched_at', { ascending: false });
       
       if (error) throw error;
-      return data as (MatchLog & { service_providers: ServiceProvider })[];
+      
+      // Cast the Supabase types to our expected interfaces
+      return data.map(match => ({
+        ...match,
+        match_criteria: match.match_criteria as MatchLog['match_criteria'],
+        user_feedback: match.user_feedback as MatchLog['user_feedback'],
+        service_providers: {
+          ...match.service_providers,
+          location_data: match.service_providers.location_data as ServiceProvider['location_data'],
+          contact_info: match.service_providers.contact_info as ServiceProvider['contact_info'],
+          capacity_info: match.service_providers.capacity_info as ServiceProvider['capacity_info'],
+          operating_hours: match.service_providers.operating_hours as ServiceProvider['operating_hours']
+        } as ServiceProvider
+      })) as (MatchLog & { service_providers: ServiceProvider })[];
     },
     enabled: !!user,
   });
@@ -63,7 +76,6 @@ const MatchResults = () => {
       <div className="space-y-4">
         {matches.map((match) => {
           const provider = match.service_providers;
-          const contactInfo = provider.contact_info as any;
           
           return (
             <Card key={match.id} className="border-l-4 border-l-green-500">
@@ -113,7 +125,7 @@ const MatchResults = () => {
                 {/* Location */}
                 <div className="flex items-center gap-2 text-sm">
                   <MapPin className="h-4 w-4 text-gray-600" />
-                  <span>{(provider.location_data as any).address}</span>
+                  <span>{provider.location_data.address}</span>
                   {match.match_criteria?.location_match?.distance_km && (
                     <Badge variant="outline" className="text-xs">
                       {match.match_criteria.location_match.distance_km} km away
@@ -139,14 +151,14 @@ const MatchResults = () => {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm">
                       <Phone className="h-4 w-4 text-gray-600" />
-                      <span>{contactInfo.phone}</span>
+                      <span>{provider.contact_info.phone}</span>
                       <Button size="sm" variant="outline" className="ml-auto">
                         Call Now
                       </Button>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <Mail className="h-4 w-4 text-gray-600" />
-                      <span>{contactInfo.email}</span>
+                      <span>{provider.contact_info.email}</span>
                       <Button size="sm" variant="outline" className="ml-auto">
                         Send Email
                       </Button>

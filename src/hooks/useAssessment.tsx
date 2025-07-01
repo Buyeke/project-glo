@@ -42,7 +42,14 @@ export const useAssessment = () => {
         .eq('is_active', true);
       
       if (error) throw error;
-      return data as ServiceProvider[];
+      // Cast the Supabase types to our ServiceProvider interface
+      return data.map(provider => ({
+        ...provider,
+        location_data: provider.location_data as ServiceProvider['location_data'],
+        contact_info: provider.contact_info as ServiceProvider['contact_info'],
+        capacity_info: provider.capacity_info as ServiceProvider['capacity_info'],
+        operating_hours: provider.operating_hours as ServiceProvider['operating_hours']
+      })) as ServiceProvider[];
     },
   });
 
