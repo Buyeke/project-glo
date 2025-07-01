@@ -213,6 +213,76 @@ export type Database = {
         }
         Relationships: []
       }
+      match_logs: {
+        Row: {
+          assessment_id: string
+          completed_at: string | null
+          id: string
+          match_criteria: Json
+          match_score: number
+          match_type: string
+          matched_at: string | null
+          provider_id: string
+          provider_response: string | null
+          responded_at: string | null
+          status: string | null
+          user_feedback: Json | null
+          user_id: string
+        }
+        Insert: {
+          assessment_id: string
+          completed_at?: string | null
+          id?: string
+          match_criteria: Json
+          match_score: number
+          match_type: string
+          matched_at?: string | null
+          provider_id: string
+          provider_response?: string | null
+          responded_at?: string | null
+          status?: string | null
+          user_feedback?: Json | null
+          user_id: string
+        }
+        Update: {
+          assessment_id?: string
+          completed_at?: string | null
+          id?: string
+          match_criteria?: Json
+          match_score?: number
+          match_type?: string
+          matched_at?: string | null
+          provider_id?: string
+          provider_response?: string | null
+          responded_at?: string | null
+          status?: string | null
+          user_feedback?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_logs_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "user_assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_logs_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
@@ -406,6 +476,68 @@ export type Database = {
           },
         ]
       }
+      service_providers: {
+        Row: {
+          capacity_info: Json | null
+          contact_info: Json
+          created_at: string | null
+          created_by: string | null
+          emergency_services: boolean | null
+          id: string
+          is_active: boolean | null
+          languages_supported: string[]
+          location_data: Json
+          operating_hours: Json | null
+          provider_name: string
+          service_types: string[]
+          updated_at: string | null
+          verification_status: string | null
+          vulnerability_specializations: string[] | null
+        }
+        Insert: {
+          capacity_info?: Json | null
+          contact_info: Json
+          created_at?: string | null
+          created_by?: string | null
+          emergency_services?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          languages_supported: string[]
+          location_data: Json
+          operating_hours?: Json | null
+          provider_name: string
+          service_types: string[]
+          updated_at?: string | null
+          verification_status?: string | null
+          vulnerability_specializations?: string[] | null
+        }
+        Update: {
+          capacity_info?: Json | null
+          contact_info?: Json
+          created_at?: string | null
+          created_by?: string | null
+          emergency_services?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          languages_supported?: string[]
+          location_data?: Json
+          operating_hours?: Json | null
+          provider_name?: string
+          service_types?: string[]
+          updated_at?: string | null
+          verification_status?: string | null
+          vulnerability_specializations?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_providers_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_requests: {
         Row: {
           created_at: string | null
@@ -553,6 +685,62 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "usage_stats_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_assessments: {
+        Row: {
+          assessment_number: number
+          assessment_responses: Json
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          is_emergency: boolean | null
+          language_preference: string
+          literacy_mode: string | null
+          location_data: Json | null
+          need_types: string[]
+          urgency_level: string
+          user_id: string
+          vulnerability_tags: string[] | null
+        }
+        Insert: {
+          assessment_number: number
+          assessment_responses: Json
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          is_emergency?: boolean | null
+          language_preference: string
+          literacy_mode?: string | null
+          location_data?: Json | null
+          need_types: string[]
+          urgency_level: string
+          user_id: string
+          vulnerability_tags?: string[] | null
+        }
+        Update: {
+          assessment_number?: number
+          assessment_responses?: Json
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          is_emergency?: boolean | null
+          language_preference?: string
+          literacy_mode?: string | null
+          location_data?: Json | null
+          need_types?: string[]
+          urgency_level?: string
+          user_id?: string
+          vulnerability_tags?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_assessments_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
