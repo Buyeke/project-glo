@@ -1,152 +1,274 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Heart, Home, Briefcase, Scale, Stethoscope, GraduationCap, Baby, Utensils } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Heart, Home, Briefcase, Users, MapPin, Clock, Calendar } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import ServiceRequestForm from '@/components/services/ServiceRequestForm';
+import ServiceBookingModal from '@/components/services/ServiceBookingModal';
 import { usePageTracking } from '@/hooks/useDataTracking';
+
+interface Service {
+  id: string;
+  title: string;
+  description: string;
+  key_features: string[];
+  availability: string;
+  priority_level: string;
+  language_support: string;
+  category: string;
+  location: string;
+  delivery_mode: string;
+  contact_phone?: string;
+  contact_url?: string;
+}
 
 const Services = () => {
   usePageTracking();
+  
+  const [services, setServices] = useState<Service[]>([]);
+  const [filteredServices, setFilteredServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedLocation, setSelectedLocation] = useState('all');
+  const [showRequestForm, setShowRequestForm] = useState(false);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [showBookingModal, setShowBookingModal] = useState(false);
 
-  const services = [
-    {
-      icon: Home,
-      title: 'Emergency Shelter',
-      description: 'Immediate safe housing and emergency accommodation for women and children in need.',
-      features: ['24/7 availability', 'Safe environment', 'Temporary housing', 'Crisis intervention'],
-      availability: 'Available',
-    },
-    {
-      icon: Scale,
-      title: 'Legal Aid',
-      description: 'Legal assistance for housing rights, family law, and other legal matters.',
-      features: ['Housing rights', 'Family law', 'Legal consultation', 'Court representation'],
-      availability: 'Available',
-    },
-    {
-      icon: Heart,
-      title: 'Mental Health Support',
-      description: 'Counseling, therapy, and emotional support services for trauma recovery.',
-      features: ['Individual counseling', 'Group therapy', 'Trauma recovery', 'Crisis support'],
-      availability: 'Available',
-    },
-    {
-      icon: Briefcase,
-      title: 'Job Placement',
-      description: 'Employment opportunities, skills training, and career development support.',
-      features: ['Job matching', 'Skills training', 'Interview preparation', 'Career guidance'],
-      availability: 'Available',
-    },
-    {
-      icon: Stethoscope,
-      title: 'Healthcare',
-      description: 'Basic healthcare services, maternal health support, and wellness programs.',
-      features: ['Primary care', 'Maternal health', 'Health screenings', 'Wellness education'],
-      availability: 'Available',
-    },
-    {
-      icon: GraduationCap,
-      title: 'Educational Support',
-      description: 'School enrollment assistance and educational resources for children.',
-      features: ['School enrollment', 'Educational materials', 'Tutoring support', 'Adult education'],
-      availability: 'Available',
-    },
-    {
-      icon: Baby,
-      title: 'Childcare Support',
-      description: 'Childcare services and parenting support for mothers in need.',
-      features: ['Daycare services', 'Parenting classes', 'Child development', 'Family support'],
-      availability: 'Limited',
-    },
-    {
-      icon: Utensils,
-      title: 'Food Assistance',
-      description: 'Nutritional support and food security programs for families.',
-      features: ['Food distribution', 'Nutrition education', 'Meal programs', 'Emergency food aid'],
-      availability: 'Available',
-    },
-  ];
+  const categoryIcons = {
+    Emergency: Home,
+    Healthcare: Heart,
+    Employment: Briefcase,
+    Legal: Users,
+    'Basic Needs': Heart,
+  };
+
+  useEffect(() => {
+    fetchServices();
+  }, []);
+
+  useEffect(() => {
+    filterServices();
+  }, [services, searchTerm, selectedCategory, selectedLocation]);
+
+  const fetchServices = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .select('*')
+        .eq('availability', 'Available')
+        .order('priority_level', { ascending: false });
+
+      if (error) throw error;
+      setServices(data || []);
+    } catch (error) {
+      console.error('Error fetching services:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filterServices = () => {
+    let filtered = services;
+
+    if (searchTerm) {
+      filtered = filtered.filter(service =>
+        service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        service.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        service.category.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(service => service.category === selectedCategory);
+    }
+
+    if (selectedLocation !== 'all') {
+      filtered = filtered.filter(service => service.location === selectedLocation);
+    }
+
+    setFilteredServices(filtered);
+  };
+
+  const categories = [...new Set(services.map(service => service.category))];
+  const locations = [...new Set(services.map(service => service.location))];
+
+  const handleBookService = (service: Service) => {
+    setSelectedService(service);
+    setShowBookingModal(true);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Loading services...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Our Services</h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Comprehensive support services designed to help homeless women and children rebuild their lives with dignity and hope.
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Available Services</h1>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Discover the support services available to help you on your journey. Book sessions or request assistance directly.
           </p>
         </div>
 
-        {/* Service Request Form */}
-        <div className="mb-16">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Request Support</h2>
-            <p className="text-gray-600">
-              Need help? Fill out the form below and we'll connect you with the right resources.
-            </p>
+        {/* Filters */}
+        <div className="mb-8 space-y-4 lg:space-y-0 lg:flex lg:space-x-4">
+          <div className="flex-1">
+            <Input
+              placeholder="Search services..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full"
+            />
           </div>
-          <ServiceRequestForm />
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger className="w-full lg:w-48">
+              <SelectValue placeholder="All Categories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              {categories.map(category => (
+                <SelectItem key={category} value={category}>
+                  {category}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+            <SelectTrigger className="w-full lg:w-48">
+              <SelectValue placeholder="All Locations" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Locations</SelectItem>
+              {locations.map(location => (
+                <SelectItem key={location} value={location}>
+                  {location}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Services Grid */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">Available Services</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {services.map((service, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-center justify-between mb-4">
-                    <service.icon className="h-10 w-10 text-primary" />
-                    <Badge 
-                      variant={service.availability === 'Available' ? 'default' : 'secondary'}
-                      className={service.availability === 'Available' ? 'bg-green-100 text-green-800' : ''}
-                    >
-                      {service.availability}
-                    </Badge>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {filteredServices.map((service) => {
+            const IconComponent = categoryIcons[service.category as keyof typeof categoryIcons] || Heart;
+            
+            return (
+              <Card key={service.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-blue-100 rounded-lg">
+                        <IconComponent className="h-6 w-6 text-blue-600" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-lg">{service.title}</CardTitle>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="outline">{service.category}</Badge>
+                          {service.priority_level === 'Urgent' && (
+                            <Badge variant="destructive">Urgent</Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <CardTitle className="text-xl">{service.title}</CardTitle>
-                  <CardDescription className="text-base">
-                    {service.description}
-                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    <h4 className="font-semibold text-sm text-gray-700">Key Features:</h4>
-                    <ul className="space-y-1">
-                      {service.features.map((feature, featureIndex) => (
-                        <li key={featureIndex} className="flex items-center text-sm text-gray-600">
-                          <div className="w-1.5 h-1.5 bg-primary rounded-full mr-2 flex-shrink-0" />
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
+                  <CardDescription className="mb-4">
+                    {service.description}
+                  </CardDescription>
+                  
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center text-sm text-gray-600">
+                      <MapPin className="h-4 w-4 mr-2" />
+                      {service.location} ({service.delivery_mode})
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Users className="h-4 w-4 mr-2" />
+                      {service.language_support}
+                    </div>
+                  </div>
+
+                  {service.key_features && service.key_features.length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="text-sm font-medium mb-2">Key Features:</h4>
+                      <ul className="text-xs space-y-1">
+                        {service.key_features.slice(0, 3).map((feature, index) => (
+                          <li key={index} className="flex items-center">
+                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={() => handleBookService(service)}
+                      className="flex-1"
+                      size="sm"
+                    >
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Book Session
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setShowRequestForm(true)}
+                    >
+                      Request Help
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
+            );
+          })}
         </div>
 
-        {/* Call to Action */}
-        <Card className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
-          <CardContent className="p-8 text-center">
-            <h2 className="text-2xl font-bold mb-4">Emergency Support</h2>
-            <p className="text-lg mb-6">
-              If you need immediate assistance or are in crisis, don't wait. Reach out now.
-            </p>
-            <div className="space-y-4">
-              <Button size="lg" variant="secondary">
-                Call Emergency Hotline: 911
-              </Button>
-              <p className="text-sm opacity-90">
-                Available 24/7 for immediate crisis support and emergency services
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        {filteredServices.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg">No services found matching your criteria.</p>
+          </div>
+        )}
+
+        {/* Request Support Button */}
+        <div className="text-center">
+          <Button 
+            onClick={() => setShowRequestForm(true)}
+            size="lg"
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+          >
+            Need Custom Support? Contact Us
+          </Button>
+        </div>
+
+        {/* Service Request Form Modal */}
+        <ServiceRequestForm 
+          isOpen={showRequestForm}
+          onClose={() => setShowRequestForm(false)}
+        />
+
+        {/* Service Booking Modal */}
+        <ServiceBookingModal
+          service={selectedService}
+          isOpen={showBookingModal}
+          onClose={() => setShowBookingModal(false)}
+        />
       </div>
     </div>
   );

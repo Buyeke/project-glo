@@ -6,7 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Heart, Home, Briefcase, MessageSquare, Calendar, Bell } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import RequestTracker from './RequestTracker';
+import ServiceCalendar from '@/components/calendar/ServiceCalendar';
+import { useBookings } from '@/hooks/useBookings';
 import { usePageTracking } from '@/hooks/useDataTracking';
+import { format } from 'date-fns';
 
 interface IndividualDashboardProps {
   profile: any;
@@ -14,6 +17,15 @@ interface IndividualDashboardProps {
 
 const IndividualDashboard: React.FC<IndividualDashboardProps> = ({ profile }) => {
   usePageTracking();
+  const { bookings } = useBookings();
+
+  const upcomingBookings = bookings
+    .filter(booking => 
+      new Date(booking.booking_date) >= new Date() && 
+      booking.status === 'confirmed'
+    )
+    .sort((a, b) => new Date(a.booking_date).getTime() - new Date(b.booking_date).getTime())
+    .slice(0, 3);
 
   const quickActions = [
     {
@@ -102,6 +114,45 @@ const IndividualDashboard: React.FC<IndividualDashboardProps> = ({ profile }) =>
           ))}
         </div>
 
+        {/* Upcoming Bookings */}
+        {upcomingBookings.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Your Upcoming Sessions
+              </CardTitle>
+              <CardDescription>
+                You have {upcomingBookings.length} confirmed booking{upcomingBookings.length > 1 ? 's' : ''} coming up
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {upcomingBookings.map((booking) => (
+                  <div key={booking.id} className="p-4 border rounded-lg bg-blue-50 border-blue-200">
+                    <h4 className="font-semibold text-blue-900">{booking.service_title}</h4>
+                    <div className="text-sm text-blue-700 mt-2 space-y-1">
+                      <p>{format(new Date(booking.booking_date), 'EEEE, MMM d')}</p>
+                      <p>{format(new Date(booking.booking_date), 'h:mm a')}</p>
+                    </div>
+                    <Badge variant="outline" className="mt-2 text-blue-700 border-blue-300">
+                      {booking.status}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4">
+                <Link to="/services">
+                  <Button variant="outline" size="sm">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Book More Services
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Service Requests Tracking */}
         <RequestTracker />
 
@@ -117,15 +168,15 @@ const IndividualDashboard: React.FC<IndividualDashboardProps> = ({ profile }) =>
             <CardContent>
               <div className="space-y-3">
                 <div className="p-3 bg-blue-50 rounded-lg">
-                  <h4 className="font-semibold text-sm text-blue-900">New Mental Health Resources</h4>
+                  <h4 className="font-semibold text-sm text-blue-900">New Booking System</h4>
                   <p className="text-xs text-blue-700 mt-1">
-                    We've added new counseling services available in multiple languages.
+                    You can now book sessions directly through our new calendar system.
                   </p>
                 </div>
                 <div className="p-3 bg-green-50 rounded-lg">
-                  <h4 className="font-semibold text-sm text-green-900">Job Training Program</h4>
+                  <h4 className="font-semibold text-sm text-green-900">Multi-Location Services</h4>
                   <p className="text-xs text-green-700 mt-1">
-                    Free digital literacy and vocational training starting next week.
+                    Services are now available in Nairobi and Mombasa, with remote options.
                   </p>
                 </div>
               </div>
@@ -136,27 +187,27 @@ const IndividualDashboard: React.FC<IndividualDashboardProps> = ({ profile }) =>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
-                Upcoming Events
+                Service Schedule
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h4 className="font-semibold text-sm">Community Support Group</h4>
-                    <p className="text-xs text-muted-foreground">Weekly meetup for mutual support</p>
+                    <h4 className="font-semibold text-sm">Emergency Services</h4>
+                    <p className="text-xs text-muted-foreground">Monday & Thursday</p>
                   </div>
                   <Badge variant="outline" className="text-xs">
-                    Tomorrow
+                    Available
                   </Badge>
                 </div>
                 <div className="flex justify-between items-start">
                   <div>
-                    <h4 className="font-semibold text-sm">Legal Aid Workshop</h4>
-                    <p className="text-xs text-muted-foreground">Know your housing rights</p>
+                    <h4 className="font-semibold text-sm">Healthcare Services</h4>
+                    <p className="text-xs text-muted-foreground">Wednesday & Saturday</p>
                   </div>
                   <Badge variant="outline" className="text-xs">
-                    Friday
+                    Available
                   </Badge>
                 </div>
               </div>
