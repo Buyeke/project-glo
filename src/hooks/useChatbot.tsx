@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { detectLanguage } from '@/utils/languageUtils';
-import { matchIntent, getFallbackResponse } from '@/utils/intentMatcher';
+import { matchIntent, getFallbackResponse, translateText } from '@/utils/intentMatcher';
 import { toast } from 'sonner';
 
 interface ChatMessage {
@@ -38,14 +38,20 @@ export const useChatbot = () => {
   const [currentLanguage, setCurrentLanguage] = useState('english');
 
   // Fetch intents from database
-  const { data: intents = [] } = useQuery({
+  const { data: intents = [], isLoading: isLoadingIntents } = useQuery({
     queryKey: ['chatbot-intents'],
     queryFn: async () => {
+      console.log('Fetching chatbot intents...');
       const { data, error } = await supabase
         .from('chatbot_intents')
         .select('*');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching intents:', error);
+        throw error;
+      }
+      
+      console.log('Fetched intents:', data);
       return data as Intent[];
     },
   });
@@ -61,8 +67,13 @@ export const useChatbot = () => {
       translated_response?: string;
       confidence_score?: number;
     }) => {
-      if (!user) return;
+      if (!user) {
+        console.log('No user logged in, skipping interaction log');
+        return;
+      }
 
+      console.log('Logging interaction:', interaction);
+      
       const { error } = await supabase
         .from('chat_interactions')
         .insert({
@@ -70,29 +81,59 @@ export const useChatbot = () => {
           ...interaction,
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error logging interaction:', error);
+        throw error;
+      }
+      
+      console.log('Interaction logged successfully');
     },
     onError: (error) => {
       console.error('Error logging chat interaction:', error);
+      toast.error('Failed to log chat interaction');
     },
   });
 
   const processMessage = async (userMessage: string, forcedLanguage?: string) => {
+    console.log('Processing message:', userMessage);
+    
     const detectedLanguage = forcedLanguage || detectLanguage(userMessage);
     console.log('Detected language:', detectedLanguage);
 
+    // Translate to English for intent matching if needed
+    let messageForMatching = userMessage;
+    if (detectedLanguage !== 'english') {
+      try {
+        messageForMatching = await translateText(userMessage, detectedLanguage, 'english');
+        console.log('Translated message for matching:', messageForMatching);
+      } catch (error) {
+        console.error('Translation failed:', error);
+        // Continue with original message if translation fails
+      }
+    }
+
     // Match intent
-    const { intent, confidence } = matchIntent(userMessage, intents, detectedLanguage);
-    console.log('Matched intent:', intent?.intent_key, 'Confidence:', confidence);
+    console.log('Starting intent matching with', intents.length, 'intents');
+    const { intent, confidence } = matchIntent(messageForMatching, intents, 'english');
+    console.log('Intent matching result:', {
+      intent: intent?.intent_key,
+      confidence,
+      hasIntent: !!intent
+    });
 
     let response: string;
     let matchedIntent: string | undefined;
 
-    if (intent && confidence > 0.3) {
-      response = intent.response_template[detectedLanguage] || intent.response_template['english'] || getFallbackResponse(detectedLanguage);
+    if (intent && confidence > 0) {
+      // Get response in detected language
+      response = intent.response_template[detectedLanguage] || 
+                intent.response_template['english'] || 
+                getFallbackResponse(detectedLanguage);
       matchedIntent = intent.intent_key;
+      console.log('Using matched intent response:', response);
     } else {
       response = getFallbackResponse(detectedLanguage);
+      console.log('Using fallback response:', response);
     }
 
     // Add translation note if language was detected as non-English
@@ -124,16 +165,16 @@ export const useChatbot = () => {
 
     setMessages(prev => [...prev, userMsg, botMsg]);
 
-    // Log interaction
-    if (user) {
-      logInteractionMutation.mutate({
-        original_message: userMessage,
-        detected_language: detectedLanguage,
-        matched_intent: matchedIntent,
-        response: response,
-        confidence_score: confidence,
-      });
-    }
+    // Log interaction (always log, even for fallback responses)
+    logInteractionMutation.mutate({
+      original_message: userMessage,
+      detected_language: detectedLanguage,
+      translated_message: messageForMatching !== userMessage ? messageForMatching : undefined,
+      matched_intent: matchedIntent,
+      response: response,
+      translated_response: translatedFrom ? finalResponse : undefined,
+      confidence_score: confidence,
+    });
 
     return botMsg;
   };
@@ -158,6 +199,6 @@ export const useChatbot = () => {
     currentLanguage,
     switchLanguage,
     intents,
-    isLoadingIntents: !intents.length,
+    isLoadingIntents,
   };
 };

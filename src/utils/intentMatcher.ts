@@ -8,29 +8,45 @@ interface Intent {
 }
 
 export const matchIntent = (message: string, intents: Intent[], language: string = 'english'): { intent: Intent | null; confidence: number } => {
-  const lowerMessage = message.toLowerCase();
+  const lowerMessage = message.toLowerCase().trim();
   let bestMatch: Intent | null = null;
   let bestScore = 0;
   
+  console.log('Matching message:', lowerMessage, 'in language:', language);
+  console.log('Available intents:', intents.length);
+  
   for (const intent of intents) {
     const keywords = intent.keywords[language] || intent.keywords['english'] || [];
-    let score = 0;
+    let matchCount = 0;
+    let totalKeywords = keywords.length;
     
-    // Check for keyword matches
+    console.log(`Checking intent ${intent.intent_key} with keywords:`, keywords);
+    
+    // Check for keyword matches with partial matching
     for (const keyword of keywords) {
-      if (lowerMessage.includes(keyword.toLowerCase())) {
-        score += 1;
+      const lowerKeyword = keyword.toLowerCase();
+      
+      // Check for exact word match, partial match, or contained match
+      if (lowerMessage.includes(lowerKeyword) || 
+          lowerMessage.split(' ').some(word => word.includes(lowerKeyword)) ||
+          lowerKeyword.split(' ').some(word => lowerMessage.includes(word))) {
+        matchCount++;
+        console.log(`Matched keyword: ${keyword}`);
       }
     }
     
-    // Normalize score by number of keywords
-    const normalizedScore = keywords.length > 0 ? score / keywords.length : 0;
+    // Calculate confidence score
+    const confidence = totalKeywords > 0 ? matchCount / totalKeywords : 0;
+    console.log(`Intent ${intent.intent_key} confidence: ${confidence} (${matchCount}/${totalKeywords})`);
     
-    if (normalizedScore > bestScore && normalizedScore > 0.3) { // Minimum confidence threshold
-      bestScore = normalizedScore;
+    // Lower threshold for better matching and consider any match
+    if (confidence > bestScore && matchCount > 0) {
+      bestScore = confidence;
       bestMatch = intent;
     }
   }
+  
+  console.log('Best match:', bestMatch?.intent_key, 'with confidence:', bestScore);
   
   return {
     intent: bestMatch,
@@ -47,4 +63,12 @@ export const getFallbackResponse = (language: string): string => {
   };
   
   return responses[language as keyof typeof responses] || responses.english;
+};
+
+// Simple translation function (placeholder for LibreTranslate integration)
+export const translateText = async (text: string, fromLang: string, toLang: string): Promise<string> => {
+  // For now, return the original text
+  // In production, you would integrate with LibreTranslate API
+  console.log(`Translation requested: ${text} from ${fromLang} to ${toLang}`);
+  return text;
 };
