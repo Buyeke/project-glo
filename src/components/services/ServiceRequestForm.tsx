@@ -4,8 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useDataTracking } from '@/hooks/useDataTracking';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -14,6 +16,7 @@ const ServiceRequestForm = () => {
   const [language, setLanguage] = useState('english');
   const [priority, setPriority] = useState('medium');
   const [description, setDescription] = useState('');
+  const [userEmail, setUserEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const { trackServiceRequest } = useDataTracking();
@@ -47,49 +50,50 @@ const ServiceRequestForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user) {
-      toast.error('Please sign in to submit a request');
-      return;
-    }
-
     if (!serviceType) {
       toast.error('Please select a service type');
       return;
     }
 
+    if (!userEmail) {
+      toast.error('Please provide your email address');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      await trackServiceRequest(serviceType, language);
-      toast.success('Service request submitted successfully! We will get back to you soon.');
+      // Submit to support_requests table
+      const { error } = await supabase
+        .from('support_requests')
+        .insert({
+          user_email: userEmail,
+          service_type: serviceType,
+          language: language,
+          priority: priority,
+          message: description || null,
+        });
+
+      if (error) throw error;
+
+      // Track the request if user is logged in
+      if (user) {
+        await trackServiceRequest(serviceType, language);
+      }
+
+      toast.success('Support request submitted successfully! We will get back to you soon.');
       
       // Reset form
       setServiceType('');
       setDescription('');
+      setUserEmail('');
       setPriority('medium');
     } catch (error) {
+      console.error('Error submitting support request:', error);
       toast.error('Failed to submit request. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  if (!user) {
-    return (
-      <Card className="w-full max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle>Service Request</CardTitle>
-          <CardDescription>
-            Please sign in to submit a service request
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button asChild className="w-full">
-            <a href="/auth">Sign In</a>
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
@@ -122,6 +126,21 @@ const ServiceRequestForm = () => {
 
             <div>
               <label className="block text-sm font-medium mb-2">
+                Your Email *
+              </label>
+              <Input
+                type="email"
+                value={userEmail}
+                onChange={(e) => setUserEmail(e.target.value)}
+                placeholder="your.email@example.com"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">
                 Preferred Language
               </label>
               <Select value={language} onValueChange={setLanguage}>
@@ -137,27 +156,27 @@ const ServiceRequestForm = () => {
                 </SelectContent>
               </Select>
             </div>
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Priority Level
-            </label>
-            <div className="flex gap-2">
-              {priorities.map((p) => (
-                <button
-                  key={p.value}
-                  type="button"
-                  onClick={() => setPriority(p.value)}
-                  className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                    priority === p.value 
-                      ? p.color 
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  {p.label}
-                </button>
-              ))}
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Priority Level
+              </label>
+              <div className="flex gap-2">
+                {priorities.map((p) => (
+                  <button
+                    key={p.value}
+                    type="button"
+                    onClick={() => setPriority(p.value)}
+                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                      priority === p.value 
+                        ? p.color 
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -176,7 +195,7 @@ const ServiceRequestForm = () => {
           <Button 
             type="submit" 
             className="w-full" 
-            disabled={isSubmitting || !serviceType}
+            disabled={isSubmitting || !serviceType || !userEmail}
           >
             {isSubmitting ? 'Submitting Request...' : 'Submit Request'}
           </Button>

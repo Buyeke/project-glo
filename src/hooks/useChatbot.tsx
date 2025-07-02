@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { detectLanguage } from '@/utils/languageUtils';
-import { matchIntent, getFallbackResponse, translateText } from '@/utils/intentMatcher';
+import { matchIntent, getFallbackResponse, translateText, matchService } from '@/utils/intentMatcher';
 import { toast } from 'sonner';
 
 interface ChatMessage {
@@ -15,6 +15,7 @@ interface ChatMessage {
   translatedFrom?: string;
   intent?: string;
   confidence?: number;
+  matchedService?: string;
 }
 
 interface Intent {
@@ -23,6 +24,19 @@ interface Intent {
   intent_key: string;
   keywords: Record<string, string[]>;
   response_template: Record<string, string>;
+}
+
+interface Service {
+  id: string;
+  title: string;
+  description: string;
+  key_features: string[] | null;
+  availability: string;
+  priority_level: string;
+  language_support: string;
+  category: string;
+  contact_phone: string | null;
+  contact_url: string | null;
 }
 
 export const useChatbot = () => {
@@ -56,6 +70,26 @@ export const useChatbot = () => {
     },
   });
 
+  // Fetch services from database
+  const { data: services = [], isLoading: isLoadingServices } = useQuery({
+    queryKey: ['services'],
+    queryFn: async () => {
+      console.log('Fetching services...');
+      const { data, error } = await supabase
+        .from('services')
+        .select('*')
+        .eq('availability', 'Available');
+      
+      if (error) {
+        console.error('Error fetching services:', error);
+        throw error;
+      }
+      
+      console.log('Fetched services:', data);
+      return data as Service[];
+    },
+  });
+
   // Log chat interaction
   const logInteractionMutation = useMutation({
     mutationFn: async (interaction: {
@@ -63,6 +97,7 @@ export const useChatbot = () => {
       detected_language: string;
       translated_message?: string;
       matched_intent?: string;
+      matched_service?: string;
       response: string;
       translated_response?: string;
       confidence_score?: number;
@@ -112,7 +147,7 @@ export const useChatbot = () => {
       }
     }
 
-    // Match intent
+    // First try to match intents
     console.log('Starting intent matching with', intents.length, 'intents');
     const { intent, confidence } = matchIntent(messageForMatching, intents, 'english');
     console.log('Intent matching result:', {
@@ -121,11 +156,37 @@ export const useChatbot = () => {
       hasIntent: !!intent
     });
 
+    // Then try to match services
+    console.log('Starting service matching with', services.length, 'services');
+    const matchedServices = matchService(messageForMatching, services);
+    console.log('Service matching result:', matchedServices);
+
     let response: string;
     let matchedIntent: string | undefined;
+    let matchedServiceId: string | undefined;
 
-    if (intent && confidence > 0) {
-      // Get response in detected language
+    if (matchedServices.length > 0) {
+      // Format service response
+      const service = matchedServices[0];
+      matchedServiceId = service.id;
+      
+      const features = Array.isArray(service.key_features) 
+        ? service.key_features.map(feature => `• ${feature}`).join('\n')
+        : '• Professional support available';
+
+      response = `🔹 ${service.title}\n${service.description}\n\nKey Features:\n${features}`;
+      
+      if (service.contact_phone) {
+        response += `\n\n📞 Call: ${service.contact_phone}`;
+      }
+      
+      if (service.contact_url) {
+        response += `\n🌐 More info: ${service.contact_url}`;
+      }
+
+      console.log('Using service response for:', service.title);
+    } else if (intent && confidence > 0) {
+      // Get response in detected language from intent
       response = intent.response_template[detectedLanguage] || 
                 intent.response_template['english'] || 
                 getFallbackResponse(detectedLanguage);
@@ -161,6 +222,7 @@ export const useChatbot = () => {
       translatedFrom,
       intent: matchedIntent,
       confidence,
+      matchedService: matchedServiceId,
     };
 
     setMessages(prev => [...prev, userMsg, botMsg]);
@@ -171,6 +233,7 @@ export const useChatbot = () => {
       detected_language: detectedLanguage,
       translated_message: messageForMatching !== userMessage ? messageForMatching : undefined,
       matched_intent: matchedIntent,
+      matched_service: matchedServiceId,
       response: response,
       translated_response: translatedFrom ? finalResponse : undefined,
       confidence_score: confidence,
@@ -199,6 +262,8 @@ export const useChatbot = () => {
     currentLanguage,
     switchLanguage,
     intents,
+    services,
     isLoadingIntents,
+    isLoadingServices,
   };
 };

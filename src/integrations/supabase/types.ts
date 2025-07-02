@@ -101,6 +101,7 @@ export type Database = {
           detected_language: string | null
           id: string
           matched_intent: string | null
+          matched_service: string | null
           original_message: string
           response: string
           translated_message: string | null
@@ -113,6 +114,7 @@ export type Database = {
           detected_language?: string | null
           id?: string
           matched_intent?: string | null
+          matched_service?: string | null
           original_message: string
           response: string
           translated_message?: string | null
@@ -125,6 +127,7 @@ export type Database = {
           detected_language?: string | null
           id?: string
           matched_intent?: string | null
+          matched_service?: string | null
           original_message?: string
           response?: string
           translated_message?: string | null
@@ -650,6 +653,87 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      services: {
+        Row: {
+          availability: string | null
+          category: string
+          contact_phone: string | null
+          contact_url: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          key_features: Json | null
+          language_support: string | null
+          priority_level: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          availability?: string | null
+          category: string
+          contact_phone?: string | null
+          contact_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          key_features?: Json | null
+          language_support?: string | null
+          priority_level?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          availability?: string | null
+          category?: string
+          contact_phone?: string | null
+          contact_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          key_features?: Json | null
+          language_support?: string | null
+          priority_level?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      support_requests: {
+        Row: {
+          created_at: string | null
+          id: string
+          language: string | null
+          message: string | null
+          priority: string | null
+          service_type: string | null
+          status: string | null
+          updated_at: string | null
+          user_email: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          language?: string | null
+          message?: string | null
+          priority?: string | null
+          service_type?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_email?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          language?: string | null
+          message?: string | null
+          priority?: string | null
+          service_type?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_email?: string | null
+        }
+        Relationships: []
       }
       usage_stats: {
         Row: {
