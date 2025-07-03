@@ -4,6 +4,7 @@ import { Outlet } from 'react-router-dom';
 import Navigation from './Navigation';
 import Footer from './Footer';
 import ChatBot from './ChatBot';
+import FloatingHelpButton from './FloatingHelpButton';
 
 const Layout = () => {
   return (
@@ -14,6 +15,7 @@ const Layout = () => {
       </main>
       <Footer />
       <ChatBot />
+      <FloatingHelpButton />
     </div>
   );
 };

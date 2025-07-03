@@ -1,151 +1,85 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, Clock } from 'lucide-react';
+import { Calendar, User, ArrowRight } from 'lucide-react';
+import { blogPosts } from '@/data/blogPosts';
 
 const Blog = () => {
-  const { data: blogPosts, isLoading } = useQuery({
-    queryKey: ['blogPosts'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .eq('published', true)
-        .order('published_at', { ascending: false });
-      
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const getMonthYear = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long'
-    });
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-12 text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Our Journey</h1>
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Glo Blog</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Follow Glo's story from conception to impact, documenting our mission to support homeless women and children.
+            Updates, insights, and stories from our journey to support vulnerable communities
           </p>
         </div>
 
-        {/* Timeline */}
-        {isLoading ? (
-          <div className="space-y-8">
-            {[...Array(6)].map((_, i) => (
-              <Card key={i} className="animate-pulse">
-                <CardContent className="p-8">
-                  <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
-                  <div className="h-24 bg-gray-200 rounded mb-4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-8">
-            {blogPosts?.map((post, index) => (
-              <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50">
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge variant="secondary" className="text-sm">
-                      {getMonthYear(post.published_at)}
-                    </Badge>
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4 mr-1" />
-                      {formatDate(post.published_at)}
+        {/* Blog Posts */}
+        <div className="space-y-8">
+          {blogPosts.map((post) => (
+            <Card key={post.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="secondary">Featured</Badge>
+                      <div className="flex items-center text-sm text-gray-500">
+                        <Calendar className="h-4 w-4 mr-1" />
+                        {new Date(post.published_at).toLocaleDateString()}
+                      </div>
                     </div>
+                    <CardTitle className="text-2xl mb-2">{post.title}</CardTitle>
+                    <CardDescription className="text-base">
+                      {post.excerpt}
+                    </CardDescription>
                   </div>
-                  <CardTitle className="text-2xl font-bold text-gray-900">
-                    {post.title}
-                  </CardTitle>
-                  <CardDescription className="text-lg">
-                    {post.excerpt}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-8">
-                  <div className="prose prose-gray max-w-none">
-                    <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                      {post.content}
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="prose prose-gray max-w-none mb-6">
+                  {post.content.split('\n\n').map((paragraph, index) => (
+                    <p key={index} className="mb-4 text-gray-700 leading-relaxed">
+                      {paragraph}
                     </p>
+                  ))}
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center text-sm text-gray-500">
+                    <User className="h-4 w-4 mr-1" />
+                    Glo Team
                   </div>
-                  
-                  {post.thumbnail_url && (
-                    <div className="mt-6">
-                      <img 
-                        src={post.thumbnail_url} 
-                        alt={post.title}
-                        className="w-full h-64 object-cover rounded-lg"
-                      />
-                    </div>
-                  )}
-
-                  <div className="mt-6 pt-4 border-t border-gray-200">
-                    <div className="flex items-center justify-between text-sm text-muted-foreground">
-                      <div className="flex items-center">
-                        <Clock className="h-4 w-4 mr-1" />
-                        3 min read
-                      </div>
-                      <div>
-                        Post #{blogPosts.length - index}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {blogPosts?.length === 0 && !isLoading && (
-          <Card className="text-center py-12">
-            <CardContent>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No Posts Yet</h3>
-              <p className="text-gray-600">
-                Check back soon for updates on our journey and impact.
-              </p>
-            </CardContent>
-          </Card>
-        )}
+                  <Button variant="outline" size="sm">
+                    Share <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
         {/* Call to Action */}
-        <Card className="mt-12 bg-gradient-to-r from-purple-600 to-pink-600 text-white">
-          <CardContent className="p-8 text-center">
-            <h2 className="text-2xl font-bold mb-4">Be Part of Our Story</h2>
-            <p className="text-lg mb-6">
-              Join our community and help us create more positive impact stories together.
-            </p>
-            <div className="space-x-4">
-              <Button variant="secondary" asChild>
-                <Link to="/services">Get Support</Link>
-              </Button>
-              <Button variant="outline" className="border-white text-white hover:bg-white hover:text-purple-600" asChild>
-                <Link to="/auth">Volunteer with Us</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="mt-12 text-center">
+          <Card className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+            <CardContent className="p-8">
+              <h2 className="text-2xl font-bold mb-4">Want to be part of our story?</h2>
+              <p className="text-lg mb-6 opacity-90">
+                Join our community and help us support vulnerable women and children
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button size="lg" variant="secondary">
+                  Get Support
+                </Button>
+                <Button size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white hover:text-purple-600">
+                  Partner with Us
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

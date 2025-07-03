@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import IndividualDashboard from '@/components/dashboard/IndividualDashboard';
 import NgoDashboard from '@/components/dashboard/NgoDashboard';
+import SimpleDashboard from '@/components/dashboard/SimpleDashboard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 
@@ -56,8 +57,8 @@ const Dashboard = () => {
   }
 
   if (profile.user_type === 'individual') {
-    return <IndividualDashboard profile={profile} />;
-  } else if (profile.user_type === 'ngo') {
+    return <SimpleDashboard profile={profile} />;
+  } else if (profile.user_type === 'ngo' || profile.user_type === 'partner') {
     return <NgoDashboard profile={profile} />;
   }
 

@@ -3,13 +3,13 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Heart, Users, Home as HomeIcon, Search, Gift } from 'lucide-react';
+import { Heart, Users, Home as HomeIcon, Search, Gift, Shield, MapPin, Calendar } from 'lucide-react';
 
 const Home = () => {
   const stats = [
     { number: '50+', label: 'Women Supported', icon: Users },
     { number: '100+', label: 'Children Helped', icon: Heart },
-    { number: '10+', label: 'Shelter Partners', icon: HomeIcon },
+    { number: '12+', label: 'Trusted Partners', icon: HomeIcon },
     { number: '24/7', label: 'AI Support', icon: Search },
   ];
 
@@ -45,10 +45,14 @@ const Home = () => {
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
               Empowering Women & Children
             </h1>
-            <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
-              Glo is an AI-powered social platform providing comprehensive support, 
-              resources, and community for homeless women and children.
+            <p className="text-xl md:text-2xl mb-4 max-w-4xl mx-auto">
+              AI-powered support for homeless women and children in Mombasa — access shelter, food, healthcare, and more.
             </p>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 mb-8 max-w-2xl mx-auto">
+              <p className="text-lg font-medium">
+                You're not alone. Glo connects you to real help, fast.
+              </p>
+            </div>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" variant="secondary" asChild>
                 <Link to="/auth">Get Support Now</Link>
@@ -108,6 +112,22 @@ const Home = () => {
             <Button asChild>
               <Link to="/services">View All Services</Link>
             </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Trust Indicators */}
+      <section className="py-12 bg-white border-t">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Shield className="h-6 w-6 text-green-600" />
+              <span className="text-lg font-semibold text-gray-900">Trusted by 12+ local shelters</span>
+            </div>
+            <p className="text-gray-600 flex items-center justify-center gap-2">
+              <MapPin className="h-4 w-4" />
+              Serving Mombasa and surrounding areas
+            </p>
           </div>
         </div>
       </section>

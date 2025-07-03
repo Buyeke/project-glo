@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,6 +37,7 @@ const Services = () => {
   const [showRequestForm, setShowRequestForm] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [bookingSuccess, setBookingSuccess] = useState<string | null>(null);
 
   const categoryIcons = {
     Emergency: Home,
@@ -113,6 +113,16 @@ const Services = () => {
     setShowBookingModal(true);
   };
 
+  const handleBookingSuccess = (bookingDate: Date) => {
+    const formattedDate = bookingDate.toLocaleDateString('en-US', {
+      weekday: 'long',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    setBookingSuccess(`✅ Your session has been booked for ${formattedDate}. We'll send a reminder.`);
+    setTimeout(() => setBookingSuccess(null), 5000);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -125,28 +135,35 @@ const Services = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Booking Success Message */}
+        {bookingSuccess && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-green-800 font-medium">{bookingSuccess}</p>
+          </div>
+        )}
+
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Available Services</h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Available Services</h1>
+          <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">
             Discover the support services available to help you on your journey. Book sessions or request assistance directly.
           </p>
         </div>
 
         {/* Filters */}
-        <div className="mb-8 space-y-4 lg:space-y-0 lg:flex lg:space-x-4">
+        <div className="mb-6 sm:mb-8 space-y-3 sm:space-y-0 sm:flex sm:space-x-4">
           <div className="flex-1">
             <Input
               placeholder="Search services..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full"
+              className="w-full h-12 text-base"
             />
           </div>
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-full lg:w-48">
+            <SelectTrigger className="w-full sm:w-48 h-12">
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent>
@@ -159,7 +176,7 @@ const Services = () => {
             </SelectContent>
           </Select>
           <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-            <SelectTrigger className="w-full lg:w-48">
+            <SelectTrigger className="w-full sm:w-48 h-12">
               <SelectValue placeholder="All Locations" />
             </SelectTrigger>
             <SelectContent>
@@ -174,7 +191,7 @@ const Services = () => {
         </div>
 
         {/* Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
           {filteredServices.map((service) => {
             const IconComponent = categoryIcons[service.category as keyof typeof categoryIcons] || Heart;
             
@@ -198,40 +215,40 @@ const Services = () => {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <CardDescription className="mb-4">
+                <CardContent className="space-y-4">
+                  <CardDescription className="text-sm">
                     {service.description}
                   </CardDescription>
                   
-                  <div className="space-y-2 mb-4">
+                  <div className="space-y-2">
                     <div className="flex items-center text-sm text-gray-600">
-                      <MapPin className="h-4 w-4 mr-2" />
-                      {service.location} ({service.delivery_mode})
+                      <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
+                      <span>{service.location} ({service.delivery_mode})</span>
                     </div>
                     <div className="flex items-center text-sm text-gray-600">
-                      <Users className="h-4 w-4 mr-2" />
-                      {service.language_support}
+                      <Users className="h-4 w-4 mr-2 flex-shrink-0" />
+                      <span>{service.language_support}</span>
                     </div>
                   </div>
 
                   {service.key_features && service.key_features.length > 0 && (
-                    <div className="mb-4">
+                    <div>
                       <h4 className="text-sm font-medium mb-2">Key Features:</h4>
                       <ul className="text-xs space-y-1">
                         {service.key_features.slice(0, 3).map((feature, index) => (
-                          <li key={index} className="flex items-center">
-                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>
-                            {feature}
+                          <li key={index} className="flex items-start">
+                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2 mt-1.5 flex-shrink-0"></span>
+                            <span>{feature}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
                   )}
 
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <Button 
                       onClick={() => handleBookService(service)}
-                      className="flex-1"
+                      className="flex-1 h-10"
                       size="sm"
                     >
                       <Calendar className="h-4 w-4 mr-2" />
@@ -240,6 +257,7 @@ const Services = () => {
                     <Button 
                       variant="outline" 
                       size="sm"
+                      className="h-10"
                       onClick={() => setShowRequestForm(true)}
                     >
                       Request Help
@@ -249,6 +267,16 @@ const Services = () => {
               </Card>
             );
           })}
+        </div>
+
+        {/* Privacy Note */}
+        <div className="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-start gap-3">
+            <div className="text-xl">🔒</div>
+            <p className="text-sm text-blue-800">
+              Your information is confidential and only shared with the organizations providing your support.
+            </p>
+          </div>
         </div>
 
         {filteredServices.length === 0 && (
@@ -262,7 +290,7 @@ const Services = () => {
           <Button 
             onClick={() => setShowRequestForm(true)}
             size="lg"
-            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 h-12 px-8"
           >
             Need Custom Support? Contact Us
           </Button>
@@ -281,6 +309,7 @@ const Services = () => {
             service={selectedService}
             isOpen={showBookingModal}
             onClose={() => setShowBookingModal(false)}
+            onSuccess={handleBookingSuccess}
           />
         )}
       </div>

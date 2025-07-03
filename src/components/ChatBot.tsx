@@ -1,13 +1,13 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { X, MessageSquare, Send, Globe, AlertTriangle } from 'lucide-react';
+import { X, MessageSquare, Send, Globe, AlertTriangle, LifeBuoy } from 'lucide-react';
 import { useChatbot } from '@/hooks/useChatbot';
 import { getSupportedLanguages } from '@/utils/languageUtils';
+import { Link } from 'react-router-dom';
 
 const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -36,8 +36,9 @@ const ChatBot = () => {
       {!isOpen && (
         <Button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg z-50"
+          className="fixed bottom-6 left-6 rounded-full w-14 h-14 shadow-lg z-50"
           size="icon"
+          data-chat-trigger
         >
           <MessageSquare className="h-6 w-6" />
         </Button>
@@ -45,7 +46,7 @@ const ChatBot = () => {
 
       {/* Chat Window */}
       {isOpen && (
-        <Card className="fixed bottom-6 right-6 w-80 h-96 shadow-2xl z-50">
+        <Card className="fixed bottom-6 left-6 w-80 h-96 shadow-2xl z-50">
           <CardHeader className="bg-primary text-primary-foreground p-4">
             <div className="flex justify-between items-center">
               <CardTitle className="text-sm flex items-center gap-2">
@@ -79,47 +80,83 @@ const ChatBot = () => {
           <CardContent className="p-0 flex flex-col h-80">
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.isBot ? 'justify-start' : 'justify-end'}`}
-                >
-                  <div className="max-w-xs">
-                    <div
-                      className={`p-3 rounded-lg text-sm ${
-                        message.isBot
-                          ? 'bg-gray-100 text-gray-800'
-                          : 'bg-primary text-primary-foreground'
-                      }`}
-                    >
-                      {message.text}
-                    </div>
-                    
-                    {/* Message metadata */}
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {message.language && message.language !== 'english' && (
-                        <Badge variant="secondary" className="text-xs">
-                          {message.language}
-                        </Badge>
-                      )}
-                      {message.intent && (
-                        <Badge variant="outline" className="text-xs">
-                          {message.intent}
-                        </Badge>
-                      )}
-                      {message.confidence && (
-                        <Badge variant="outline" className="text-xs">
-                          {Math.round(message.confidence * 100)}%
-                        </Badge>
-                      )}
-                      {message.intent?.includes('emergency') && (
-                        <Badge variant="destructive" className="text-xs">
-                          <AlertTriangle className="h-3 w-3 mr-1" />
-                          Emergency
-                        </Badge>
-                      )}
+              {messages.map((message, index) => (
+                <div key={message.id}>
+                  <div
+                    className={`flex ${message.isBot ? 'justify-start' : 'justify-end'}`}
+                  >
+                    <div className="max-w-xs">
+                      <div
+                        className={`p-3 rounded-lg text-sm ${
+                          message.isBot
+                            ? 'bg-gray-100 text-gray-800'
+                            : 'bg-primary text-primary-foreground'
+                        }`}
+                      >
+                        {message.text}
+                      </div>
+                      
+                      {/* Message metadata */}
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {message.language && message.language !== 'english' && (
+                          <Badge variant="secondary" className="text-xs">
+                            {message.language}
+                          </Badge>
+                        )}
+                        {message.intent && (
+                          <Badge variant="outline" className="text-xs">
+                            {message.intent}
+                          </Badge>
+                        )}
+                        {message.confidence && (
+                          <Badge variant="outline" className="text-xs">
+                            {Math.round(message.confidence * 100)}%
+                          </Badge>
+                        )}
+                        {message.intent?.includes('emergency') && (
+                          <Badge variant="destructive" className="text-xs">
+                            <AlertTriangle className="h-3 w-3 mr-1" />
+                            Emergency
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
+                  
+                  {/* Add helpful microcopy after the first bot message */}
+                  {index === 0 && message.isBot && (
+                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-sm text-blue-800 mb-2">
+                        I'm here to help — you can ask for food, shelter, health support, or legal help. 
+                        Try typing something like "I need a place to stay."
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Show fallback options if no good match */}
+                  {message.isBot && message.confidence && message.confidence < 0.3 && (
+                    <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="text-sm text-yellow-800 mb-2">
+                        I'm not sure I understand. You can:
+                      </p>
+                      <div className="space-y-2">
+                        <Link to="/services">
+                          <Button variant="outline" size="sm" className="w-full justify-start">
+                            <LifeBuoy className="h-4 w-4 mr-2" />
+                            Request Support
+                          </Button>
+                        </Link>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full justify-start"
+                          onClick={() => processMessage("How does Glo work?")}
+                        >
+                          Learn about Glo
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
               
