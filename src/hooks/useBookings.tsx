@@ -36,13 +36,13 @@ export const useBookings = () => {
     
     try {
       const { data, error } = await supabase
-        .from('service_bookings')
+        .from('service_bookings' as any)
         .select('*')
         .eq('user_id', user.id)
         .order('booking_date', { ascending: true });
 
       if (error) throw error;
-      setBookings(data || []);
+      setBookings(data as ServiceBooking[] || []);
     } catch (error) {
       console.error('Error fetching bookings:', error);
       toast.error('Failed to load bookings');
@@ -52,12 +52,12 @@ export const useBookings = () => {
   const fetchSchedules = async () => {
     try {
       const { data, error } = await supabase
-        .from('service_schedule')
+        .from('service_schedule' as any)
         .select('*')
         .order('available_day', { ascending: true });
 
       if (error) throw error;
-      setSchedules(data || []);
+      setSchedules(data as ServiceSchedule[] || []);
     } catch (error) {
       console.error('Error fetching schedules:', error);
     }
@@ -73,7 +73,7 @@ export const useBookings = () => {
     try {
       // Check for duplicate booking
       const { data: existingBooking } = await supabase
-        .from('service_bookings')
+        .from('service_bookings' as any)
         .select('id')
         .eq('user_id', user.id)
         .eq('service_id', serviceId)
@@ -87,7 +87,7 @@ export const useBookings = () => {
 
       // Create the booking
       const { data, error } = await supabase
-        .from('service_bookings')
+        .from('service_bookings' as any)
         .insert({
           user_id: user.id,
           service_id: serviceId,
@@ -102,12 +102,8 @@ export const useBookings = () => {
 
       // Create Google Calendar event
       try {
-        const response = await fetch('/api/google-calendar', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
+        const response = await supabase.functions.invoke('google-calendar-sync', {
+          body: {
             action: 'create',
             booking: {
               id: data.id,
@@ -115,16 +111,14 @@ export const useBookings = () => {
               booking_date: bookingDate.toISOString(),
               user_id: user.id
             }
-          })
+          }
         });
 
-        if (response.ok) {
-          const { eventId } = await response.json();
-          
+        if (response.data?.eventId) {
           // Update booking with Google Calendar event ID
           await supabase
-            .from('service_bookings')
-            .update({ google_calendar_event_id: eventId })
+            .from('service_bookings' as any)
+            .update({ google_calendar_event_id: response.data.eventId })
             .eq('id', data.id);
         }
       } catch (calendarError) {
@@ -159,7 +153,7 @@ export const useBookings = () => {
     setLoading(true);
     try {
       const { error } = await supabase
-        .from('service_bookings')
+        .from('service_bookings' as any)
         .update({ status: 'cancelled' })
         .eq('id', bookingId);
 
@@ -168,15 +162,11 @@ export const useBookings = () => {
       // Cancel Google Calendar event
       if (googleCalendarEventId) {
         try {
-          await fetch('/api/google-calendar', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
+          await supabase.functions.invoke('google-calendar-sync', {
+            body: {
               action: 'cancel',
               eventId: googleCalendarEventId
-            })
+            }
           });
         } catch (calendarError) {
           console.error('Google Calendar cancellation failed:', calendarError);
