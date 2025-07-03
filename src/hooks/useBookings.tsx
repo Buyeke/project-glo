@@ -41,8 +41,15 @@ export const useBookings = () => {
         .eq('user_id', user.id)
         .order('booking_date', { ascending: true });
 
-      if (error) throw error;
-      setBookings(data as ServiceBooking[] || []);
+      if (error) {
+        console.error('Error fetching bookings:', error);
+        toast.error('Failed to load bookings');
+        return;
+      }
+      
+      if (data && Array.isArray(data)) {
+        setBookings(data as ServiceBooking[]);
+      }
     } catch (error) {
       console.error('Error fetching bookings:', error);
       toast.error('Failed to load bookings');
@@ -56,8 +63,14 @@ export const useBookings = () => {
         .select('*')
         .order('available_day', { ascending: true });
 
-      if (error) throw error;
-      setSchedules(data as ServiceSchedule[] || []);
+      if (error) {
+        console.error('Error fetching schedules:', error);
+        return;
+      }
+      
+      if (data && Array.isArray(data)) {
+        setSchedules(data as ServiceSchedule[]);
+      }
     } catch (error) {
       console.error('Error fetching schedules:', error);
     }
@@ -72,13 +85,17 @@ export const useBookings = () => {
     setLoading(true);
     try {
       // Check for duplicate booking
-      const { data: existingBooking } = await supabase
+      const { data: existingBooking, error: checkError } = await supabase
         .from('service_bookings' as any)
         .select('id')
         .eq('user_id', user.id)
         .eq('service_id', serviceId)
         .eq('booking_date', bookingDate.toISOString())
         .single();
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        throw checkError;
+      }
 
       if (existingBooking) {
         toast.error('You already have a booking for this service at this time');
@@ -100,13 +117,19 @@ export const useBookings = () => {
 
       if (error) throw error;
 
+      if (!data) {
+        throw new Error('No data returned from booking creation');
+      }
+
+      const bookingData = data as ServiceBooking;
+
       // Create Google Calendar event
       try {
         const response = await supabase.functions.invoke('google-calendar-sync', {
           body: {
             action: 'create',
             booking: {
-              id: data.id,
+              id: bookingData.id,
               service_title: serviceTitle,
               booking_date: bookingDate.toISOString(),
               user_id: user.id
@@ -119,7 +142,7 @@ export const useBookings = () => {
           await supabase
             .from('service_bookings' as any)
             .update({ google_calendar_event_id: response.data.eventId })
-            .eq('id', data.id);
+            .eq('id', bookingData.id);
         }
       } catch (calendarError) {
         console.error('Google Calendar sync failed:', calendarError);

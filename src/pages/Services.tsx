@@ -64,7 +64,18 @@ const Services = () => {
         .order('priority_level', { ascending: false });
 
       if (error) throw error;
-      setServices(data || []);
+      
+      if (data) {
+        // Transform the data to match our Service interface
+        const transformedServices = data.map(service => ({
+          ...service,
+          key_features: Array.isArray(service.key_features) ? service.key_features : [],
+          location: service.location || 'Nairobi',
+          delivery_mode: service.delivery_mode || 'In-Person'
+        })) as Service[];
+        
+        setServices(transformedServices);
+      }
     } catch (error) {
       console.error('Error fetching services:', error);
     } finally {
@@ -264,11 +275,13 @@ const Services = () => {
         />
 
         {/* Service Booking Modal */}
-        <ServiceBookingModal
-          service={selectedService}
-          isOpen={showBookingModal}
-          onClose={() => setShowBookingModal(false)}
-        />
+        {selectedService && (
+          <ServiceBookingModal
+            service={selectedService}
+            isOpen={showBookingModal}
+            onClose={() => setShowBookingModal(false)}
+          />
+        )}
       </div>
     </div>
   );
