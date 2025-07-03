@@ -21,18 +21,29 @@ interface ServiceBookingModalProps {
   service: Service | null;
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: (bookingDate: Date) => void;
 }
 
 const ServiceBookingModal: React.FC<ServiceBookingModalProps> = ({
   service,
   isOpen,
-  onClose
+  onClose,
+  onSuccess
 }) => {
   const [showCalendar, setShowCalendar] = useState(false);
 
   if (!service) return null;
 
   const keyFeatures = service.key_features || [];
+
+  const handleBookingSuccess = (bookingDate: Date) => {
+    setShowCalendar(false);
+    if (onSuccess) {
+      onSuccess(bookingDate);
+    }
+    // Optional: close modal after booking
+    // onClose();
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -110,11 +121,7 @@ const ServiceBookingModal: React.FC<ServiceBookingModalProps> = ({
               <ServiceCalendar 
                 services={[service]}
                 selectedService={service}
-                onBookingCreate={() => {
-                  setShowCalendar(false);
-                  // Optional: close modal after booking
-                  // onClose();
-                }}
+                onBookingCreate={handleBookingSuccess}
               />
             </div>
           )}
