@@ -36,7 +36,7 @@ export const useBookings = () => {
     
     try {
       const { data, error } = await supabase
-        .from('service_bookings' as any)
+        .from('service_bookings')
         .select('*')
         .eq('user_id', user.id)
         .order('booking_date', { ascending: true });
@@ -59,7 +59,7 @@ export const useBookings = () => {
   const fetchSchedules = async () => {
     try {
       const { data, error } = await supabase
-        .from('service_schedule' as any)
+        .from('service_schedule')
         .select('*')
         .order('available_day', { ascending: true });
 
@@ -86,7 +86,7 @@ export const useBookings = () => {
     try {
       // Check for duplicate booking
       const { data: existingBooking, error: checkError } = await supabase
-        .from('service_bookings' as any)
+        .from('service_bookings')
         .select('id')
         .eq('user_id', user.id)
         .eq('service_id', serviceId)
@@ -104,7 +104,7 @@ export const useBookings = () => {
 
       // Create the booking
       const { data, error } = await supabase
-        .from('service_bookings' as any)
+        .from('service_bookings')
         .insert({
           user_id: user.id,
           service_id: serviceId,
@@ -140,7 +140,7 @@ export const useBookings = () => {
         if (response.data?.eventId) {
           // Update booking with Google Calendar event ID
           await supabase
-            .from('service_bookings' as any)
+            .from('service_bookings')
             .update({ google_calendar_event_id: response.data.eventId })
             .eq('id', bookingData.id);
         }
@@ -176,7 +176,7 @@ export const useBookings = () => {
     setLoading(true);
     try {
       const { error } = await supabase
-        .from('service_bookings' as any)
+        .from('service_bookings')
         .update({ status: 'cancelled' })
         .eq('id', bookingId);
 

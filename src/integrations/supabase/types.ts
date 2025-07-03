@@ -479,6 +479,50 @@ export type Database = {
           },
         ]
       }
+      service_bookings: {
+        Row: {
+          booking_date: string
+          created_at: string
+          google_calendar_event_id: string | null
+          id: string
+          service_id: string
+          service_title: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          booking_date: string
+          created_at?: string
+          google_calendar_event_id?: string | null
+          id?: string
+          service_id: string
+          service_title: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          booking_date?: string
+          created_at?: string
+          google_calendar_event_id?: string | null
+          id?: string
+          service_id?: string
+          service_title?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_bookings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_providers: {
         Row: {
           capacity_info: Json | null
@@ -654,6 +698,36 @@ export type Database = {
           },
         ]
       }
+      service_schedule: {
+        Row: {
+          available_day: string
+          available_time: string
+          created_at: string
+          duration_minutes: number
+          id: string
+          max_bookings: number
+          service_id: string
+        }
+        Insert: {
+          available_day: string
+          available_time: string
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          max_bookings?: number
+          service_id: string
+        }
+        Update: {
+          available_day?: string
+          available_time?: string
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          max_bookings?: number
+          service_id?: string
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           availability: string | null
@@ -661,10 +735,12 @@ export type Database = {
           contact_phone: string | null
           contact_url: string | null
           created_at: string | null
+          delivery_mode: string | null
           description: string | null
           id: string
           key_features: Json | null
           language_support: string | null
+          location: string | null
           priority_level: string | null
           title: string
           updated_at: string | null
@@ -675,10 +751,12 @@ export type Database = {
           contact_phone?: string | null
           contact_url?: string | null
           created_at?: string | null
+          delivery_mode?: string | null
           description?: string | null
           id?: string
           key_features?: Json | null
           language_support?: string | null
+          location?: string | null
           priority_level?: string | null
           title: string
           updated_at?: string | null
@@ -689,10 +767,12 @@ export type Database = {
           contact_phone?: string | null
           contact_url?: string | null
           created_at?: string | null
+          delivery_mode?: string | null
           description?: string | null
           id?: string
           key_features?: Json | null
           language_support?: string | null
+          location?: string | null
           priority_level?: string | null
           title?: string
           updated_at?: string | null
