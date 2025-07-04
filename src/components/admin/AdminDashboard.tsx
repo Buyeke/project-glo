@@ -150,13 +150,18 @@ const AdminDashboard = () => {
     }
   };
 
-  const exportData = async (table: string) => {
+  const exportData = async (tableName: 'profiles' | 'service_bookings' | 'support_requests' | 'chat_interactions' | 'services') => {
     try {
       const { data, error } = await supabase
-        .from(table)
+        .from(tableName)
         .select('*');
 
       if (error) throw error;
+
+      if (!data || data.length === 0) {
+        toast.info(`No data found in ${tableName}`);
+        return;
+      }
 
       // Create CSV content
       const csvContent = data.map(row => Object.values(row).join(',')).join('\n');
@@ -168,11 +173,11 @@ const AdminDashboard = () => {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${table}_export_${new Date().toISOString().split('T')[0]}.csv`;
+      a.download = `${tableName}_export_${new Date().toISOString().split('T')[0]}.csv`;
       a.click();
       window.URL.revokeObjectURL(url);
 
-      toast.success(`${table} data exported successfully`);
+      toast.success(`${tableName} data exported successfully`);
     } catch (error) {
       console.error('Export error:', error);
       toast.error('Failed to export data');
@@ -313,7 +318,7 @@ const AdminDashboard = () => {
                           </Badge>
                         </div>
                         <p className="text-sm text-gray-600">Email: {request.user_email}</p>
-                        <p className="text-sm text-gray-600">Phone: {request.phone_number}</p>
+                        <p className="text-sm text-gray-600">Phone: {request.phone_number || 'Not provided'}</p>
                         <p className="text-sm text-gray-600">Language: {request.language}</p>
                         <p className="text-sm text-gray-600">Priority: {request.priority}</p>
                         {request.message && (
@@ -421,11 +426,11 @@ const AdminDashboard = () => {
             <h2 className="text-xl font-semibold">Export Data</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {[
-                { name: 'Users', table: 'profiles' },
-                { name: 'Bookings', table: 'service_bookings' },
-                { name: 'Support Requests', table: 'support_requests' },
-                { name: 'Chat Interactions', table: 'chat_interactions' },
-                { name: 'Services', table: 'services' },
+                { name: 'Users', table: 'profiles' as const },
+                { name: 'Bookings', table: 'service_bookings' as const },
+                { name: 'Support Requests', table: 'support_requests' as const },
+                { name: 'Chat Interactions', table: 'chat_interactions' as const },
+                { name: 'Services', table: 'services' as const },
               ].map((item) => (
                 <Card key={item.table}>
                   <CardContent className="p-6">

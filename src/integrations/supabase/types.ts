@@ -485,6 +485,7 @@ export type Database = {
           created_at: string
           google_calendar_event_id: string | null
           id: string
+          meeting_link: string | null
           service_id: string
           service_title: string
           status: string
@@ -496,6 +497,7 @@ export type Database = {
           created_at?: string
           google_calendar_event_id?: string | null
           id?: string
+          meeting_link?: string | null
           service_id: string
           service_title: string
           status?: string
@@ -507,6 +509,7 @@ export type Database = {
           created_at?: string
           google_calendar_event_id?: string | null
           id?: string
+          meeting_link?: string | null
           service_id?: string
           service_title?: string
           status?: string
@@ -785,6 +788,7 @@ export type Database = {
           id: string
           language: string | null
           message: string | null
+          phone_number: string | null
           priority: string | null
           service_type: string | null
           status: string | null
@@ -796,6 +800,7 @@ export type Database = {
           id?: string
           language?: string | null
           message?: string | null
+          phone_number?: string | null
           priority?: string | null
           service_type?: string | null
           status?: string | null
@@ -807,6 +812,7 @@ export type Database = {
           id?: string
           language?: string | null
           message?: string | null
+          phone_number?: string | null
           priority?: string | null
           service_type?: string | null
           status?: string | null
