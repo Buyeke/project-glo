@@ -297,9 +297,7 @@ const Services = () => {
         </div>
 
         {/* Service Request Form Modal */}
-        {showRequestForm && (
-          <ServiceRequestForm onClose={() => setShowRequestForm(false)} />
-        )}
+        {showRequestForm && <ServiceRequestForm />}
 
         {/* Service Booking Modal */}
         {selectedService && (

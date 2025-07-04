@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -36,10 +35,11 @@ const ServiceBookingModal: React.FC<ServiceBookingModalProps> = ({
 
   const keyFeatures = service.key_features || [];
 
-  const handleBookingSuccess = (bookingDate: Date) => {
+  const handleBookingSuccess = () => {
     setShowCalendar(false);
     if (onSuccess) {
-      onSuccess(bookingDate);
+      // Create a default booking date since ServiceCalendar doesn't provide one
+      onSuccess(new Date());
     }
     // Optional: close modal after booking
     // onClose();
