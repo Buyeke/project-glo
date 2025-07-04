@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -66,12 +67,12 @@ const Services = () => {
       if (error) throw error;
       
       if (data) {
-        // Transform the data to match our Service interface
+        // Transform the data to match our Service interface and update location to Mombasa
         const transformedServices = data.map(service => ({
           ...service,
           key_features: Array.isArray(service.key_features) ? service.key_features : [],
-          location: service.location || 'Nairobi',
-          delivery_mode: service.delivery_mode || 'In-Person'
+          location: 'Mombasa (In-person & Virtual)',
+          delivery_mode: 'In-Person & Virtual'
         })) as Service[];
         
         setServices(transformedServices);
@@ -119,7 +120,7 @@ const Services = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
-    setBookingSuccess(`✅ Your session has been booked for ${formattedDate}. We'll send a reminder.`);
+    setBookingSuccess(`✅ Your session has been booked for ${formattedDate}. We'll send you a personalized meeting link within 24 hours.`);
     setTimeout(() => setBookingSuccess(null), 5000);
   };
 
@@ -146,10 +147,18 @@ const Services = () => {
 
         {/* Header */}
         <div className="text-center mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Available Services</h1>
-          <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Available Services in Mombasa</h1>
+          <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto mb-4">
             Discover the support services available to help you on your journey. Book sessions or request assistance directly.
           </p>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-3xl mx-auto">
+            <p className="text-blue-800 font-medium">
+              📍 Serving Mombasa County with both in-person and virtual consultations
+            </p>
+            <p className="text-blue-700 text-sm mt-2">
+              Once your registration is confirmed, we will send you a personalized virtual meeting link via email or WhatsApp within 24 hours.
+            </p>
+          </div>
         </div>
 
         {/* Filters */}
@@ -223,7 +232,7 @@ const Services = () => {
                   <div className="space-y-2">
                     <div className="flex items-center text-sm text-gray-600">
                       <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
-                      <span>{service.location} ({service.delivery_mode})</span>
+                      <span>{service.location}</span>
                     </div>
                     <div className="flex items-center text-sm text-gray-600">
                       <Users className="h-4 w-4 mr-2 flex-shrink-0" />

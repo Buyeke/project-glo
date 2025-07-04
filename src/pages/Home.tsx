@@ -48,9 +48,17 @@ const Home = () => {
             <p className="text-xl md:text-2xl mb-4 max-w-4xl mx-auto">
               AI-powered support for homeless women and children in Mombasa — access shelter, food, healthcare, and more.
             </p>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 mb-8 max-w-2xl mx-auto">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 mb-6 max-w-2xl mx-auto">
               <p className="text-lg font-medium">
                 You're not alone. Glo connects you to real help, fast.
+              </p>
+            </div>
+            <div className="bg-blue-50/20 backdrop-blur-sm rounded-lg p-4 mb-8 max-w-3xl mx-auto">
+              <p className="text-base font-medium">
+                📍 Serving Mombasa County (In-person & Virtual Services Available)
+              </p>
+              <p className="text-sm mt-2">
+                Once your registration is confirmed, we will send you a personalized virtual meeting link via email or WhatsApp within 24 hours.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -116,17 +124,21 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Trust Indicators */}
-      <section className="py-12 bg-white border-t">
+      {/* Partner Organizations */}
+      <section className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">Partner Organizations</h3>
+            <p className="text-gray-600 mb-6">
+              We are currently partnered with two NGOs in Mombasa. More trusted support providers coming soon.
+            </p>
             <div className="flex items-center justify-center gap-2 mb-4">
               <Shield className="h-6 w-6 text-green-600" />
               <span className="text-lg font-semibold text-gray-900">Trusted by 12+ local shelters</span>
             </div>
             <p className="text-gray-600 flex items-center justify-center gap-2">
               <MapPin className="h-4 w-4" />
-              Serving Mombasa and surrounding areas
+              Serving Mombasa County and surrounding areas
             </p>
           </div>
         </div>
@@ -145,6 +157,20 @@ const Home = () => {
             </Button>
             <Button size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white hover:text-primary" asChild>
               <Link to="/resources">Browse Resources</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Join Network CTA */}
+      <section className="py-8 bg-gradient-to-r from-green-600 to-teal-600 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <p className="text-lg font-medium mb-4">
+              Are you a therapist, legal expert, or NGO who wants to help?
+            </p>
+            <Button size="lg" variant="secondary" asChild>
+              <Link to="/auth">Join Our Network</Link>
             </Button>
           </div>
         </div>

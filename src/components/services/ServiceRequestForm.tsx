@@ -17,6 +17,7 @@ const ServiceRequestForm = () => {
   const [priority, setPriority] = useState('medium');
   const [description, setDescription] = useState('');
   const [userEmail, setUserEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const { trackServiceRequest } = useDataTracking();
@@ -35,9 +36,7 @@ const ServiceRequestForm = () => {
 
   const languages = [
     { value: 'english', label: 'English' },
-    { value: 'swahili', label: 'Swahili' },
-    { value: 'arabic', label: 'Arabic' },
-    { value: 'sheng', label: 'Sheng' },
+    { value: 'kiswahili', label: 'Kiswahili' },
   ];
 
   const priorities = [
@@ -60,6 +59,11 @@ const ServiceRequestForm = () => {
       return;
     }
 
+    if (!phoneNumber) {
+      toast.error('Please provide your phone number or WhatsApp number');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       // Submit to support_requests table
@@ -71,6 +75,8 @@ const ServiceRequestForm = () => {
           language: language,
           priority: priority,
           message: description || null,
+          phone_number: phoneNumber,
+          status: 'awaiting_confirmation'
         });
 
       if (error) throw error;
@@ -80,12 +86,13 @@ const ServiceRequestForm = () => {
         await trackServiceRequest(serviceType, language);
       }
 
-      toast.success('Support request submitted successfully! We will get back to you soon.');
+      toast.success('Support request submitted successfully! You will receive your personalized meeting link within 24 hours.');
       
       // Reset form
       setServiceType('');
       setDescription('');
       setUserEmail('');
+      setPhoneNumber('');
       setPriority('medium');
     } catch (error) {
       console.error('Error submitting support request:', error);
@@ -100,7 +107,7 @@ const ServiceRequestForm = () => {
       <CardHeader>
         <CardTitle>Request Support</CardTitle>
         <CardDescription>
-          Tell us what kind of support you need and we'll connect you with the right resources
+          Tell us what kind of support you need and we'll connect you with the right resources in Mombasa
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -126,22 +133,7 @@ const ServiceRequestForm = () => {
 
             <div>
               <label className="block text-sm font-medium mb-2">
-                Your Email *
-              </label>
-              <Input
-                type="email"
-                value={userEmail}
-                onChange={(e) => setUserEmail(e.target.value)}
-                placeholder="your.email@example.com"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Preferred Language
+                Preferred Language *
               </label>
               <Select value={language} onValueChange={setLanguage}>
                 <SelectTrigger>
@@ -156,27 +148,55 @@ const ServiceRequestForm = () => {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Your Email *
+              </label>
+              <Input
+                type="email"
+                value={userEmail}
+                onChange={(e) => setUserEmail(e.target.value)}
+                placeholder="your.email@example.com"
+                required
+              />
+            </div>
 
             <div>
               <label className="block text-sm font-medium mb-2">
-                Priority Level
+                WhatsApp or Phone Number *
               </label>
-              <div className="flex gap-2">
-                {priorities.map((p) => (
-                  <button
-                    key={p.value}
-                    type="button"
-                    onClick={() => setPriority(p.value)}
-                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                      priority === p.value 
-                        ? p.color 
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    {p.label}
-                  </button>
-                ))}
-              </div>
+              <Input
+                type="tel"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                placeholder="+254 7XX XXX XXX"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Priority Level
+            </label>
+            <div className="flex gap-2">
+              {priorities.map((p) => (
+                <button
+                  key={p.value}
+                  type="button"
+                  onClick={() => setPriority(p.value)}
+                  className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                    priority === p.value 
+                      ? p.color 
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -192,10 +212,31 @@ const ServiceRequestForm = () => {
             />
           </div>
 
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <div className="text-xl">⏰</div>
+              <div>
+                <p className="font-medium text-blue-800 mb-1">Status: Awaiting Confirmation</p>
+                <p className="text-sm text-blue-700">
+                  You will receive your personalized virtual meeting link via email or WhatsApp within 24 hours.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <div className="text-xl">🔒</div>
+              <p className="text-sm text-green-800">
+                Your information is confidential and only shared with the organizations providing your support.
+              </p>
+            </div>
+          </div>
+
           <Button 
             type="submit" 
             className="w-full" 
-            disabled={isSubmitting || !serviceType || !userEmail}
+            disabled={isSubmitting || !serviceType || !userEmail || !phoneNumber}
           >
             {isSubmitting ? 'Submitting Request...' : 'Submit Request'}
           </Button>

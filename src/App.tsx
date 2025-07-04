@@ -13,6 +13,7 @@ import Auth from "./pages/Auth";
 import Services from "./pages/Services";
 import Dashboard from "./pages/Dashboard";
 import AdminPanel from "./pages/AdminPanel";
+import AdminLogin from "./pages/AdminLogin";
 import Resources from "./pages/Resources";
 import Blog from "./pages/Blog";
 import Donate from "./pages/Donate";
@@ -43,6 +44,8 @@ const App = () => (
               <Route path="contact" element={<div className="p-8 text-center">Contact page coming soon!</div>} />
               <Route path="*" element={<NotFound />} />
             </Route>
+            {/* Admin login route outside of main layout */}
+            <Route path="/admin-login" element={<AdminLogin />} />
           </Routes>
         </AuthProvider>
       </BrowserRouter>
