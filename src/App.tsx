@@ -17,6 +17,7 @@ import AdminLogin from "./pages/AdminLogin";
 import Resources from "./pages/Resources";
 import Blog from "./pages/Blog";
 import Donate from "./pages/Donate";
+import Careers from "./pages/Careers";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
               <Route path="resources" element={<Resources />} />
               <Route path="blog" element={<Blog />} />
               <Route path="donate" element={<Donate />} />
+              <Route path="careers" element={<Careers />} />
               {/* Placeholder routes for other pages */}
               <Route path="shop" element={<div className="p-8 text-center">Shop page coming soon!</div>} />
               <Route path="contact" element={<div className="p-8 text-center">Contact page coming soon!</div>} />

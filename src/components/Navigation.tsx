@@ -23,26 +23,27 @@ const Navigation = () => {
     { name: 'Resources', path: '/resources' },
     { name: 'Shop', path: '/shop' },
     { name: 'Blog', path: '/blog' },
+    { name: 'Careers', path: '/careers' },
     { name: 'Contact', path: '/contact' },
   ];
 
   return (
-    <nav className="bg-white shadow-sm border-b sticky top-0 z-50">
+    <nav className="bg-white shadow-sm border-b border-border sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-14">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <Heart className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold text-primary">Glo</span>
+            <Heart className="h-7 w-7 text-secondary" />
+            <span className="text-xl font-bold text-primary">Glo</span>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-6">
             {navItems.map((item) => (
               <Link
                 key={item.name}
                 to={item.path}
-                className="text-foreground hover:text-primary transition-colors"
+                className="text-sm text-foreground hover:text-secondary transition-colors duration-200 font-medium"
               >
                 {item.name}
               </Link>
@@ -50,22 +51,22 @@ const Navigation = () => {
           </div>
 
           {/* Auth Buttons */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-3">
             {user ? (
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-muted-foreground">
+              <div className="flex items-center space-x-3">
+                <span className="text-xs text-muted-foreground">
                   Welcome, {user.email}
                 </span>
-                <Button variant="outline" onClick={handleSignOut}>
+                <Button variant="outline" size="sm" onClick={handleSignOut} className="text-xs">
                   Sign Out
                 </Button>
               </div>
             ) : (
               <>
-                <Button variant="outline" asChild>
+                <Button variant="outline" size="sm" className="text-xs" asChild>
                   <Link to="/auth">Sign In</Link>
                 </Button>
-                <Button asChild>
+                <Button size="sm" className="bg-secondary hover:bg-secondary/90 text-xs" asChild>
                   <Link to="/donate">Donate</Link>
                 </Button>
               </>
@@ -76,10 +77,10 @@ const Navigation = () => {
           <div className="md:hidden">
             <Button
               variant="ghost"
-              size="icon"
+              size="sm"
               onClick={() => setIsOpen(!isOpen)}
             >
-              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
           </div>
         </div>
@@ -87,12 +88,12 @@ const Navigation = () => {
         {/* Mobile Navigation */}
         {isOpen && (
           <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t">
+            <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t border-border">
               {navItems.map((item) => (
                 <Link
                   key={item.name}
                   to={item.path}
-                  className="block px-3 py-2 text-foreground hover:text-primary transition-colors"
+                  className="block px-3 py-2 text-sm text-foreground hover:text-secondary hover:bg-muted/50 transition-colors rounded-md"
                   onClick={() => setIsOpen(false)}
                 >
                   {item.name}
@@ -100,15 +101,15 @@ const Navigation = () => {
               ))}
               <div className="px-3 py-2 space-y-2">
                 {user ? (
-                  <Button variant="outline" onClick={handleSignOut} className="w-full">
+                  <Button variant="outline" onClick={handleSignOut} className="w-full text-xs" size="sm">
                     Sign Out
                   </Button>
                 ) : (
                   <>
-                    <Button variant="outline" asChild className="w-full">
+                    <Button variant="outline" asChild className="w-full text-xs" size="sm">
                       <Link to="/auth">Sign In</Link>
                     </Button>
-                    <Button asChild className="w-full">
+                    <Button asChild className="w-full bg-secondary hover:bg-secondary/90 text-xs" size="sm">
                       <Link to="/donate">Donate</Link>
                     </Button>
                   </>
