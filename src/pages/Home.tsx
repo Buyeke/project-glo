@@ -64,19 +64,19 @@ const Home = () => {
             {/* Left Column - Content */}
             <div className="space-y-8">
               <div className="space-y-6">
-                <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold leading-tight animate-soft-fade ${calmMode ? 'text-foreground' : 'text-white'}`}>
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight animate-soft-fade text-foreground" style={{ color: '#2E2E2E' }}>
                   Empowering Women & Children
                 </h1>
-                <p className={`text-lg md:text-xl leading-relaxed animate-soft-fade-delay ${calmMode ? 'text-muted-foreground' : 'text-white/90'}`}>
+                <p className="text-lg md:text-xl leading-relaxed animate-soft-fade-delay text-muted-foreground">
                   GLO is an AI-powered safety net for women and children—offering multilingual support, dignity, and hope.
                 </p>
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20 animate-soft-fade-delay">
-                  <p className={`text-base font-medium mb-3 ${calmMode ? 'text-foreground' : 'text-white'}`}>
+                <div className="bg-card rounded-lg p-6 border border-border animate-soft-fade-delay">
+                  <p className="text-base font-medium mb-3 text-foreground" style={{ color: '#2E2E2E' }}>
                     You're not alone. Glo connects you to real help, fast.
                   </p>
                   <div className="flex items-start gap-3 text-sm">
                     <MapPin className="h-4 w-4 mt-1 flex-shrink-0 text-secondary" />
-                    <div className={calmMode ? 'text-muted-foreground' : 'text-white/80'}>
+                    <div className="text-muted-foreground">
                       <p className="font-medium">Serving Mombasa County (In-person & Virtual Services Available)</p>
                       <p className="mt-2">Once your registration is confirmed, we will send you a personalized virtual meeting link via email or WhatsApp within 24 hours.</p>
                     </div>
@@ -87,7 +87,7 @@ const Home = () => {
               <div className="pt-4 animate-soft-fade-delay-2">
                 <Button 
                   size="lg" 
-                  className="bg-white text-primary hover:bg-white/90 px-8 py-4 text-base rounded-lg font-semibold" 
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-4 text-base rounded-lg font-semibold" 
                   asChild
                 >
                   <Link to="/auth">Request Support</Link>
@@ -98,14 +98,14 @@ const Home = () => {
             {/* Right Column - Professional Hero Visual */}
             <div className="flex justify-center lg:justify-end animate-soft-fade-delay">
               <div className="relative">
-                <div className="w-80 h-80 lg:w-96 lg:h-96 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center shadow-lg">
+                <div className="w-80 h-80 lg:w-96 lg:h-96 rounded-2xl bg-card border border-border flex items-center justify-center">
                   <div className="text-center space-y-6 p-8">
                     <div className="w-24 h-24 mx-auto bg-secondary/20 rounded-full flex items-center justify-center">
                       <Heart className="w-12 h-12 text-secondary" />
                     </div>
                     <div className="space-y-3">
-                      <p className={`text-xl font-semibold ${calmMode ? 'text-foreground' : 'text-white'}`}>Community Support</p>
-                      <p className={`text-base ${calmMode ? 'text-muted-foreground' : 'text-white/80'}`}>Together we build stronger futures</p>
+                      <p className="text-xl font-semibold text-foreground" style={{ color: '#2E2E2E' }}>Community Support</p>
+                      <p className="text-base text-muted-foreground">Together we build stronger futures</p>
                     </div>
                   </div>
                 </div>
@@ -236,19 +236,19 @@ const Home = () => {
             Whether you need support or want to help others, we're here for you.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
-              className="bg-white text-primary hover:bg-white/90 px-8 py-3 rounded-lg font-semibold" 
-              asChild
-            >
+              <Button 
+                size="lg" 
+                className="bg-card text-foreground hover:bg-muted px-8 py-3 rounded-lg font-semibold border border-border" 
+                asChild
+              >
               <Link to="/auth">Join Our Community</Link>
             </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="bg-transparent border-white text-white hover:bg-white/10 px-8 py-3 rounded-lg font-semibold" 
-              asChild
-            >
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="bg-transparent border-border text-foreground hover:bg-muted px-8 py-3 rounded-lg font-semibold" 
+                asChild
+              >
               <Link to="/resources">Browse Resources</Link>
             </Button>
           </div>
@@ -262,11 +262,11 @@ const Home = () => {
             <p className="text-lg font-medium mb-4">
               Are you a therapist, legal expert, or NGO who wants to help?
             </p>
-            <Button 
-              size="lg" 
-              className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-3 rounded-lg font-semibold" 
-              asChild
-            >
+              <Button 
+                size="lg" 
+                className="bg-secondary text-secondary-foreground hover:bg-secondary/90 px-8 py-3 rounded-lg font-semibold" 
+                asChild
+              >
               <Link to="/auth">Join Our Network</Link>
             </Button>
           </div>

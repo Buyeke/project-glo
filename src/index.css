@@ -7,95 +7,96 @@
 
 @layer base {
   :root {
-    /* Light mode - Purple/Pink/White palette */
-    --background: 252 251 253; /* Very soft lavender white */
-    --foreground: 51 47 68; /* Deep plum gray */
+    /* Calm, accessible purple-pink palette */
+    --background: 330 50% 98%; /* #FDF7FA */
+    --foreground: 0 0% 29%; /* #4B4B4B - Body text */
 
-    --card: 249 248 251; /* Soft lavender card */
-    --card-foreground: 51 47 68;
+    --card: 300 20% 94%; /* #F2EEF4 - Cards/boxes */
+    --card-foreground: 0 0% 29%; /* #4B4B4B */
 
-    --popover: 249 248 251;
-    --popover-foreground: 51 47 68;
+    --popover: 300 20% 94%; /* #F2EEF4 */
+    --popover-foreground: 0 0% 29%; /* #4B4B4B */
 
-    --primary: 139 69 255; /* Deep purple RGB */
-    --primary-foreground: 255 255 255;
+    --primary: 344 33% 72%; /* #D49BA6 - Primary CTA */
+    --primary-foreground: 0 0% 100%; /* White text */
 
-    --secondary: 236 72 153; /* Pink RGB */
-    --secondary-foreground: 255 255 255;
+    --secondary: 310 18% 65%; /* #B88BAC - Secondary CTA */
+    --secondary-foreground: 0 0% 100%; /* White text */
 
-    --muted: 240 237 244; /* Very light lavender */
-    --muted-foreground: 107 102 121; /* Muted purple gray */
+    --muted: 300 20% 94%; /* #F2EEF4 */
+    --muted-foreground: 0 0% 29%; /* #4B4B4B */
 
-    --accent: 192 132 252; /* Soft lavender RGB */
-    --accent-foreground: 51 47 68;
+    --accent: 302 20% 46%; /* #8A5D88 - Accent/links */
+    --accent-foreground: 0 0% 100%; /* White text */
 
-    --destructive: 220 38 127; /* Deep pink for alerts RGB */
-    --destructive-foreground: 255 255 255;
+    --destructive: 344 33% 72%; /* Same as primary for consistency */
+    --destructive-foreground: 0 0% 100%; /* White text */
 
-    --border: 230 225 237; /* Light purple border */
-    --input: 240 237 244; /* Light lavender input */
-    --ring: 139 69 255; /* Focus ring matches primary */
+    --border: 300 20% 90%; /* #E9E2EB - Borders */
+    --input: 300 20% 94%; /* #F2EEF4 */
+    --ring: 302 20% 46%; /* #8A5D88 - Focus ring */
 
     --radius: 0.5rem;
 
     /* Navigation and sidebar colors */
-    --sidebar-background: 252 251 253;
-    --sidebar-foreground: 51 47 68;
-    --sidebar-primary: 139 69 255;
-    --sidebar-primary-foreground: 255 255 255;
-    --sidebar-accent: 240 237 244;
-    --sidebar-accent-foreground: 51 47 68;
-    --sidebar-border: 230 225 237;
-    --sidebar-ring: 139 69 255;
+    --sidebar-background: 330 50% 98%; /* #FDF7FA */
+    --sidebar-foreground: 0 0% 29%; /* #4B4B4B */
+    --sidebar-primary: 344 33% 72%; /* #D49BA6 */
+    --sidebar-primary-foreground: 0 0% 100%; /* White */
+    --sidebar-accent: 300 20% 94%; /* #F2EEF4 */
+    --sidebar-accent-foreground: 0 0% 29%; /* #4B4B4B */
+    --sidebar-border: 300 20% 90%; /* #E9E2EB */
+    --sidebar-ring: 302 20% 46%; /* #8A5D88 */
   }
 
   .dark {
-    --background: 30 27 39; /* Dark plum */
-    --foreground: 248 246 250; /* Light lavender */
+    /* Keep same calm palette for dark mode */
+    --background: 330 50% 98%; /* #FDF7FA */
+    --foreground: 0 0% 29%; /* #4B4B4B */
 
-    --card: 42 38 54; /* Dark purple card */
-    --card-foreground: 248 246 250;
+    --card: 300 20% 94%; /* #F2EEF4 */
+    --card-foreground: 0 0% 29%; /* #4B4B4B */
 
-    --popover: 42 38 54;
-    --popover-foreground: 248 246 250;
+    --popover: 300 20% 94%; /* #F2EEF4 */
+    --popover-foreground: 0 0% 29%; /* #4B4B4B */
 
-    --primary: 147 51 234; /* Lighter purple for dark mode RGB */
-    --primary-foreground: 255 255 255;
+    --primary: 344 33% 72%; /* #D49BA6 */
+    --primary-foreground: 0 0% 100%; /* White */
 
-    --secondary: 244 114 182; /* Pink for dark mode RGB */
-    --secondary-foreground: 248 246 250;
+    --secondary: 310 18% 65%; /* #B88BAC */
+    --secondary-foreground: 0 0% 100%; /* White */
 
-    --muted: 54 49 66; /* Dark muted purple */
-    --muted-foreground: 161 155 175; /* Light muted purple */
+    --muted: 300 20% 94%; /* #F2EEF4 */
+    --muted-foreground: 0 0% 29%; /* #4B4B4B */
 
-    --accent: 147 51 234; /* Accent matches primary in dark */
-    --accent-foreground: 248 246 250;
+    --accent: 302 20% 46%; /* #8A5D88 */
+    --accent-foreground: 0 0% 100%; /* White */
 
-    --destructive: 244 114 182; /* Lighter pink for dark mode RGB */
-    --destructive-foreground: 248 246 250;
+    --destructive: 344 33% 72%; /* #D49BA6 */
+    --destructive-foreground: 0 0% 100%; /* White */
 
-    --border: 54 49 66;
-    --input: 54 49 66;
-    --ring: 147 51 234;
+    --border: 300 20% 90%; /* #E9E2EB */
+    --input: 300 20% 94%; /* #F2EEF4 */
+    --ring: 302 20% 46%; /* #8A5D88 */
 
-    --sidebar-background: 30 27 39;
-    --sidebar-foreground: 248 246 250;
-    --sidebar-primary: 147 51 234;
-    --sidebar-primary-foreground: 255 255 255;
-    --sidebar-accent: 54 49 66;
-    --sidebar-accent-foreground: 248 246 250;
-    --sidebar-border: 54 49 66;
-    --sidebar-ring: 147 51 234;
+    --sidebar-background: 330 50% 98%; /* #FDF7FA */
+    --sidebar-foreground: 0 0% 29%; /* #4B4B4B */
+    --sidebar-primary: 344 33% 72%; /* #D49BA6 */
+    --sidebar-primary-foreground: 0 0% 100%; /* White */
+    --sidebar-accent: 300 20% 94%; /* #F2EEF4 */
+    --sidebar-accent-foreground: 0 0% 29%; /* #4B4B4B */
+    --sidebar-border: 300 20% 90%; /* #E9E2EB */
+    --sidebar-ring: 302 20% 46%; /* #8A5D88 */
   }
 
-  /* Calm mode for trauma-sensitive users */
+  /* Calm mode for trauma-sensitive users - same as normal mode */
   .calm-mode {
-    --background: 250 249 251; /* Even softer background */
-    --foreground: 51 47 68;
-    --card: 247 245 249; /* Softer card background */
-    --primary: 126 58 242; /* Softer purple RGB */
-    --secondary: 219 39 119; /* Softer pink RGB */
-    --accent: 192 132 252; /* Keep soft lavender RGB */
+    --background: 330 50% 98%; /* #FDF7FA */
+    --foreground: 0 0% 29%; /* #4B4B4B */
+    --card: 300 20% 94%; /* #F2EEF4 */
+    --primary: 344 33% 72%; /* #D49BA6 */
+    --secondary: 310 18% 65%; /* #B88BAC */
+    --accent: 302 20% 46%; /* #8A5D88 */
   }
 }
 
@@ -109,67 +110,60 @@
     transition: background-color 0.3s ease, color 0.3s ease;
   }
   
-  /* Hero section styling - Purple gradient, NO YELLOW */
+  /* Hero section styling - No gradients, calm background */
   .hero-section {
-    background: linear-gradient(135deg, rgb(139, 69, 255) 0%, rgb(192, 132, 252) 50%, rgb(236, 72, 153) 100%);
-    border-bottom: 1px solid rgb(var(--border));
+    background: hsl(var(--background));
+    border-bottom: 1px solid hsl(var(--border));
   }
   
-  /* Calm hero section without gradients */
+  /* Calm hero section - same as regular */
   .hero-calm {
-    background: rgb(var(--background));
-    border-bottom: 1px solid rgb(var(--border));
+    background: hsl(var(--background));
+    border-bottom: 1px solid hsl(var(--border));
   }
   
-  /* Section dividers for visual flow */
+  /* Section dividers - no gradients */
   .section-divider {
-    background: linear-gradient(90deg, transparent 0%, rgb(var(--border)) 50%, transparent 100%);
+    background: hsl(var(--border));
     height: 1px;
     margin: 3rem 0;
   }
   
-  /* Professional button styles */
+  /* Button styles - no shadows or transforms */
   .btn-primary {
-    background: rgb(var(--primary));
-    color: rgb(var(--primary-foreground));
-    border: 2px solid rgb(var(--primary));
-    transition: all 0.2s ease;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border: 2px solid hsl(var(--primary));
+    transition: background-color 0.2s ease;
   }
   
   .btn-primary:hover {
-    background: rgb(var(--primary) / 0.9);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgb(var(--primary) / 0.3);
+    background: hsl(var(--primary) / 0.9);
   }
   
   .btn-secondary {
-    background: rgb(var(--secondary));
-    color: rgb(var(--secondary-foreground));
-    border: 2px solid rgb(var(--secondary));
-    transition: all 0.2s ease;
+    background: hsl(var(--secondary));
+    color: hsl(var(--secondary-foreground));
+    border: 2px solid hsl(var(--secondary));
+    transition: background-color 0.2s ease;
   }
   
   .btn-secondary:hover {
-    background: rgb(var(--secondary) / 0.9);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgb(var(--secondary) / 0.3);
+    background: hsl(var(--secondary) / 0.9);
   }
   
-  /* Card hover effects */
+  /* Card hover effects - minimal */
   .hover-gentle {
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease;
   }
   
   .hover-gentle:hover {
-    background-color: rgb(var(--accent) / 0.1);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgb(var(--accent) / 0.15);
+    background-color: hsl(var(--muted));
   }
 
-  /* Reduced motion for calm mode */
+  /* Reduced motion for calm mode - already minimal */
   .calm-mode .hover-gentle:hover {
-    transform: none;
-    box-shadow: none;
+    background-color: hsl(var(--muted));
   }
 
   /* Professional fade-in animations */
@@ -203,50 +197,43 @@
     animation: none;
   }
 
-  /* Calm mode button styles */
+  /* Calm mode button styles - already consistent */
   .calm-mode button {
-    box-shadow: none !important;
-    border: 1px solid rgb(var(--border));
+    border: 1px solid hsl(var(--border));
   }
 
-  .calm-mode button:hover {
-    transform: none !important;
-    box-shadow: none !important;
-  }
-
-  /* Professional navigation styling */
+  /* Navigation styling */
   .nav-link {
-    color: rgb(var(--foreground));
+    color: hsl(var(--foreground));
     transition: color 0.2s ease;
   }
   
   .nav-link:hover {
-    color: rgb(var(--primary));
+    color: hsl(var(--accent));
   }
 
-  /* Donation button special styling - Purple/Pink gradient, NO YELLOW */
+  /* Donation button - no gradients or shadows */
   .btn-donate {
-    background: linear-gradient(135deg, rgb(139, 69, 255) 0%, rgb(236, 72, 153) 100%);
-    color: white;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
     font-weight: 600;
     border: none;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease;
   }
   
   .btn-donate:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgb(139, 69, 255, 0.4);
+    background: hsl(var(--primary) / 0.9);
   }
 
-  /* Form elements */
+  /* Form elements - no shadows */
   input, textarea, select {
-    background: rgb(var(--input));
-    border: 1px solid rgb(var(--border));
-    color: rgb(var(--foreground));
+    background: hsl(var(--input));
+    border: 1px solid hsl(var(--border));
+    color: hsl(var(--foreground));
   }
   
   input:focus, textarea:focus, select:focus {
-    border-color: rgb(var(--primary));
-    box-shadow: 0 0 0 2px rgb(var(--primary), 0.2);
+    border-color: hsl(var(--ring));
+    outline: 2px solid hsl(var(--ring) / 0.2);
   }
 }
