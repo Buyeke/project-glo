@@ -5,7 +5,7 @@ import { Heart, Shield, Instagram } from 'lucide-react';
 
 const Footer = () => {
   return (
-    <footer className="bg-gradient-to-r from-primary to-secondary text-white py-12">
+    <footer className="bg-gradient-to-r from-primary via-accent to-secondary text-white py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
@@ -14,12 +14,12 @@ const Footer = () => {
               <Heart className="h-6 w-6 text-white" />
               <span className="text-xl font-bold text-white">Glo</span>
             </div>
-            <p className="text-white/80 text-sm leading-relaxed">
+            <p className="text-white/90 text-sm leading-relaxed">
               GLO is a project using AI to deliver trauma-informed care, housing, and support to women and children in need.
             </p>
             <div className="flex items-center gap-2 text-sm">
-              <Shield className="h-4 w-4 text-green-300" />
-              <span className="text-white/80">Trusted by 12+ local shelters</span>
+              <Shield className="h-4 w-4 text-white/80" />
+              <span className="text-white/90">Trusted by 12+ local shelters</span>
             </div>
             
             {/* Social Media Icons */}
@@ -122,11 +122,11 @@ const Footer = () => {
 
         <div className="border-t border-white/20 mt-8 pt-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-white/70 text-sm">
+            <p className="text-white/80 text-sm">
               © 2024 Glo. All rights reserved. Serving Mombasa and surrounding areas.
             </p>
             <div className="mt-3 md:mt-0">
-              <p className="text-white/70 text-sm flex items-center gap-2">
+              <p className="text-white/80 text-sm flex items-center gap-2">
                 <Heart className="h-3 w-3 text-white" />
                 Built with care for our community
               </p>

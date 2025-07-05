@@ -16,16 +16,16 @@
     --popover: 249 248 251;
     --popover-foreground: 51 47 68;
 
-    --primary: 103 58 134; /* Professional deep purple #673A86 */
+    --primary: 107 70 193; /* Professional deep purple #6B46C1 */
     --primary-foreground: 255 255 255;
 
-    --secondary: 186 140 171; /* Dusty rose #BA8CAB */
-    --secondary-foreground: 51 47 68;
+    --secondary: 236 72 153; /* Professional pink #EC4899 */
+    --secondary-foreground: 255 255 255;
 
     --muted: 240 237 244; /* Very light lavender #F0EDF4 */
     --muted-foreground: 107 102 121; /* Muted purple gray #6B6679 */
 
-    --accent: 209 176 198; /* Soft mauve #D1B0C6 */
+    --accent: 192 132 252; /* Soft lavender #C084FC */
     --accent-foreground: 51 47 68;
 
     --destructive: 220 38 127; /* Deep pink for alerts #DC267F */
@@ -33,19 +33,19 @@
 
     --border: 230 225 237; /* Light purple border #E6E1ED */
     --input: 240 237 244; /* Light lavender input #F0EDF4 */
-    --ring: 103 58 134; /* Focus ring matches primary */
+    --ring: 107 70 193; /* Focus ring matches primary */
 
     --radius: 0.5rem;
 
     /* Navigation and sidebar colors */
     --sidebar-background: 252 251 253;
     --sidebar-foreground: 51 47 68;
-    --sidebar-primary: 103 58 134;
+    --sidebar-primary: 107 70 193;
     --sidebar-primary-foreground: 255 255 255;
     --sidebar-accent: 240 237 244;
     --sidebar-accent-foreground: 51 47 68;
     --sidebar-border: 230 225 237;
-    --sidebar-ring: 103 58 134;
+    --sidebar-ring: 107 70 193;
   }
 
   .dark {
@@ -61,7 +61,7 @@
     --primary: 147 112 179; /* Lighter purple for dark mode #9370B3 */
     --primary-foreground: 255 255 255;
 
-    --secondary: 186 140 171; /* Keep dusty rose */
+    --secondary: 244 114 182; /* Pink for dark mode #F472B6 */
     --secondary-foreground: 248 246 250;
 
     --muted: 54 49 66; /* Dark muted purple #363142 */
@@ -93,7 +93,7 @@
     --foreground: 51 47 68;
     --card: 247 245 249; /* Softer card background #F7F5F9 */
     --primary: 122 84 151; /* Softer purple #7A5497 */
-    --secondary: 186 140 171; /* Keep gentle dusty rose */
+    --secondary: 219 112 147; /* Softer pink #DB7093 */
     --accent: 209 176 198; /* Keep soft mauve */
   }
 }
@@ -110,7 +110,7 @@
   
   /* Hero section styling - Purple gradient, NO YELLOW */
   .hero-section {
-    background: linear-gradient(135deg, rgb(103, 58, 134) 0%, rgb(147, 112, 179) 50%, rgb(209, 176, 198) 100%);
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 50%, hsl(var(--secondary)) 100%);
     border-bottom: 1px solid hsl(var(--border));
   }
   
@@ -225,7 +225,7 @@
 
   /* Donation button special styling - Purple/Pink gradient, NO YELLOW */
   .btn-donate {
-    background: linear-gradient(135deg, rgb(103, 58, 134) 0%, rgb(186, 140, 171) 100%);
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
     color: white;
     font-weight: 600;
     border: none;
