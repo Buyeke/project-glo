@@ -16,36 +16,36 @@
     --popover: 249 248 251;
     --popover-foreground: 51 47 68;
 
-    --primary: 107 70 193; /* Professional deep purple #6B46C1 */
+    --primary: 260 60 55; /* Professional deep purple in HSL */
     --primary-foreground: 255 255 255;
 
-    --secondary: 236 72 153; /* Professional pink #EC4899 */
+    --secondary: 330 81 59; /* Professional pink in HSL */
     --secondary-foreground: 255 255 255;
 
     --muted: 240 237 244; /* Very light lavender #F0EDF4 */
     --muted-foreground: 107 102 121; /* Muted purple gray #6B6679 */
 
-    --accent: 192 132 252; /* Soft lavender #C084FC */
+    --accent: 270 95 75; /* Soft lavender in HSL */
     --accent-foreground: 51 47 68;
 
-    --destructive: 220 38 127; /* Deep pink for alerts #DC267F */
+    --destructive: 330 65 51; /* Deep pink for alerts in HSL */
     --destructive-foreground: 255 255 255;
 
     --border: 230 225 237; /* Light purple border #E6E1ED */
     --input: 240 237 244; /* Light lavender input #F0EDF4 */
-    --ring: 107 70 193; /* Focus ring matches primary */
+    --ring: 260 60 55; /* Focus ring matches primary */
 
     --radius: 0.5rem;
 
     /* Navigation and sidebar colors */
     --sidebar-background: 252 251 253;
     --sidebar-foreground: 51 47 68;
-    --sidebar-primary: 107 70 193;
+    --sidebar-primary: 260 60 55;
     --sidebar-primary-foreground: 255 255 255;
     --sidebar-accent: 240 237 244;
     --sidebar-accent-foreground: 51 47 68;
     --sidebar-border: 230 225 237;
-    --sidebar-ring: 107 70 193;
+    --sidebar-ring: 260 60 55;
   }
 
   .dark {
@@ -58,33 +58,33 @@
     --popover: 42 38 54;
     --popover-foreground: 248 246 250;
 
-    --primary: 147 112 179; /* Lighter purple for dark mode #9370B3 */
+    --primary: 270 35 57; /* Lighter purple for dark mode in HSL */
     --primary-foreground: 255 255 255;
 
-    --secondary: 244 114 182; /* Pink for dark mode #F472B6 */
+    --secondary: 330 70 71; /* Pink for dark mode in HSL */
     --secondary-foreground: 248 246 250;
 
     --muted: 54 49 66; /* Dark muted purple #363142 */
     --muted-foreground: 161 155 175; /* Light muted purple #A19BAF */
 
-    --accent: 147 112 179; /* Accent matches primary in dark */
+    --accent: 270 35 57; /* Accent matches primary in dark */
     --accent-foreground: 248 246 250;
 
-    --destructive: 244 114 182; /* Lighter pink for dark mode #F472B6 */
+    --destructive: 330 70 71; /* Lighter pink for dark mode in HSL */
     --destructive-foreground: 248 246 250;
 
     --border: 54 49 66;
     --input: 54 49 66;
-    --ring: 147 112 179;
+    --ring: 270 35 57;
 
     --sidebar-background: 30 27 39;
     --sidebar-foreground: 248 246 250;
-    --sidebar-primary: 147 112 179;
+    --sidebar-primary: 270 35 57;
     --sidebar-primary-foreground: 255 255 255;
     --sidebar-accent: 54 49 66;
     --sidebar-accent-foreground: 248 246 250;
     --sidebar-border: 54 49 66;
-    --sidebar-ring: 147 112 179;
+    --sidebar-ring: 270 35 57;
   }
 
   /* Calm mode for trauma-sensitive users */
@@ -92,9 +92,9 @@
     --background: 250 249 251; /* Even softer background #FAF9FB */
     --foreground: 51 47 68;
     --card: 247 245 249; /* Softer card background #F7F5F9 */
-    --primary: 122 84 151; /* Softer purple #7A5497 */
-    --secondary: 219 112 147; /* Softer pink #DB7093 */
-    --accent: 209 176 198; /* Keep soft mauve */
+    --primary: 260 35 45; /* Softer purple in HSL */
+    --secondary: 330 45 65; /* Softer pink in HSL */
+    --accent: 270 40 75; /* Keep soft mauve in HSL */
   }
 }
 
@@ -110,7 +110,7 @@
   
   /* Hero section styling - Purple gradient, NO YELLOW */
   .hero-section {
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 50%, hsl(var(--secondary)) 100%);
+    background: linear-gradient(135deg, hsl(260 60% 55%) 0%, hsl(270 95% 75%) 50%, hsl(330 81% 59%) 100%);
     border-bottom: 1px solid hsl(var(--border));
   }
   
@@ -225,7 +225,7 @@
 
   /* Donation button special styling - Purple/Pink gradient, NO YELLOW */
   .btn-donate {
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
+    background: linear-gradient(135deg, hsl(260 60% 55%) 0%, hsl(330 81% 59%) 100%);
     color: white;
     font-weight: 600;
     border: none;
@@ -234,7 +234,7 @@
   
   .btn-donate:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px hsl(var(--primary) / 0.4);
+    box-shadow: 0 6px 20px hsl(260 60% 55% / 0.4);
   }
 
   /* Form elements */
