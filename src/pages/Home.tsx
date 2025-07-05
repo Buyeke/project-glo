@@ -1,11 +1,18 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Heart, Users, Home as HomeIcon, Search, Gift, Shield, MapPin, Calendar } from 'lucide-react';
+import { Heart, Users, Home as HomeIcon, Search, Shield, MapPin, Sun, Moon } from 'lucide-react';
 
 const Home = () => {
+  const [calmMode, setCalmMode] = useState(false);
+
+  const toggleCalmMode = () => {
+    setCalmMode(!calmMode);
+    document.documentElement.classList.toggle('calm-mode');
+  };
+
   const stats = [
     { number: '50+', label: 'Women Supported', icon: Users },
     { number: '100+', label: 'Children Helped', icon: Heart },
@@ -38,25 +45,38 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section - Enhanced with emotional warmth */}
-      <section className="hero-gradient py-24 lg:py-32 relative overflow-hidden">
+      {/* Calm Mode Toggle */}
+      <div className="fixed top-20 right-4 z-50">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={toggleCalmMode}
+          className="bg-card border-border text-foreground hover:bg-muted"
+        >
+          {calmMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          <span className="ml-2 text-xs">{calmMode ? 'Normal' : 'Calm'} Mode</span>
+        </Button>
+      </div>
+
+      {/* Hero Section - Clean and calm */}
+      <section className="hero-calm py-20 lg:py-28">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            {/* Left Column - Content with animations */}
+            {/* Left Column - Content */}
             <div className="space-y-8">
               <div className="space-y-6">
-                <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-primary leading-tight animate-fade-in">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight animate-soft-fade">
                   Empowering Women & Children
                 </h1>
-                <p className="text-xl md:text-2xl text-primary/80 leading-relaxed font-medium animate-fade-in-delay">
+                <p className="text-lg md:text-xl text-foreground/80 leading-relaxed animate-soft-fade-delay">
                   GLO is an AI-powered safety net for women and children—offering multilingual support, dignity, and hope.
                 </p>
-                <div className="bg-white/90 backdrop-blur-sm rounded-xl p-8 shadow-lg border border-white/20 animate-fade-in-delay">
-                  <p className="text-lg font-semibold text-primary mb-3">
+                <div className="bg-card rounded-lg p-6 border border-border animate-soft-fade-delay">
+                  <p className="text-base font-medium text-foreground mb-3">
                     You're not alone. Glo connects you to real help, fast.
                   </p>
-                  <div className="flex items-start gap-3 text-sm text-primary/70">
-                    <MapPin className="h-5 w-5 mt-1 flex-shrink-0 text-secondary" />
+                  <div className="flex items-start gap-3 text-sm text-foreground/70">
+                    <MapPin className="h-4 w-4 mt-1 flex-shrink-0 text-secondary" />
                     <div>
                       <p className="font-medium">Serving Mombasa County (In-person & Virtual Services Available)</p>
                       <p className="mt-2">Once your registration is confirmed, we will send you a personalized virtual meeting link via email or WhatsApp within 24 hours.</p>
@@ -65,36 +85,31 @@ const Home = () => {
                 </div>
               </div>
               
-              <div className="pt-6 animate-fade-in-delay-2">
+              <div className="pt-4 animate-soft-fade-delay-2">
                 <Button 
                   size="lg" 
-                  className="bg-secondary hover:bg-secondary/90 text-white px-10 py-6 text-lg rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105" 
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-base rounded-lg" 
                   asChild
                 >
-                  <Link to="/auth">Get Support Now</Link>
+                  <Link to="/auth">Request Support</Link>
                 </Button>
               </div>
             </div>
 
-            {/* Right Column - Enhanced Hero Image */}
-            <div className="flex justify-center lg:justify-end animate-fade-in-delay">
+            {/* Right Column - Calm Hero Visual */}
+            <div className="flex justify-center lg:justify-end animate-soft-fade-delay">
               <div className="relative">
-                <div className="w-96 h-96 lg:w-[28rem] lg:h-[28rem] rounded-3xl bg-gradient-to-br from-secondary/20 via-accent/20 to-primary/10 flex items-center justify-center border-4 border-white/50 shadow-2xl backdrop-blur-sm">
-                  <div className="text-center space-y-6 p-10">
-                    <div className="w-32 h-32 mx-auto bg-white/30 rounded-full flex items-center justify-center backdrop-blur-sm">
-                      <Heart className="w-16 h-16 text-secondary" />
+                <div className="w-80 h-80 lg:w-96 lg:h-96 rounded-2xl bg-card border border-border flex items-center justify-center">
+                  <div className="text-center space-y-6 p-8">
+                    <div className="w-24 h-24 mx-auto bg-secondary/20 rounded-full flex items-center justify-center">
+                      <Heart className="w-12 h-12 text-secondary" />
                     </div>
                     <div className="space-y-3">
-                      <p className="text-2xl font-bold text-primary">Community Support</p>
-                      <p className="text-lg text-primary/80 font-medium">Together we build stronger futures</p>
+                      <p className="text-xl font-semibold text-foreground">Community Support</p>
+                      <p className="text-base text-foreground/70">Together we build stronger futures</p>
                     </div>
                   </div>
                 </div>
-                
-                {/* Decorative floating elements */}
-                <div className="absolute -top-6 -right-6 w-12 h-12 bg-accent/60 rounded-full blur-sm animate-pulse"></div>
-                <div className="absolute -bottom-6 -left-6 w-8 h-8 bg-secondary/60 rounded-full blur-sm animate-pulse delay-300"></div>
-                <div className="absolute top-1/2 -left-8 w-6 h-6 bg-primary/40 rounded-full blur-sm animate-pulse delay-700"></div>
               </div>
             </div>
           </div>
@@ -104,23 +119,43 @@ const Home = () => {
       {/* Section Divider */}
       <div className="section-divider"></div>
 
+      {/* About Us Section */}
+      <section className="py-16 bg-card/30">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <Card className="bg-card border-border">
+            <CardHeader>
+              <CardTitle className="text-2xl text-foreground">About GLO</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-base text-foreground/80 leading-relaxed">
+                GLO is a project using AI to deliver trauma-informed care, housing, and support to women and children in need. 
+                We connect vulnerable individuals with trusted local organizations through intelligent matching and multilingual support.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Section Divider */}
+      <div className="section-divider"></div>
+
       {/* Stats Section */}
-      <section className="py-20 bg-white/80 backdrop-blur-sm">
+      <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-primary mb-6">Our Impact</h2>
-            <p className="text-xl text-primary/70 font-medium">Making a real difference in our community</p>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground mb-4">Our Impact</h2>
+            <p className="text-lg text-foreground/70">Making a real difference in our community</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {stats.map((stat, index) => (
-              <div key={index} className="text-center hover-accent p-8 rounded-xl bg-white/60 backdrop-blur-sm border border-white/30">
-                <div className="flex justify-center mb-6">
-                  <div className="p-4 bg-secondary/10 rounded-full">
-                    <stat.icon className="h-12 w-12 text-secondary" />
+              <div key={index} className="text-center hover-gentle p-6 rounded-lg bg-card border border-border">
+                <div className="flex justify-center mb-4">
+                  <div className="p-3 bg-secondary/20 rounded-full">
+                    <stat.icon className="h-8 w-8 text-secondary" />
                   </div>
                 </div>
-                <div className="text-4xl font-bold text-primary mb-3">{stat.number}</div>
-                <div className="text-primary/70 font-medium">{stat.label}</div>
+                <div className="text-3xl font-bold text-foreground mb-2">{stat.number}</div>
+                <div className="text-foreground/70 text-sm">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -131,33 +166,33 @@ const Home = () => {
       <div className="section-divider"></div>
 
       {/* Explore Support Areas Section */}
-      <section className="py-20">
+      <section className="py-16 bg-card/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-primary mb-6">Explore Support Areas</h2>
-            <p className="text-xl text-primary/70 font-medium">Comprehensive support for every need</p>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground mb-4">Explore Support Areas</h2>
+            <p className="text-lg text-foreground/70">Comprehensive support for every need</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {services.map((service, index) => (
-              <Card key={index} className="text-center hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm border-white/30 hover-accent rounded-xl">
-                <CardHeader className="pb-4">
-                  <div className="flex justify-center mb-6">
-                    <div className="p-4 bg-secondary/10 rounded-full">
-                      <service.icon className="h-10 w-10 text-secondary" />
+              <Card key={index} className="text-center hover-gentle bg-card border-border">
+                <CardHeader className="pb-3">
+                  <div className="flex justify-center mb-4">
+                    <div className="p-3 bg-secondary/20 rounded-full">
+                      <service.icon className="h-8 w-8 text-secondary" />
                     </div>
                   </div>
-                  <CardTitle className="text-xl text-primary font-semibold">{service.title}</CardTitle>
+                  <CardTitle className="text-lg text-foreground">{service.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-primary/70 font-medium">{service.description}</CardDescription>
+                  <CardDescription className="text-foreground/70 text-sm">{service.description}</CardDescription>
                 </CardContent>
               </Card>
             ))}
           </div>
-          <div className="text-center mt-16">
+          <div className="text-center mt-12">
             <Button 
               variant="outline" 
-              className="border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all duration-300 px-8 py-3 text-lg rounded-xl font-semibold" 
+              className="border-border text-foreground hover:bg-muted px-6 py-3 rounded-lg" 
               asChild
             >
               <Link to="/services">View All Services</Link>
@@ -170,21 +205,21 @@ const Home = () => {
       <div className="section-divider"></div>
 
       {/* Partner Organizations */}
-      <section className="py-20 bg-white/60 backdrop-blur-sm">
+      <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h3 className="text-3xl font-bold text-primary mb-6">Partner Organizations</h3>
-            <p className="text-primary/70 mb-8 text-lg font-medium">
+            <h3 className="text-2xl font-bold text-foreground mb-4">Partner Organizations</h3>
+            <p className="text-foreground/70 mb-6 text-base">
               We are currently partnered with two NGOs in Mombasa. More trusted support providers coming soon.
             </p>
-            <div className="flex items-center justify-center gap-3 mb-6">
+            <div className="flex items-center justify-center gap-3 mb-4">
               <div className="p-2 bg-green-100 rounded-full">
-                <Shield className="h-8 w-8 text-green-600" />
+                <Shield className="h-6 w-6 text-green-600" />
               </div>
-              <span className="text-xl font-bold text-primary">Trusted by 12+ local shelters</span>
+              <span className="text-lg font-semibold text-foreground">Trusted by 12+ local shelters</span>
             </div>
-            <p className="text-primary/70 flex items-center justify-center gap-2 font-medium">
-              <MapPin className="h-5 w-5 text-secondary" />
+            <p className="text-foreground/70 flex items-center justify-center gap-2">
+              <MapPin className="h-4 w-4 text-secondary" />
               Serving Mombasa County and surrounding areas
             </p>
           </div>
@@ -195,17 +230,16 @@ const Home = () => {
       <div className="section-divider"></div>
 
       {/* Call to Action */}
-      <section className="py-20 bg-primary text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/95 to-primary/90"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <h2 className="text-4xl font-bold mb-6">Ready to Get Started?</h2>
-          <p className="text-xl mb-10 max-w-3xl mx-auto opacity-90 font-medium">
+      <section className="py-16 bg-primary text-primary-foreground">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
+          <p className="text-lg mb-8 max-w-2xl mx-auto opacity-90">
             Whether you need support or want to help others, we're here for you.
           </p>
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               size="lg" 
-              className="bg-secondary hover:bg-secondary/90 text-white shadow-xl px-10 py-4 text-lg rounded-xl font-semibold transform hover:scale-105 transition-all duration-300" 
+              className="bg-white text-primary hover:bg-white/90 px-8 py-3 rounded-lg" 
               asChild
             >
               <Link to="/auth">Join Our Community</Link>
@@ -213,7 +247,7 @@ const Home = () => {
             <Button 
               size="lg" 
               variant="outline" 
-              className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-primary transition-all duration-300 px-10 py-4 text-lg rounded-xl font-semibold" 
+              className="bg-transparent border-white text-white hover:bg-white/10 px-8 py-3 rounded-lg" 
               asChild
             >
               <Link to="/resources">Browse Resources</Link>
@@ -223,15 +257,15 @@ const Home = () => {
       </section>
 
       {/* Join Network CTA */}
-      <section className="py-16 bg-gradient-to-r from-secondary to-accent text-white">
+      <section className="py-12 bg-secondary text-secondary-foreground">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <p className="text-xl font-semibold mb-6">
+            <p className="text-lg font-medium mb-4">
               Are you a therapist, legal expert, or NGO who wants to help?
             </p>
             <Button 
               size="lg" 
-              className="bg-white text-primary hover:bg-white/90 shadow-xl px-10 py-4 text-lg rounded-xl font-semibold transform hover:scale-105 transition-all duration-300" 
+              className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-3 rounded-lg" 
               asChild
             >
               <Link to="/auth">Join Our Network</Link>

@@ -7,83 +7,93 @@
 
 @layer base {
   :root {
-    --background: 253 248 242; /* Muted cream #FDF8F2 */
-    --foreground: 60 59 91; /* Deep plum #3C3B5B */
+    --background: 250 247 245; /* Soft cream-beige #FAF7F5 */
+    --foreground: 44 44 44; /* Deep slate gray #2C2C2C */
 
-    --card: 255 255 255;
-    --card-foreground: 60 59 91;
+    --card: 244 244 244; /* Light stone gray #F4F4F4 */
+    --card-foreground: 44 44 44;
 
-    --popover: 255 255 255;
-    --popover-foreground: 60 59 91;
+    --popover: 244 244 244;
+    --popover-foreground: 44 44 44;
 
-    --primary: 44 44 84; /* Navy #2C2C54 */
+    --primary: 196 92 92; /* Dusty coral #C45C5C */
     --primary-foreground: 255 255 255;
 
-    --secondary: 231 141 126; /* Coral #E78D7E */
-    --secondary-foreground: 255 255 255;
+    --secondary: 230 184 184; /* Rose blush #E6B8B8 */
+    --secondary-foreground: 44 44 44;
 
-    --muted: 245 245 245;
+    --muted: 244 244 244; /* Light stone gray #F4F4F4 */
     --muted-foreground: 107 114 128;
 
-    --accent: 196 181 253; /* Light lavender accent */
-    --accent-foreground: 60 59 91;
+    --accent: 230 184 184; /* Rose blush accent */
+    --accent-foreground: 44 44 44;
 
     --destructive: 239 68 68;
     --destructive-foreground: 255 255 255;
 
     --border: 229 231 235;
-    --input: 243 244 246;
-    --ring: 60 59 91;
+    --input: 244 244 244;
+    --ring: 196 92 92;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 253 248 242;
-    --sidebar-foreground: 60 59 91;
-    --sidebar-primary: 44 44 84;
+    --sidebar-background: 250 247 245;
+    --sidebar-foreground: 44 44 44;
+    --sidebar-primary: 196 92 92;
     --sidebar-primary-foreground: 255 255 255;
-    --sidebar-accent: 245 245 245;
-    --sidebar-accent-foreground: 60 59 91;
+    --sidebar-accent: 244 244 244;
+    --sidebar-accent-foreground: 44 44 44;
     --sidebar-border: 229 231 235;
-    --sidebar-ring: 60 59 91;
+    --sidebar-ring: 196 92 92;
   }
 
   .dark {
-    --background: 44 44 84;
-    --foreground: 253 248 242;
+    --background: 44 44 44;
+    --foreground: 250 247 245;
 
-    --card: 60 59 91;
-    --card-foreground: 253 248 242;
+    --card: 60 60 60;
+    --card-foreground: 250 247 245;
 
-    --popover: 60 59 91;
-    --popover-foreground: 253 248 242;
+    --popover: 60 60 60;
+    --popover-foreground: 250 247 245;
 
-    --primary: 253 248 242;
-    --primary-foreground: 44 44 84;
+    --primary: 196 92 92;
+    --primary-foreground: 255 255 255;
 
-    --secondary: 231 141 126;
-    --secondary-foreground: 255 255 255;
+    --secondary: 230 184 184;
+    --secondary-foreground: 44 44 44;
 
     --muted: 75 85 99;
     --muted-foreground: 156 163 175;
 
-    --accent: 139 92 246;
-    --accent-foreground: 253 248 242;
+    --accent: 230 184 184;
+    --accent-foreground: 44 44 44;
 
     --destructive: 239 68 68;
-    --destructive-foreground: 253 248 242;
+    --destructive-foreground: 250 247 245;
 
     --border: 75 85 99;
     --input: 55 65 81;
-    --ring: 196 181 253;
+    --ring: 196 92 92;
 
-    --sidebar-background: 44 44 84;
-    --sidebar-foreground: 253 248 242;
-    --sidebar-primary: 231 141 126;
+    --sidebar-background: 44 44 44;
+    --sidebar-foreground: 250 247 245;
+    --sidebar-primary: 196 92 92;
     --sidebar-primary-foreground: 255 255 255;
-    --sidebar-accent: 60 59 91;
-    --sidebar-accent-foreground: 253 248 242;
+    --sidebar-accent: 60 60 60;
+    --sidebar-accent-foreground: 250 247 245;
     --sidebar-border: 75 85 99;
-    --sidebar-ring: 196 181 253;
+    --sidebar-ring: 196 92 92;
+  }
+
+  /* Calm mode for trauma-sensitive users */
+  .calm-mode {
+    --background: 245 242 240; /* Softer beige */
+    --foreground: 44 44 44;
+    --card: 248 245 243;
+    --primary: 150 111 111; /* Muted coral */
+    --secondary: 200 170 170; /* Softer rose */
+    --accent: 200 170 170;
   }
 }
 
@@ -94,35 +104,44 @@
 
   body {
     @apply bg-background text-foreground;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
   
-  /* Custom gradient for hero section */
-  .hero-gradient {
-    background: linear-gradient(135deg, rgba(231, 141, 126, 0.1) 0%, rgba(253, 248, 242, 1) 100%);
+  /* Calm hero section without gradients */
+  .hero-calm {
+    background: hsl(var(--background));
+    border-bottom: 1px solid hsl(var(--border));
   }
   
   /* Section dividers for visual flow */
   .section-divider {
-    background: linear-gradient(90deg, transparent 0%, rgba(60, 59, 91, 0.1) 50%, transparent 100%);
+    background: linear-gradient(90deg, transparent 0%, hsl(var(--border)) 50%, transparent 100%);
     height: 1px;
     margin: 3rem 0;
   }
   
-  /* Hover transitions for interactive elements */
-  .hover-accent {
-    transition: all 0.3s ease;
+  /* Gentle hover transitions for interactive elements */
+  .hover-gentle {
+    transition: all 0.2s ease;
   }
   
-  .hover-accent:hover {
+  .hover-gentle:hover {
     background-color: hsl(var(--accent) / 0.1);
     transform: translateY(-1px);
+    box-shadow: 0 2px 8px hsl(var(--accent) / 0.15);
   }
 
-  /* Fade-in animation */
-  @keyframes fadeInUp {
+  /* Reduced motion for calm mode */
+  .calm-mode .hover-gentle:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Soft fade-in animation (disabled in calm mode) */
+  @keyframes softFadeIn {
     from {
       opacity: 0;
-      transform: translateY(30px);
+      transform: translateY(20px);
     }
     to {
       opacity: 1;
@@ -130,15 +149,33 @@
     }
   }
 
-  .animate-fade-in {
-    animation: fadeInUp 0.8s ease-out;
+  .animate-soft-fade {
+    animation: softFadeIn 0.6s ease-out;
   }
 
-  .animate-fade-in-delay {
-    animation: fadeInUp 0.8s ease-out 0.3s both;
+  .animate-soft-fade-delay {
+    animation: softFadeIn 0.6s ease-out 0.2s both;
   }
 
-  .animate-fade-in-delay-2 {
-    animation: fadeInUp 0.8s ease-out 0.6s both;
+  .animate-soft-fade-delay-2 {
+    animation: softFadeIn 0.6s ease-out 0.4s both;
+  }
+
+  /* Disable animations in calm mode */
+  .calm-mode .animate-soft-fade,
+  .calm-mode .animate-soft-fade-delay,
+  .calm-mode .animate-soft-fade-delay-2 {
+    animation: none;
+  }
+
+  /* Calm mode button styles */
+  .calm-mode button {
+    box-shadow: none !important;
+    border: 1px solid hsl(var(--border));
+  }
+
+  .calm-mode button:hover {
+    transform: none !important;
+    box-shadow: none !important;
   }
 }
