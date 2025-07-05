@@ -108,9 +108,9 @@
     transition: background-color 0.3s ease, color 0.3s ease;
   }
   
-  /* Hero section styling */
+  /* Hero section styling - Purple gradient, NO YELLOW */
   .hero-section {
-    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
+    background: linear-gradient(135deg, rgb(103, 58, 134) 0%, rgb(147, 112, 179) 50%, rgb(209, 176, 198) 100%);
     border-bottom: 1px solid hsl(var(--border));
   }
   
@@ -223,9 +223,9 @@
     color: hsl(var(--primary));
   }
 
-  /* Donation button special styling */
+  /* Donation button special styling - Purple/Pink gradient, NO YELLOW */
   .btn-donate {
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
+    background: linear-gradient(135deg, rgb(103, 58, 134) 0%, rgb(186, 140, 171) 100%);
     color: white;
     font-weight: 600;
     border: none;

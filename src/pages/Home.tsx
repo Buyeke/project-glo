@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -58,26 +57,26 @@ const Home = () => {
         </Button>
       </div>
 
-      {/* Hero Section - Professional and warm */}
-      <section className="hero-calm py-20 lg:py-28">
+      {/* Hero Section - Purple gradient, NO YELLOW */}
+      <section className={calmMode ? "hero-calm py-20 lg:py-28" : "hero-section py-20 lg:py-28"}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             {/* Left Column - Content */}
             <div className="space-y-8">
               <div className="space-y-6">
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight animate-soft-fade">
+                <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold leading-tight animate-soft-fade ${calmMode ? 'text-foreground' : 'text-white'}`}>
                   Empowering Women & Children
                 </h1>
-                <p className="text-lg md:text-xl text-muted-foreground leading-relaxed animate-soft-fade-delay">
+                <p className={`text-lg md:text-xl leading-relaxed animate-soft-fade-delay ${calmMode ? 'text-muted-foreground' : 'text-white/90'}`}>
                   GLO is an AI-powered safety net for women and children—offering multilingual support, dignity, and hope.
                 </p>
-                <div className="bg-card rounded-lg p-6 border border-border animate-soft-fade-delay">
-                  <p className="text-base font-medium text-foreground mb-3">
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20 animate-soft-fade-delay">
+                  <p className={`text-base font-medium mb-3 ${calmMode ? 'text-foreground' : 'text-white'}`}>
                     You're not alone. Glo connects you to real help, fast.
                   </p>
-                  <div className="flex items-start gap-3 text-sm text-muted-foreground">
+                  <div className="flex items-start gap-3 text-sm">
                     <MapPin className="h-4 w-4 mt-1 flex-shrink-0 text-secondary" />
-                    <div>
+                    <div className={calmMode ? 'text-muted-foreground' : 'text-white/80'}>
                       <p className="font-medium">Serving Mombasa County (In-person & Virtual Services Available)</p>
                       <p className="mt-2">Once your registration is confirmed, we will send you a personalized virtual meeting link via email or WhatsApp within 24 hours.</p>
                     </div>
@@ -88,7 +87,7 @@ const Home = () => {
               <div className="pt-4 animate-soft-fade-delay-2">
                 <Button 
                   size="lg" 
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-base rounded-lg font-semibold" 
+                  className="bg-white text-primary hover:bg-white/90 px-8 py-4 text-base rounded-lg font-semibold" 
                   asChild
                 >
                   <Link to="/auth">Request Support</Link>
@@ -99,14 +98,14 @@ const Home = () => {
             {/* Right Column - Professional Hero Visual */}
             <div className="flex justify-center lg:justify-end animate-soft-fade-delay">
               <div className="relative">
-                <div className="w-80 h-80 lg:w-96 lg:h-96 rounded-2xl bg-card border border-border flex items-center justify-center shadow-lg">
+                <div className="w-80 h-80 lg:w-96 lg:h-96 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center shadow-lg">
                   <div className="text-center space-y-6 p-8">
                     <div className="w-24 h-24 mx-auto bg-secondary/20 rounded-full flex items-center justify-center">
                       <Heart className="w-12 h-12 text-secondary" />
                     </div>
                     <div className="space-y-3">
-                      <p className="text-xl font-semibold text-foreground">Community Support</p>
-                      <p className="text-base text-muted-foreground">Together we build stronger futures</p>
+                      <p className={`text-xl font-semibold ${calmMode ? 'text-foreground' : 'text-white'}`}>Community Support</p>
+                      <p className={`text-base ${calmMode ? 'text-muted-foreground' : 'text-white/80'}`}>Together we build stronger futures</p>
                     </div>
                   </div>
                 </div>
@@ -229,7 +228,7 @@ const Home = () => {
       {/* Section Divider */}
       <div className="section-divider"></div>
 
-      {/* Call to Action - Professional Purple/Pink Gradient */}
+      {/* Call to Action - Professional Purple */}
       <section className="py-16 bg-primary text-primary-foreground">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
