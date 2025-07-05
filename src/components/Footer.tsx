@@ -48,22 +48,22 @@ const Footer = () => {
             <h3 className="text-base font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link to="/services" className="text-background/80 hover:text-background transition-colors duration-200">
+                <Link to="/services" className="text-background/80 hover:text-secondary transition-colors duration-200">
                   Services
                 </Link>
               </li>
               <li>
-                <Link to="/resources" className="text-background/80 hover:text-background transition-colors duration-200">
+                <Link to="/resources" className="text-background/80 hover:text-secondary transition-colors duration-200">
                   Resources
                 </Link>
               </li>
               <li>
-                <Link to="/about" className="text-background/80 hover:text-background transition-colors duration-200">
+                <Link to="/about" className="text-background/80 hover:text-secondary transition-colors duration-200">
                   About Us
                 </Link>
               </li>
               <li>
-                <Link to="/donate" className="text-background/80 hover:text-background transition-colors duration-200">
+                <Link to="/donate" className="text-background/80 hover:text-secondary transition-colors duration-200">
                   Donate
                 </Link>
               </li>
@@ -75,22 +75,22 @@ const Footer = () => {
             <h3 className="text-base font-semibold mb-4">Support</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link to="/auth" className="text-background/80 hover:text-background transition-colors duration-200">
+                <Link to="/auth" className="text-background/80 hover:text-secondary transition-colors duration-200">
                   Get Help
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="text-background/80 hover:text-background transition-colors duration-200">
+                <Link to="/contact" className="text-background/80 hover:text-secondary transition-colors duration-200">
                   Contact Us
                 </Link>
               </li>
               <li>
-                <Link to="/blog" className="text-background/80 hover:text-background transition-colors duration-200">
+                <Link to="/blog" className="text-background/80 hover:text-secondary transition-colors duration-200">
                   Blog
                 </Link>
               </li>
               <li>
-                <Link to="/careers" className="text-background/80 hover:text-background transition-colors duration-200">
+                <Link to="/careers" className="text-background/80 hover:text-secondary transition-colors duration-200">
                   Careers
                 </Link>
               </li>
@@ -102,17 +102,17 @@ const Footer = () => {
             <h3 className="text-base font-semibold mb-4">Legal</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="#" className="text-background/80 hover:text-background transition-colors duration-200">
+                <a href="#" className="text-background/80 hover:text-secondary transition-colors duration-200">
                   Privacy Policy
                 </a>
               </li>
               <li>
-                <a href="#" className="text-background/80 hover:text-background transition-colors duration-200">
+                <a href="#" className="text-background/80 hover:text-secondary transition-colors duration-200">
                   Terms of Service
                 </a>
               </li>
               <li>
-                <a href="#" className="text-background/80 hover:text-background transition-colors duration-200">
+                <a href="#" className="text-background/80 hover:text-secondary transition-colors duration-200">
                   Data Protection
                 </a>
               </li>

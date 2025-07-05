@@ -28,7 +28,7 @@ const Navigation = () => {
   ];
 
   return (
-    <nav className="bg-white shadow-sm border-b border-border sticky top-0 z-50">
+    <nav className="bg-background shadow-sm border-b border-border sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-14">
           {/* Logo */}
@@ -43,7 +43,7 @@ const Navigation = () => {
               <Link
                 key={item.name}
                 to={item.path}
-                className="text-sm text-foreground hover:text-secondary transition-colors duration-200 font-medium"
+                className="text-sm text-foreground hover:text-primary transition-colors duration-200 font-medium nav-link"
               >
                 {item.name}
               </Link>
@@ -57,16 +57,16 @@ const Navigation = () => {
                 <span className="text-xs text-muted-foreground">
                   Welcome, {user.email}
                 </span>
-                <Button variant="outline" size="sm" onClick={handleSignOut} className="text-xs">
+                <Button variant="outline" size="sm" onClick={handleSignOut} className="text-xs border-border hover:bg-muted">
                   Sign Out
                 </Button>
               </div>
             ) : (
               <>
-                <Button variant="outline" size="sm" className="text-xs" asChild>
+                <Button variant="outline" size="sm" className="text-xs border-border hover:bg-muted" asChild>
                   <Link to="/auth">Sign In</Link>
                 </Button>
-                <Button size="sm" className="bg-secondary hover:bg-secondary/90 text-xs" asChild>
+                <Button size="sm" className="bg-secondary hover:bg-secondary/90 text-secondary-foreground font-semibold text-xs btn-donate" asChild>
                   <Link to="/donate">Donate</Link>
                 </Button>
               </>
@@ -79,6 +79,7 @@ const Navigation = () => {
               variant="ghost"
               size="sm"
               onClick={() => setIsOpen(!isOpen)}
+              className="text-foreground hover:bg-muted"
             >
               {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
@@ -88,12 +89,12 @@ const Navigation = () => {
         {/* Mobile Navigation */}
         {isOpen && (
           <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t border-border">
+            <div className="px-2 pt-2 pb-3 space-y-1 bg-background border-t border-border">
               {navItems.map((item) => (
                 <Link
                   key={item.name}
                   to={item.path}
-                  className="block px-3 py-2 text-sm text-foreground hover:text-secondary hover:bg-muted/50 transition-colors rounded-md"
+                  className="block px-3 py-2 text-sm text-foreground hover:text-primary hover:bg-muted/50 transition-colors rounded-md nav-link"
                   onClick={() => setIsOpen(false)}
                 >
                   {item.name}
@@ -101,15 +102,15 @@ const Navigation = () => {
               ))}
               <div className="px-3 py-2 space-y-2">
                 {user ? (
-                  <Button variant="outline" onClick={handleSignOut} className="w-full text-xs" size="sm">
+                  <Button variant="outline" onClick={handleSignOut} className="w-full text-xs border-border hover:bg-muted" size="sm">
                     Sign Out
                   </Button>
                 ) : (
                   <>
-                    <Button variant="outline" asChild className="w-full text-xs" size="sm">
+                    <Button variant="outline" asChild className="w-full text-xs border-border hover:bg-muted" size="sm">
                       <Link to="/auth">Sign In</Link>
                     </Button>
-                    <Button asChild className="w-full bg-secondary hover:bg-secondary/90 text-xs" size="sm">
+                    <Button asChild className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground font-semibold text-xs btn-donate" size="sm">
                       <Link to="/donate">Donate</Link>
                     </Button>
                   </>
