@@ -4,29 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Heart, Users, Search, Gift } from 'lucide-react';
 
 const About = () => {
-  const team = [
-    {
-      name: 'Sarah Johnson',
-      role: 'Founder & CEO',
-      description: 'Former social worker with 15 years of experience helping vulnerable populations.',
-    },
-    {
-      name: 'Dr. Maria Rodriguez',
-      role: 'Chief Medical Officer',
-      description: 'Pediatrician specializing in trauma-informed care for children and families.',
-    },
-    {
-      name: 'James Chen',
-      role: 'Head of Technology',
-      description: 'AI researcher focused on developing ethical and accessible technology solutions.',
-    },
-    {
-      name: 'Amanda Williams',
-      role: 'Director of Services',
-      description: 'Licensed clinical social worker with expertise in crisis intervention.',
-    },
-  ];
-
   const values = [
     {
       icon: Heart,
@@ -71,7 +48,7 @@ const About = () => {
               <div className="space-y-4 text-gray-600">
                 <p>
                   Glo was born from the real experiences of women who had navigated homelessness and 
-                  emerged stronger. Our founder, Sarah Johnson, spent years working in traditional 
+                  emerged stronger. Our founder, Dinah Buyeke Masanda, spent years working in traditional 
                   shelters and saw firsthand how fragmented services and lack of personalized support 
                   left many women and children falling through the cracks.
                 </p>
@@ -131,27 +108,25 @@ const About = () => {
         <section className="mb-16">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Team</h2>
-            <p className="text-xl text-gray-600">Dedicated professionals committed to making a difference</p>
+            <p className="text-xl text-gray-600">Led by lived experience. Built on care.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {team.map((member, index) => (
-              <Card key={index}>
-                <CardHeader>
-                  <div className="w-20 h-20 bg-primary rounded-full mx-auto mb-4 flex items-center justify-center">
-                    <span className="text-2xl font-bold text-primary-foreground">
-                      {member.name.split(' ').map(n => n[0]).join('')}
-                    </span>
-                  </div>
-                  <CardTitle className="text-lg text-center">{member.name}</CardTitle>
-                  <CardDescription className="text-center text-primary font-medium">
-                    {member.role}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-gray-600 text-center">{member.description}</p>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="flex justify-center">
+            <Card className="max-w-2xl">
+              <CardHeader>
+                <div className="w-20 h-20 bg-primary rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <span className="text-2xl font-bold text-primary-foreground">👩🏽‍💻</span>
+                </div>
+                <CardTitle className="text-lg text-center">Dinah Buyeke Masanda</CardTitle>
+                <CardDescription className="text-center text-primary font-medium">
+                  Founder & Project Lead
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-600 text-center">
+                  Community-centered technologist, researcher, and poet committed to building ethical, trauma-informed systems that serve women and children. Dinah founded Glo to connect those most often left behind with real, accessible support through tech and compassion.
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </section>
 
@@ -161,21 +136,42 @@ const About = () => {
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Partners</h2>
             <p className="text-xl text-gray-600">Working together to create lasting change</p>
           </div>
-          <div className="bg-gray-50 rounded-lg p-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Shelter Network Partners</h3>
-                <p className="text-gray-600">50+ emergency shelters and transitional housing facilities</p>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Healthcare Partners</h3>
-                <p className="text-gray-600">Local hospitals, clinics, and mental health providers</p>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Employment Partners</h3>
-                <p className="text-gray-600">100+ employers committed to inclusive hiring practices</p>
-              </div>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <Card className="text-center">
+              <CardHeader>
+                <div className="text-4xl mb-4">🏠</div>
+                <CardTitle className="text-lg">Shelter Network</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">
+                  Partnering with 3 local emergency shelters to provide safe, trauma-informed housing for women and children in crisis.
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card className="text-center">
+              <CardHeader>
+                <div className="text-4xl mb-4">🏥</div>
+                <CardTitle className="text-lg">Healthcare Providers</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">
+                  Collaborating with clinics and community health workers offering maternal care, wellness programs, and crisis support.
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card className="text-center">
+              <CardHeader>
+                <div className="text-4xl mb-4">💼</div>
+                <CardTitle className="text-lg">Employment Partners</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">
+                  Over 10 employers committed to inclusive hiring, skills training, and supporting economic independence for marginalized women.
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </section>
       </div>
