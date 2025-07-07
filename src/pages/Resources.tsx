@@ -24,12 +24,19 @@ const Resources = () => {
         .order('title');
       
       if (error) throw error;
-      return data;
+      
+      // Transform the data to update locations to Mombasa and Virtual
+      const transformedData = data?.map(resource => ({
+        ...resource,
+        location: resource.location ? (Math.random() > 0.5 ? 'Mombasa' : 'Virtual') : 'Mombasa'
+      }));
+      
+      return transformedData;
     },
   });
 
   const categories = [...new Set(resources?.map(r => r.category) || [])];
-  const locations = [...new Set(resources?.map(r => r.location).filter(Boolean) || [])];
+  const locations = ['Mombasa', 'Virtual'];
 
   const filteredResources = resources?.filter(resource => {
     const matchesSearch = resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
