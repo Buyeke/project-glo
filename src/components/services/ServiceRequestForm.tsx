@@ -5,11 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { useDataTracking } from '@/hooks/useDataTracking';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import TextToSpeech from '@/components/TextToSpeech';
 
 const ServiceRequestForm = () => {
   const [serviceType, setServiceType] = useState('');
@@ -18,6 +20,7 @@ const ServiceRequestForm = () => {
   const [description, setDescription] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const { trackServiceRequest } = useDataTracking();
@@ -54,28 +57,31 @@ const ServiceRequestForm = () => {
       return;
     }
 
-    if (!userEmail) {
-      toast.error('Please provide your email address');
+    if (!isAnonymous && !userEmail) {
+      toast.error('Please provide your email address or select anonymous option');
       return;
     }
 
-    if (!phoneNumber) {
-      toast.error('Please provide your phone number or WhatsApp number');
+    if (!isAnonymous && !phoneNumber) {
+      toast.error('Please provide your phone number or WhatsApp number or select anonymous option');
       return;
     }
 
     setIsSubmitting(true);
     try {
+      // Generate temporary ID for anonymous users
+      const tempId = isAnonymous ? `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}` : null;
+      
       // Submit to support_requests table
       const { error } = await supabase
         .from('support_requests')
         .insert({
-          user_email: userEmail,
+          user_email: isAnonymous ? tempId : userEmail,
           service_type: serviceType,
           language: language,
           priority: priority,
           message: description || null,
-          phone_number: phoneNumber,
+          phone_number: isAnonymous ? 'anonymous' : phoneNumber,
           status: 'awaiting_confirmation'
         });
 
@@ -86,7 +92,11 @@ const ServiceRequestForm = () => {
         await trackServiceRequest(serviceType, language);
       }
 
-      toast.success('Support request submitted successfully! You will receive your personalized meeting link within 24 hours.');
+      if (isAnonymous) {
+        toast.success(`Support request submitted anonymously! Your temporary ID is: ${tempId}. Save this for reference. We'll reach out using this ID.`);
+      } else {
+        toast.success('Support request submitted successfully! You will receive your personalized meeting link within 24 hours.');
+      }
       
       // Reset form
       setServiceType('');
@@ -94,6 +104,7 @@ const ServiceRequestForm = () => {
       setUserEmail('');
       setPhoneNumber('');
       setPriority('medium');
+      setIsAnonymous(false);
     } catch (error) {
       console.error('Error submitting support request:', error);
       toast.error('Failed to submit request. Please try again.');
@@ -105,10 +116,16 @@ const ServiceRequestForm = () => {
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle>Request Support</CardTitle>
-        <CardDescription>
-          Tell us what kind of support you need and we'll connect you with the right resources in Mombasa
-        </CardDescription>
+        <div className="flex items-center gap-2">
+          <CardTitle>Request Support</CardTitle>
+          <TextToSpeech text="Request Support" />
+        </div>
+        <div className="flex items-start gap-2">
+          <CardDescription className="flex-1">
+            Tell us what kind of support you need and we'll connect you with the right resources in Mombasa
+          </CardDescription>
+          <TextToSpeech text="Tell us what kind of support you need and we'll connect you with the right resources in Mombasa" />
+        </div>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -150,33 +167,58 @@ const ServiceRequestForm = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Your Email *
-              </label>
-              <Input
-                type="email"
-                value={userEmail}
-                onChange={(e) => setUserEmail(e.target.value)}
-                placeholder="your.email@example.com"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                WhatsApp or Phone Number *
-              </label>
-              <Input
-                type="tel"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                placeholder="+254 7XX XXX XXX"
-                required
-              />
-            </div>
+          {/* Anonymous Option */}
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="anonymous"
+              checked={isAnonymous}
+              onCheckedChange={(checked) => setIsAnonymous(checked as boolean)}
+            />
+            <label
+              htmlFor="anonymous"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              I want to remain anonymous
+            </label>
           </div>
+
+          {isAnonymous && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-800">
+                We'll still reach out using a temporary ID. Your information will remain confidential.
+              </p>
+            </div>
+          )}
+
+          {!isAnonymous && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Your Email *
+                </label>
+                <Input
+                  type="email"
+                  value={userEmail}
+                  onChange={(e) => setUserEmail(e.target.value)}
+                  placeholder="your.email@example.com"
+                  required={!isAnonymous}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  WhatsApp or Phone Number *
+                </label>
+                <Input
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder="+254 7XX XXX XXX"
+                  required={!isAnonymous}
+                />
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium mb-2">
@@ -201,9 +243,12 @@ const ServiceRequestForm = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">
-              Additional Details (Optional)
-            </label>
+            <div className="flex items-center gap-2 mb-2">
+              <label className="block text-sm font-medium">
+                Additional Details (Optional)
+              </label>
+              <TextToSpeech text="Please provide any additional information that might help us assist you better" />
+            </div>
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -215,11 +260,14 @@ const ServiceRequestForm = () => {
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="flex items-start gap-3">
               <div className="text-xl">⏰</div>
-              <div>
+              <div className="flex-1">
                 <p className="font-medium text-blue-800 mb-1">Status: Awaiting Confirmation</p>
-                <p className="text-sm text-blue-700">
-                  You will receive your personalized virtual meeting link via email or WhatsApp within 24 hours.
-                </p>
+                <div className="flex items-start gap-2">
+                  <p className="text-sm text-blue-700 flex-1">
+                    You will receive your personalized virtual meeting link via email or WhatsApp within 24 hours.
+                  </p>
+                  <TextToSpeech text="You will receive your personalized virtual meeting link via email or WhatsApp within 24 hours." />
+                </div>
               </div>
             </div>
           </div>
@@ -227,16 +275,21 @@ const ServiceRequestForm = () => {
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
             <div className="flex items-start gap-3">
               <div className="text-xl">🔒</div>
-              <p className="text-sm text-green-800">
-                Your information is confidential and only shared with the organizations providing your support.
-              </p>
+              <div className="flex-1">
+                <div className="flex items-start gap-2">
+                  <p className="text-sm text-green-800 flex-1">
+                    Your information is confidential and only shared with the organizations providing your support.
+                  </p>
+                  <TextToSpeech text="Your information is confidential and only shared with the organizations providing your support." />
+                </div>
+              </div>
             </div>
           </div>
 
           <Button 
             type="submit" 
             className="w-full" 
-            disabled={isSubmitting || !serviceType || !userEmail || !phoneNumber}
+            disabled={isSubmitting || !serviceType || (!isAnonymous && (!userEmail || !phoneNumber))}
           >
             {isSubmitting ? 'Submitting Request...' : 'Submit Request'}
           </Button>
