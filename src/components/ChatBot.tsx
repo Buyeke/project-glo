@@ -33,6 +33,8 @@ const ChatBot = () => {
 
   return (
     <>
+      <ChatBotStyles />
+      
       {/* Chat Button */}
       {!isOpen && (
         <ChatBotButton onClick={() => setIsOpen(true)} />
@@ -53,8 +55,6 @@ const ChatBot = () => {
           onProcessMessage={handleProcessMessage}
         />
       )}
-
-      <ChatBotStyles />
     </>
   );
 };
