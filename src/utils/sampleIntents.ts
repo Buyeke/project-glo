@@ -1,89 +1,45 @@
 
-// Sample intents for testing - these should be added to the database
+// Sample intents for testing - these are now stored in the database
+// This file serves as documentation for the intent structure
+
 export const sampleIntents = [
   {
-    intent_key: 'shelter_request',
-    category: 'housing',
+    intent_key: 'shelter_need',
+    category: 'basic_service',
     keywords: {
-      english: ['shelter', 'house', 'housing', 'place to stay', 'homeless', 'accommodation', 'room'],
-      swahili: ['makazi', 'nyumba', 'mahali pa kulala', 'shelter', 'kaa'],
-      sheng: ['keja', 'mbanyo', 'place', 'crib'],
-      arabic: ['مأوى', 'منزل', 'سكن', 'مكان للإقامة']
+      english: ['shelter', 'place to sleep', 'sleep tonight', 'homeless', 'cold', 'nowhere to go', 'need accommodation', 'housing', 'room', 'bed'],
+      swahili: ['mahali pa kulala', 'kulala leo usiku', 'makazi', 'baridi', 'sina pa kulala', 'nyumba', 'chumba'],
+      sheng: ['base', 'place ya kulala', 'kulala', 'niko baridi'],
+      arabic: ['مأوى', 'مكان للنوم', 'بارد', 'بيت']
     },
     response_template: {
-      english: 'I can help you find emergency shelter and safe housing. Our network includes 10+ verified shelters that provide immediate accommodation, meals, and safety for women and children. Would you like me to connect you with the nearest available shelter?',
-      swahili: 'Naweza kukusaidia kupata makazi ya dharura na nyumba salama. Mtandao wetu una makazi 10+ yaliyothibitishwa yanayotoa malazi ya haraka, chakula, na usalama kwa wanawake na watoto. Je, ungependa nikusaidicie kuunganisha na makazi yaliyo karibu na yanapatikana?',
-      sheng: 'Naeza kukusort na keja za emergency na safe places. Tuko na network ya shelters 10+ verified zenye accommodation ya haraka, food, na security kwa mama na watoi. Utaka ni-connect na shelter iliyo karibu?',
-      arabic: 'يمكنني مساعدتك في العثور على مأوى طارئ وسكن آمن. شبكتنا تشمل أكثر من 10 ملاجئ موثقة توفر إقامة فورية ووجبات وأمان للنساء والأطفال. هل تود أن أربطك بأقرب ملجأ متاح؟'
+      english: "I'm so sorry you're going through this. You deserve a safe, warm place to sleep. Let me help you find emergency shelter near you right away. Can you tell me your location or the area you're in? You're not alone in this.",
+      swahili: "Pole sana kwa hali hii ngumu. Unastahili mahali salama pa kulala. Niruhusu nikusaidie kupata makazi ya dharura karibu nawe. Unaweza kuniambia uko wapi? Haumo peke yako.",
+      sheng: "Pole sana bro. Haupaswa kulala nje. Nitakusort na place ya emergency karibu nawe. Niambie tu uko area gani? Tutakusaidia.",
+      arabic: "أنا آسف جداً لما تمرين به. تستحقين مكاناً آمناً ودافئاً للنوم. دعيني أساعدك في العثور على مأوى طارئ بالقرب منك. هل يمكنك إخباري بموقعك؟"
     }
   },
   {
-    intent_key: 'food_assistance',
-    category: 'basic_needs',
+    intent_key: 'food_need',
+    category: 'basic_service',
     keywords: {
-      english: ['food', 'hungry', 'eat', 'meal', 'nutrition', 'feeding', 'starving'],
-      swahili: ['chakula', 'njaa', 'kula', 'mlo', 'lishe', 'kulisha'],
-      sheng: ['food', 'dishi', 'kula', 'starve', 'njaa'],
-      arabic: ['طعام', 'جوع', 'أكل', 'وجبة', 'تغذية']
+      english: ['food', 'hungry', 'starving', 'eat', 'meal', 'nothing to eat', 'no money for food', 'feed my children', 'nutrition'],
+      swahili: ['chakula', 'njaa', 'nina njaa', 'kula', 'mlo', 'sina chakula', 'sina pesa ya chakula', 'kulisha watoto'],
+      sheng: ['food', 'njaa', 'dishi', 'kula', 'starve'],
+      arabic: ['طعام', 'جوعان', 'أكل', 'وجبة', 'أطفال جوعى']
     },
     response_template: {
-      english: 'I understand you need food assistance. We can connect you with food banks, community kitchens, and nutrition programs in your area. Many provide immediate meals and food packages for families. Would you like information about food services near you?',
-      swahili: 'Naelewa unahitaji msaada wa chakula. Tunaweza kukuunganisha na makabati ya chakula, majiko ya kijamii, na mipango ya lishe katika eneo lako. Wengi hutoa milo ya haraka na vifurushi vya chakula kwa familia. Je, ungependa taarifa kuhusu huduma za chakula karibu nawe?',
-      sheng: 'Nasoma unahitaji food assistance. Tunaweza ku-connect na food banks, community kitchens, na nutrition programs za area yako. Wengi wanatoa dishi za haraka na food packages kwa familia. Utaka info ya food services za karibu?',
-      arabic: 'أفهم أنك تحتاج للمساعدة الغذائية. يمكننا ربطك ببنوك الطعام والمطابخ المجتمعية وبرامج التغذية في منطقتك. الكثير منها يوفر وجبات فورية وحزم طعام للعائلات. هل تريد معلومات عن خدمات الطعام بالقرب منك؟'
-    }
-  },
-  {
-    intent_key: 'medical_help',
-    category: 'healthcare',
-    keywords: {
-      english: ['doctor', 'medical', 'health', 'sick', 'hospital', 'medicine', 'treatment', 'clinic'],
-      swahili: ['daktari', 'matibabu', 'afya', 'mgonjwa', 'hospitali', 'dawa', 'matibabu', 'kliniki'],
-      sheng: ['daktari', 'docc', 'medical', 'sick', 'hospi', 'dawa'],
-      arabic: ['طبيب', 'طبي', 'صحة', 'مريض', 'مستشفى', 'دواء', 'علاج', 'عيادة']
-    },
-    response_template: {
-      english: 'I can help you access healthcare services. Our network includes clinics, hospitals, and mobile health units that provide medical care, prenatal services, and emergency treatment. Many offer free or low-cost care. Do you need immediate medical attention or regular healthcare services?',
-      swahili: 'Naweza kukusaidia kupata huduma za afya. Mtandao wetu una kliniki, hospitali, na vitengo vya afya vya kuzunguka vinavyotoa huduma za matibabu, huduma za kabla ya kuzaa, na matibabu wa dharura. Wengi wanatoa huduma za bure au za bei nafuu. Je, unahitaji huduma za matibabu za haraka au huduma za kawaida za afya?',
-      sheng: 'Naeza kukusaidia kupata healthcare services. Network yetu ina clinics, hospitals, na mobile health units zenye medical care, prenatal services, na emergency treatment. Wengi wanatoa free au low-cost care. Unahitaji immediate medical attention ama regular healthcare services?',
-      arabic: 'يمكنني مساعدتك في الوصول لخدمات الرعاية الصحية. شبكتنا تشمل عيادات ومستشفيات ووحدات صحية متنقلة توفر الرعاية الطبية وخدمات ما قبل الولادة والعلاج الطارئ. الكثير منها يقدم رعاية مجانية أو منخفضة التكلفة. هل تحتاج عناية طبية فورية أم خدمات رعاية صحية منتظمة؟'
-    }
-  },
-  {
-    intent_key: 'emergency_help',
-    category: 'emergency',
-    keywords: {
-      english: ['emergency', 'urgent', 'help', 'danger', 'crisis', 'abuse', 'violence', 'threat', 'immediate'],
-      swahili: ['dharura', 'haraka', 'msaada', 'hatari', 'mkasa', 'unyanyasaji', 'unyanyapaa', 'tishio', 'mara moja'],
-      sheng: ['emergency', 'urgent', 'msaada', 'danger', 'immediate', 'haraka sana'],
-      arabic: ['طوارئ', 'عاجل', 'مساعدة', 'خطر', 'أزمة', 'إساءة', 'عنف', 'تهديد', 'فوري']
-    },
-    response_template: {
-      english: '🚨 This sounds like an emergency situation. If you are in immediate danger, please call emergency services (999) or go to the nearest police station. For urgent support, I can connect you with our 24/7 crisis helpline and emergency shelter services. Are you safe right now?',
-      swahili: '🚨 Hii inaonekana kama hali ya dharura. Ikiwa uko katika hatari ya haraka, tafadhali piga simu ya huduma za dharura (999) au uende kituo cha polisi cha karibu. Kwa msaada wa haraka, naweza kukuunganisha na msaada wetu wa simu wa saa 24/7 na huduma za makazi ya dharura. Je, uko salama sasa hivi?',
-      sheng: '🚨 Hii inasound kama emergency situation. Kama uko kwa danger ya immediate, call emergency services (999) ama uende police station ya karibu. Kwa urgent support, naeza ku-connect na 24/7 crisis helpline yetu na emergency shelter services. Uko safe right now?',
-      arabic: '🚨 يبدو هذا كموقف طارئ. إذا كنت في خطر فوري، يرجى الاتصال بخدمات الطوارئ (999) أو التوجه لأقرب مركز شرطة. للدعم العاجل، يمكنني ربطك بخط المساعدة للأزمات 24/7 وخدمات الملجأ الطارئ. هل أنت بأمان الآن؟'
+      english: "I understand how hard it is to go without food, especially when you have children depending on you. Let me find food assistance near you right now. Can you share your location so I can connect you with the closest food bank or meal program? Help is available today.",
+      swahili: "Naelewa jinsi ni ngumu kukosa chakula, hasa ukiwa na watoto wanaotegemea wewe. Niruhusu nikutafutie msaada wa chakula karibu nawe sasa. Unaweza kushare location yako ili niweze kukuunganisha na chakula cha karibu? Msaada unapatikana leo.",
+      sheng: "Najua ni hard kukosa food, especially na watoto. Nitakutafutia food assistance karibu nawe sasa. Share location yako nikuconnect na food bank ya karibu. Tutakusaidia leo.",
+      arabic: "أفهم كم هو صعب البقاء دون طعام، خاصة عندما يعتمد عليك الأطفال. دعيني أجد مساعدة غذائية بالقرب منك الآن. هل يمكنك مشاركة موقعك؟"
     }
   }
+  // Additional intents are now in the database...
 ];
 
-// Function to seed the database with sample intents
+// Function to seed the database with sample intents (now deprecated)
 export const seedIntents = async () => {
-  const { supabase } = await import('@/integrations/supabase/client');
-  
-  try {
-    const { data, error } = await supabase
-      .from('chatbot_intents')
-      .upsert(sampleIntents.map(intent => ({
-        ...intent,
-        id: undefined // Let the database generate the ID
-      })));
-    
-    if (error) throw error;
-    console.log('Sample intents seeded successfully');
-    return data;
-  } catch (error) {
-    console.error('Error seeding intents:', error);
-    throw error;
-  }
+  console.log('Sample intents are now managed directly in the database via SQL migrations');
+  console.log('See the chatbot_intents table for current intent definitions');
 };

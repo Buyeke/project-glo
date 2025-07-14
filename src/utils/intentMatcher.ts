@@ -32,27 +32,57 @@ export const matchIntent = (message: string, intents: Intent[], language: string
     const keywords = intent.keywords[language] || intent.keywords['english'] || [];
     let matchCount = 0;
     let totalKeywords = keywords.length;
+    let emotionalBoost = 0;
     
     console.log(`Checking intent ${intent.intent_key} with keywords:`, keywords);
     
-    // Check for keyword matches with partial matching
+    // Check for keyword matches with enhanced emotional context
     for (const keyword of keywords) {
       const lowerKeyword = keyword.toLowerCase();
       
-      // Check for exact word match, partial match, or contained match
-      if (lowerMessage.includes(lowerKeyword) || 
-          lowerMessage.split(' ').some(word => word.includes(lowerKeyword)) ||
-          lowerKeyword.split(' ').some(word => lowerMessage.includes(word))) {
+      // Enhanced matching logic for better accuracy
+      if (lowerMessage.includes(lowerKeyword)) {
         matchCount++;
         console.log(`Matched keyword: ${keyword}`);
+        
+        // Give emotional boost for vulnerable expressions
+        if (isEmotionalKeyword(lowerKeyword)) {
+          emotionalBoost += 0.2;
+        }
+        
+        // Boost for exact phrase matches
+        if (lowerKeyword.includes(' ') && lowerMessage.includes(lowerKeyword)) {
+          emotionalBoost += 0.1;
+        }
+      } else {
+        // Check for partial matches and word boundaries
+        const messageWords = lowerMessage.split(/\s+/);
+        const keywordWords = lowerKeyword.split(/\s+/);
+        
+        for (const msgWord of messageWords) {
+          for (const keyWord of keywordWords) {
+            if (msgWord.includes(keyWord) || keyWord.includes(msgWord)) {
+              matchCount += 0.5; // Partial match gets half credit
+              console.log(`Partial match: ${msgWord} ~= ${keyWord}`);
+              break;
+            }
+          }
+        }
       }
     }
     
-    // Calculate confidence score
-    const confidence = totalKeywords > 0 ? matchCount / totalKeywords : 0;
-    console.log(`Intent ${intent.intent_key} confidence: ${confidence} (${matchCount}/${totalKeywords})`);
+    // Calculate confidence score with emotional context
+    let confidence = totalKeywords > 0 ? matchCount / totalKeywords : 0;
+    confidence = Math.min(confidence + emotionalBoost, 1.0);
     
-    // Lower threshold for better matching and consider any match
+    console.log(`Intent ${intent.intent_key} confidence: ${confidence} (${matchCount}/${totalKeywords}) + emotional boost: ${emotionalBoost}`);
+    
+    // Prioritize emergency intents
+    if (intent.category === 'emergency' && confidence > 0.3) {
+      confidence += 0.2;
+    }
+    
+    // Lower threshold for better matching
     if (confidence > bestScore && matchCount > 0) {
       bestScore = confidence;
       bestMatch = intent;
@@ -65,6 +95,18 @@ export const matchIntent = (message: string, intents: Intent[], language: string
     intent: bestMatch,
     confidence: bestScore
   };
+};
+
+// Helper function to identify emotional keywords
+const isEmotionalKeyword = (keyword: string): boolean => {
+  const emotionalWords = [
+    'scared', 'afraid', 'overwhelmed', 'stressed', 'anxious', 'depressed',
+    'cold', 'hungry', 'starving', 'tired', 'lost', 'alone', 'help',
+    'ninaogopa', 'nina hofu', 'nimechoka', 'nina stress', 'niko down',
+    'baridi', 'njaa', 'nina njaa', 'nisaidie', 'msaada'
+  ];
+  
+  return emotionalWords.some(word => keyword.includes(word));
 };
 
 export const matchService = (message: string, services: Service[]): Service[] => {
@@ -84,30 +126,38 @@ export const matchService = (message: string, services: Service[]): Service[] =>
       ...(service.description?.toLowerCase().split(' ') || [])
     ];
 
-    // Add specific keywords based on service type
+    // Add specific keywords based on service type with emotional context
     const additionalKeywords = getServiceKeywords(service.category.toLowerCase(), service.title.toLowerCase());
     serviceKeywords.push(...additionalKeywords);
 
     console.log(`Checking service ${service.title} with keywords:`, serviceKeywords);
 
-    // Score based on keyword matches
+    // Enhanced scoring with emotional context
     for (const keyword of serviceKeywords) {
-      if (keyword.length > 2) { // Skip very short words
+      if (keyword.length > 2) {
         if (lowerMessage.includes(keyword)) {
-          score += keyword.length > 4 ? 2 : 1; // Give more weight to longer keywords
-          console.log(`Matched keyword "${keyword}" for service ${service.title}`);
+          let keywordScore = keyword.length > 4 ? 2 : 1;
+          
+          // Emotional boost for vulnerable keywords
+          if (isEmotionalKeyword(keyword)) {
+            keywordScore += 1;
+          }
+          
+          score += keywordScore;
+          console.log(`Matched keyword "${keyword}" for service ${service.title} (score: ${keywordScore})`);
         }
       }
     }
 
-    // Boost score for exact category matches
-    if (lowerMessage.includes(service.category.toLowerCase())) {
+    // Priority boosting for emergency and basic needs
+    if (service.category.toLowerCase().includes('emergency') || 
+        service.priority_level === 'Urgent') {
       score += 3;
     }
 
-    // Boost score for exact title matches
-    if (lowerMessage.includes(service.title.toLowerCase())) {
-      score += 5;
+    // Boost for exact category matches
+    if (lowerMessage.includes(service.category.toLowerCase())) {
+      score += 2;
     }
 
     if (score > 0) {
@@ -130,29 +180,64 @@ export const matchService = (message: string, services: Service[]): Service[] =>
 const getServiceKeywords = (category: string, title: string): string[] => {
   const keywords: string[] = [];
 
-  // Emergency/Shelter keywords
-  if (category.includes('emergency') || title.includes('shelter')) {
-    keywords.push('shelter', 'housing', 'accommodation', 'emergency', 'safe', 'place to stay', 'homeless', 'makazi', 'nyumba');
+  // Emergency/Shelter keywords with emotional context
+  if (category.includes('emergency') || title.includes('shelter') || category.includes('basic')) {
+    keywords.push(
+      'shelter', 'housing', 'accommodation', 'emergency', 'safe', 'place to stay', 
+      'homeless', 'cold', 'nowhere to go', 'sleep tonight',
+      'makazi', 'nyumba', 'mahali pa kulala', 'baridi', 'sina pa kulala',
+      'base', 'place ya kulala', 'kulala'
+    );
   }
 
-  // Healthcare keywords  
-  if (category.includes('healthcare') || title.includes('health')) {
-    keywords.push('doctor', 'hospital', 'medical', 'health', 'clinic', 'treatment', 'daktari', 'hospitali', 'afya', 'matibabu');
+  // Healthcare keywords with emotional/family context
+  if (category.includes('healthcare') || title.includes('health') || category.includes('medical')) {
+    keywords.push(
+      'doctor', 'hospital', 'medical', 'health', 'clinic', 'treatment', 'sick', 
+      'pregnant', 'child sick', 'pain', 'medicine',
+      'daktari', 'hospitali', 'afya', 'matibabu', 'mgonjwa', 'mjamzito', 
+      'mtoto mgonjwa', 'maumivu', 'dawa',
+      'doki', 'sick', 'medical', 'clinic'
+    );
   }
 
-  // Food keywords
-  if (category.includes('basic') || title.includes('food')) {
-    keywords.push('food', 'hungry', 'eat', 'meal', 'nutrition', 'chakula', 'njaa', 'kula');
+  // Food keywords with desperation indicators
+  if (category.includes('basic') || title.includes('food') || category.includes('nutrition')) {
+    keywords.push(
+      'food', 'hungry', 'starving', 'eat', 'meal', 'nutrition', 'nothing to eat',
+      'no money for food', 'feed my children',
+      'chakula', 'njaa', 'nina njaa', 'kula', 'mlo', 'sina chakula', 
+      'sina pesa ya chakula', 'kulisha watoto',
+      'food', 'njaa', 'dishi', 'starve'
+    );
   }
 
   // Legal keywords
   if (category.includes('legal') || title.includes('legal')) {
-    keywords.push('legal', 'lawyer', 'court', 'law', 'rights', 'advocate', 'wakili', 'sheria');
+    keywords.push(
+      'legal', 'lawyer', 'court', 'law', 'rights', 'advocate', 'family law',
+      'wakili', 'sheria', 'mahakama'
+    );
   }
 
-  // Employment keywords
-  if (category.includes('employment') || title.includes('job')) {
-    keywords.push('job', 'work', 'employment', 'training', 'skills', 'career', 'kazi', 'ajira');
+  // Employment keywords with family support context
+  if (category.includes('employment') || title.includes('job') || category.includes('work')) {
+    keywords.push(
+      'job', 'work', 'employment', 'training', 'skills', 'career', 'income',
+      'support my family', 'CV', 'interview',
+      'kazi', 'ajira', 'mapato', 'mafunzo', 'kusaidia familia',
+      'job', 'work', 'income', 'pesa', 'hustle'
+    );
+  }
+
+  // Mental health keywords
+  if (category.includes('mental') || title.includes('counseling') || title.includes('support')) {
+    keywords.push(
+      'overwhelmed', 'depressed', 'anxious', 'stressed', 'counseling', 'therapy',
+      'need someone to talk', 'mental health',
+      'nimechoka', 'nina stress', 'hali mbaya', 'nahitaji mtu wa kuongea',
+      'niko down', 'stressed', 'need kuongea'
+    );
   }
 
   return keywords;
@@ -160,19 +245,20 @@ const getServiceKeywords = (category: string, title: string): string[] => {
 
 export const getFallbackResponse = (language: string): string => {
   const responses = {
-    english: "Sorry, I didn't understand that. Can you try rephrasing or use the menu options? I can help with shelter, food, healthcare, emergency situations, and more.",
-    swahili: "Samahani, sikuelewa hilo. Je, unaweza kurudia kwa njia nyingine au tumia chaguo za menyu? Naweza kusaidia na makazi, chakula, afya, hali za dharura, na mengine.",
-    arabic: "آسف، لم أفهم ذلك. هل يمكنك إعادة الصياغة أو استخدام خيارات القائمة؟ يمكنني المساعدة في المأوى والطعام والرعاية الصحية وحالات الطوارئ والمزيد.",
-    sheng: "Pole, sikuelewa hiyo. Unaweza sema tena au tumia menu options? Naeza kusaidia na shelter, food, healthcare, emergency situations, na vitu zingine."
+    english: "I'm here to help you, and I want to make sure I understand what you need. Could you tell me a bit more? I can assist with shelter, food, healthcare, job support, or just someone to talk to. You're not alone in this.",
+    swahili: "Niko hapa kukusaidia, na nataka kuhakikisha naelewa unachohitaji. Unaweza kuniambia zaidi? Naweza kusaidia na makazi, chakula, afya, msaada wa kazi, au mtu wa kuongea naye. Haumo peke yako.",
+    arabic: "أنا هنا لمساعدتك، وأريد أن أتأكد من فهمي لما تحتاجينه. هل يمكنك إخباري أكثر؟ يمكنني المساعدة في المأوى والطعام والرعاية الصحية ودعم العمل أو مجرد شخص للحديث معه. لست وحدك.",
+    sheng: "Niko hapa kukusaidia, na nataka kuelewa unachohitaji. Unaweza niambie zaidi? Naeza help na shelter, food, healthcare, job support, ama mtu wa kuongea. Haumo peke yako."
   };
   
   return responses[language as keyof typeof responses] || responses.english;
 };
 
-// Simple translation function (placeholder for LibreTranslate integration)
+// Enhanced translation function placeholder
 export const translateText = async (text: string, fromLang: string, toLang: string): Promise<string> => {
-  // For now, return the original text
-  // In production, you would integrate with LibreTranslate API
   console.log(`Translation requested: ${text} from ${fromLang} to ${toLang}`);
+  
+  // For now, return the original text
+  // In production, integrate with LibreTranslate API or similar service
   return text;
 };

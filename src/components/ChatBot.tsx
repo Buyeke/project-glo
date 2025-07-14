@@ -1,10 +1,11 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { X, MessageSquare, Send, Globe, AlertTriangle, LifeBuoy } from 'lucide-react';
+import { X, MessageSquare, Send, Globe, AlertTriangle, Heart, MapPin, Briefcase, Phone } from 'lucide-react';
 import { useChatbot } from '@/hooks/useChatbot';
 import { getSupportedLanguages } from '@/utils/languageUtils';
 import { Link } from 'react-router-dom';
@@ -30,28 +31,71 @@ const ChatBot = () => {
 
   const supportedLanguages = getSupportedLanguages();
 
+  // Enhanced quick action buttons with emotional context
+  const quickActions = [
+    { 
+      label: { english: "Shelter", swahili: "Makazi", sheng: "Base", arabic: "مأوى" },
+      message: { english: "I need a place to sleep tonight", swahili: "Nahitaji mahali pa kulala leo usiku", sheng: "Nahitaji place ya kulala leo", arabic: "أحتاج مكان للنوم الليلة" },
+      icon: MapPin,
+      variant: "destructive" as const
+    },
+    { 
+      label: { english: "Food", swahili: "Chakula", sheng: "Food", arabic: "طعام" },
+      message: { english: "I'm hungry and need food", swahili: "Nina njaa na nahitaji chakula", sheng: "Nina njaa, nahitaji food", arabic: "أنا جوعان وأحتاج طعام" },
+      icon: Heart,
+      variant: "default" as const
+    },
+    { 
+      label: { english: "Health", swahili: "Afya", sheng: "Health", arabic: "صحة" },
+      message: { english: "I need medical help", swahili: "Nahitaji msaada wa kimatibabu", sheng: "Nahitaji medical help", arabic: "أحتاج مساعدة طبية" },
+      icon: Phone,
+      variant: "default" as const
+    },
+    { 
+      label: { english: "Emergency", swahili: "Dharura", sheng: "Emergency", arabic: "طوارئ" },
+      message: { english: "Help! I need urgent assistance", swahili: "Msaada! Nahitaji msaada wa haraka", sheng: "Help! Nahitaji msaada haraka", arabic: "مساعدة! أحتاج مساعدة عاجلة" },
+      icon: AlertTriangle,
+      variant: "destructive" as const
+    },
+    { 
+      label: { english: "Talk", swahili: "Ongea", sheng: "Talk", arabic: "تحدث" },
+      message: { english: "I need someone to talk to", swahili: "Nahitaji mtu wa kuongea naye", sheng: "Nahitaji mtu wa kuongea", arabic: "أحتاج شخص للحديث معه" },
+      icon: Heart,
+      variant: "outline" as const
+    },
+    { 
+      label: { english: "Jobs", swahili: "Kazi", sheng: "Job", arabic: "وظائف" },
+      message: { english: "I need help finding work", swahili: "Nahitaji msaada kupata kazi", sheng: "Nahitaji msaada kupata job", arabic: "أحتاج مساعدة في العثور على عمل" },
+      icon: Briefcase,
+      variant: "outline" as const
+    }
+  ];
+
   return (
     <>
-      {/* Chat Button */}
+      {/* Enhanced Chat Button */}
       {!isOpen && (
         <Button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 left-6 rounded-full w-14 h-14 shadow-lg z-50"
+          className="fixed bottom-6 left-6 rounded-full w-16 h-16 shadow-lg z-50 bg-primary hover:bg-primary/90 pulse-animation"
           size="icon"
           data-chat-trigger
         >
-          <MessageSquare className="h-6 w-6" />
+          <MessageSquare className="h-7 w-7" />
         </Button>
       )}
 
-      {/* Chat Window */}
+      {/* Enhanced Chat Window */}
       {isOpen && (
-        <Card className="fixed bottom-6 left-6 w-80 h-96 shadow-2xl z-50">
-          <CardHeader className="bg-primary text-primary-foreground p-4">
+        <Card className="fixed bottom-6 left-6 w-96 h-[32rem] shadow-2xl z-50 border-primary/20">
+          <CardHeader className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground p-4">
             <div className="flex justify-between items-center">
               <CardTitle className="text-sm flex items-center gap-2">
                 <Globe className="h-4 w-4" />
                 Glo AI Assistant
+                <Badge variant="secondary" className="text-xs bg-primary-foreground/20 text-primary-foreground">
+                  Available 24/7
+                </Badge>
               </CardTitle>
               <div className="flex items-center gap-2">
                 <Select value={currentLanguage} onValueChange={handleLanguageChange}>
@@ -77,7 +121,7 @@ const ChatBot = () => {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="p-0 flex flex-col h-80">
+          <CardContent className="p-0 flex flex-col h-96">
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {messages.map((message, index) => (
@@ -87,16 +131,16 @@ const ChatBot = () => {
                   >
                     <div className="max-w-xs">
                       <div
-                        className={`p-3 rounded-lg text-sm ${
+                        className={`p-3 rounded-lg text-sm leading-relaxed ${
                           message.isBot
-                            ? 'bg-gray-100 text-gray-800'
-                            : 'bg-primary text-primary-foreground'
+                            ? 'bg-gradient-to-br from-gray-50 to-gray-100 text-gray-800 border border-gray-200'
+                            : 'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground'
                         }`}
                       >
                         {message.text}
                       </div>
                       
-                      {/* Message metadata */}
+                      {/* Enhanced message metadata */}
                       <div className="flex flex-wrap gap-1 mt-1">
                         {message.language && message.language !== 'english' && (
                           <Badge variant="secondary" className="text-xs">
@@ -104,56 +148,75 @@ const ChatBot = () => {
                           </Badge>
                         )}
                         {message.intent && (
-                          <Badge variant="outline" className="text-xs">
-                            {message.intent}
+                          <Badge variant="outline" className="text-xs capitalize">
+                            {message.intent.replace('_', ' ')}
                           </Badge>
                         )}
-                        {message.confidence && (
-                          <Badge variant="outline" className="text-xs">
-                            {Math.round(message.confidence * 100)}%
+                        {message.confidence && message.confidence > 0.7 && (
+                          <Badge variant="outline" className="text-xs bg-green-50 text-green-700">
+                            High match
                           </Badge>
                         )}
                         {message.intent?.includes('emergency') && (
-                          <Badge variant="destructive" className="text-xs">
+                          <Badge variant="destructive" className="text-xs animate-pulse">
                             <AlertTriangle className="h-3 w-3 mr-1" />
                             Emergency
+                          </Badge>
+                        )}
+                        {message.intent?.includes('emotional') && (
+                          <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700">
+                            <Heart className="h-3 w-3 mr-1" />
+                            Support
                           </Badge>
                         )}
                       </div>
                     </div>
                   </div>
                   
-                  {/* Add helpful microcopy after the first bot message */}
+                  {/* Enhanced first message with warm welcome */}
                   {index === 0 && message.isBot && (
-                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <p className="text-sm text-blue-800 mb-2">
-                        I'm here to help — you can ask for food, shelter, health support, or legal help. 
-                        Try typing something like "I need a place to stay."
-                      </p>
+                    <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-start gap-3">
+                        <Heart className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm text-blue-800 font-medium mb-2">
+                            You're safe here. This is a confidential space just for you.
+                          </p>
+                          <p className="text-xs text-blue-700">
+                            Try typing what you need like "I need food" or "I feel overwhelmed" - or use the quick buttons below.
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   )}
                   
-                  {/* Show fallback options if no good match */}
-                  {message.isBot && message.confidence && message.confidence < 0.3 && (
+                  {/* Enhanced fallback options with emotional support */}
+                  {message.isBot && message.confidence && message.confidence < 0.4 && index > 0 && (
                     <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <p className="text-sm text-yellow-800 mb-2">
-                        I'm not sure I understand. You can:
-                      </p>
-                      <div className="space-y-2">
-                        <Link to="/services">
-                          <Button variant="outline" size="sm" className="w-full justify-start">
-                            <LifeBuoy className="h-4 w-4 mr-2" />
-                            Request Support
-                          </Button>
-                        </Link>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="w-full justify-start"
-                          onClick={() => processMessage("How does Glo work?")}
-                        >
-                          Learn about Glo
-                        </Button>
+                      <div className="flex items-start gap-2">
+                        <Heart className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm text-yellow-800 mb-2">
+                            I want to help you better. You can:
+                          </p>
+                          <div className="space-y-2">
+                            <Link to="/services">
+                              <Button variant="outline" size="sm" className="w-full justify-start text-xs">
+                                <Phone className="h-3 w-3 mr-2" />
+                                Request Direct Support
+                              </Button>
+                            </Link>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="w-full justify-start text-xs"
+                              onClick={() => processMessage("How does Glo work?", currentLanguage)}
+                            >
+                              <Globe className="h-3 w-3 mr-2" />
+                              Learn about Glo
+                            </Button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -161,68 +224,85 @@ const ChatBot = () => {
               ))}
               
               {isLoadingIntents && (
-                <div className="text-center text-sm text-gray-500">
-                  Loading language support...
+                <div className="text-center text-sm text-gray-500 py-4">
+                  <div className="animate-pulse">Setting up multilingual support...</div>
                 </div>
               )}
             </div>
 
-            {/* Quick Actions */}
-            <div className="px-4 py-2 border-t bg-gray-50">
-              <div className="flex flex-wrap gap-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => processMessage("I need shelter", currentLanguage)}
-                  className="text-xs"
-                >
-                  Shelter
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => processMessage("I need food", currentLanguage)}
-                  className="text-xs"
-                >
-                  Food
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => processMessage("Emergency help", currentLanguage)}
-                  className="text-xs"
-                >
-                  Emergency
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => processMessage("How does Glo work?", currentLanguage)}
-                  className="text-xs"
-                >
-                  Help
-                </Button>
+            {/* Enhanced Quick Actions with emotional context */}
+            <div className="px-4 py-3 border-t bg-gradient-to-r from-gray-50 to-gray-100">
+              <div className="grid grid-cols-3 gap-1">
+                {quickActions.map((action, index) => {
+                  const Icon = action.icon;
+                  const label = action.label[currentLanguage as keyof typeof action.label] || action.label.english;
+                  const message = action.message[currentLanguage as keyof typeof action.message] || action.message.english;
+                  
+                  return (
+                    <Button
+                      key={index}
+                      variant={action.variant}
+                      size="sm"
+                      onClick={() => processMessage(message, currentLanguage)}
+                      className="text-xs h-8 px-2 flex items-center gap-1"
+                    >
+                      <Icon className="h-3 w-3" />
+                      <span className="truncate">{label}</span>
+                    </Button>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Input */}
-            <div className="p-4 border-t">
+            {/* Enhanced Input with emotional support */}
+            <div className="p-4 border-t bg-white">
               <div className="flex space-x-2">
                 <Input
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Ask me anything..."
+                  placeholder={
+                    currentLanguage === 'swahili' ? "Niambie unachohitaji..." :
+                    currentLanguage === 'sheng' ? "Niambie unachohitaji..." :
+                    currentLanguage === 'arabic' ? "أخبريني بما تحتاجينه..." :
+                    "Tell me what you need..."
+                  }
                   onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                  className="flex-1"
+                  className="flex-1 border-gray-300 focus:border-primary"
                 />
-                <Button onClick={handleSend} size="icon">
+                <Button 
+                  onClick={handleSend} 
+                  size="icon"
+                  disabled={!inputValue.trim()}
+                  className="bg-primary hover:bg-primary/90"
+                >
                   <Send className="h-4 w-4" />
                 </Button>
               </div>
+              <p className="text-xs text-gray-500 mt-2 text-center">
+                {currentLanguage === 'swahili' ? "Mazungumzo yako ni siri na salama" :
+                 currentLanguage === 'sheng' ? "Mazungumzo yako ni confidential" :
+                 currentLanguage === 'arabic' ? "محادثتك سرية وآمنة" :
+                 "Your conversation is confidential and safe"}
+              </p>
             </div>
           </CardContent>
         </Card>
       )}
+
+      <style jsx>{`
+        .pulse-animation {
+          animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+          0%, 100% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.05);
+          }
+        }
+      `}</style>
     </>
   );
 };
