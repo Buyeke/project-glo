@@ -1,4 +1,3 @@
-
 // Enhanced language detection utility with comprehensive Sheng and Swahili support
 export const detectLanguage = (text: string): string => {
   const lowerText = text.toLowerCase().trim();
@@ -279,4 +278,165 @@ export const getResponseStyle = (text: string, detectedLanguage: string): 'forma
   if (detectedLanguage === 'swahili') return 'formal';
   
   return 'casual';
+};
+
+import { detectLanguageWithContext, getContextualGreetingEnhanced } from './enhancedLanguageDetection';
+import { generateCulturalResponse, adaptResponseToEmotion } from './culturalResponseGenerator';
+import { findBestTranslation } from './shengTranslationService';
+
+// Enhanced language detection using the new service
+export const detectLanguage = (text: string): string => {
+  const detection = detectLanguageWithContext(text);
+  return detection.language;
+};
+
+// Enhanced contextual greeting using the new service
+export const getContextualGreeting = (language: string): string => {
+  const detection = detectLanguageWithContext(''); // Default formality
+  return getContextualGreetingEnhanced(language, detection.formality);
+};
+
+// Enhanced cultural response using the new service
+export const getCulturalResponse = (responseType: 'thanks' | 'goodbye' | 'help' | 'problem', language: string): string => {
+  const response = generateCulturalResponse('', responseType as any, language);
+  return response.text;
+};
+
+// Enhanced emotional state detection with cultural context
+export const detectEmotionalState = (text: string, language: string): 'distressed' | 'grateful' | 'urgent' | 'neutral' => {
+  const lowerText = text.toLowerCase();
+  
+  // Enhanced distress detection with cultural expressions
+  const distressWords = {
+    sheng: [
+      'niko down', 'sina dough', 'sina chapaa', 'shida kubwa', 'najiskia vibaya', 
+      'stressed sana', 'nimebreak', 'sina pesa', 'nina stress', 'umeniangusha',
+      'niko desperate', 'sina mahali', 'nimelose hope'
+    ],
+    swahili: [
+      'nina shida', 'nina hofu', 'nimechoka', 'nina stress', 'hali mbaya', 
+      'nimejam', 'sijui la kufanya', 'nimehuzunika', 'nina wasiwasi',
+      'nimepoteza tumaini', 'sina msaada', 'nina tatizo kubwa'
+    ],
+    english: [
+      'stressed', 'overwhelmed', 'desperate', 'scared', 'worried', 'broke', 
+      'depressed', 'lost hope', 'no money', 'can\'t cope', 'breaking down'
+    ],
+    arabic: ['قلقان', 'خائف', 'متوتر', 'محبط', 'يائس', 'مفلس']
+  };
+  
+  // Enhanced urgent detection
+  const urgentWords = {
+    sheng: [
+      'emergency', 'dharura', 'nina haraka', 'urgent sana', 'immediately',
+      'haraka sana', 'nina emergency', 'help haraka', 'msaada wa haraka'
+    ],
+    swahili: [
+      'dharura', 'haraka sana', 'tatizo kubwa', 'msaada wa haraka',
+      'hali ya dharura', 'nina haja ya haraka', 'sitaweza kusubiri'
+    ],
+    english: [
+      'urgent', 'emergency', 'immediately', 'help', 'crisis', 'asap',
+      'right now', 'can\'t wait', 'desperate need'
+    ],
+    arabic: ['عاجل', 'طوارئ', 'بسرعة', 'مساعدة فورية', 'حالة طارئة']
+  };
+  
+  // Enhanced grateful detection
+  const gratefulWords = {
+    sheng: [
+      'asante sana bro', 'poa sana', 'umesaidia', 'thanks maze', 'much love',
+      'nimefurahi sana', 'umehelp sana', 'amazing bro'
+    ],
+    swahili: [
+      'asante', 'nashukuru', 'nimefurahi', 'baraka', 'mungu akubariki',
+      'umesaidia sana', 'sina maneno', 'umeongeza furaha'
+    ],
+    english: [
+      'thank', 'grateful', 'appreciate', 'blessing', 'amazing',
+      'you helped', 'so happy', 'much better'
+    ],
+    arabic: ['شكرا', 'ممتن', 'الله يعطيك العافية', 'بارك الله فيك']
+  };
+  
+  const checkWords = (wordList: string[]) => 
+    wordList.some(word => lowerText.includes(word.toLowerCase()));
+  
+  // Check in order of priority
+  if (checkWords(urgentWords[language as keyof typeof urgentWords] || urgentWords.english)) {
+    return 'urgent';
+  }
+  if (checkWords(distressWords[language as keyof typeof distressWords] || distressWords.english)) {
+    return 'distressed';
+  }
+  if (checkWords(gratefulWords[language as keyof typeof gratefulWords] || gratefulWords.english)) {
+    return 'grateful';
+  }
+  
+  return 'neutral';
+};
+
+// Enhanced code-switching detection
+export const detectCodeSwitching = (text: string): { hasCodeSwitching: boolean; languages: string[] } => {
+  const detectedLanguages: string[] = [];
+  const words = text.toLowerCase().split(/\s+/);
+  
+  // Check for English words
+  const englishWords = ['help', 'problem', 'money', 'work', 'family', 'house', 'food', 'sick'];
+  if (englishWords.some(word => words.includes(word))) {
+    detectedLanguages.push('english');
+  }
+  
+  // Check for Sheng words
+  const shengWords = ['poa', 'sawa', 'maze', 'msee', 'dough', 'cheki', 'niaje'];
+  if (shengWords.some(word => words.some(w => w.includes(word)))) {
+    detectedLanguages.push('sheng');
+  }
+  
+  // Check for Swahili words
+  const swahiliWords = ['nina', 'asante', 'habari', 'karibu', 'pole', 'haraka'];
+  if (swahiliWords.some(word => words.some(w => w.includes(word)))) {
+    detectedLanguages.push('swahili');
+  }
+  
+  return {
+    hasCodeSwitching: detectedLanguages.length > 1,
+    languages: detectedLanguages
+  };
+};
+
+// Helper to get appropriate response style based on detected mixing
+export const getResponseStyle = (text: string, detectedLanguage: string): 'formal' | 'casual' | 'mixed' => {
+  const { hasCodeSwitching } = detectCodeSwitching(text);
+  
+  if (hasCodeSwitching) return 'mixed';
+  if (detectedLanguage === 'sheng') return 'casual';
+  if (detectedLanguage === 'swahili') return 'formal';
+  
+  return 'casual';
+};
+
+// New function to get enhanced translation
+export const getEnhancedTranslation = (text: string, fromLang: string, toLang: string): string | null => {
+  return findBestTranslation(text, fromLang, toLang);
+};
+
+// New function to generate culturally appropriate responses
+export const generateCulturalResponseText = (
+  userMessage: string,
+  responseType: 'thanks' | 'goodbye' | 'help' | 'problem' | 'encouragement' | 'emergency',
+  targetLanguage?: string
+): string => {
+  const response = generateCulturalResponse(userMessage, responseType, targetLanguage);
+  return response.text;
+};
+
+// New function to adapt responses to emotional context
+export const enhanceResponseWithEmotion = (
+  baseResponse: string,
+  emotionalState: string,
+  language: string
+): string => {
+  const detection = detectLanguageWithContext(baseResponse);
+  return adaptResponseToEmotion(baseResponse, emotionalState, language, detection.formality);
 };

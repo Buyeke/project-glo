@@ -21,13 +21,13 @@ export const ChatQuickActions = ({ currentLanguage, onActionClick }: ChatQuickAc
       label: { 
         english: "Shelter", 
         swahili: "Makazi", 
-        sheng: "Kejani", 
+        sheng: "Base", 
         arabic: "مأوى" 
       },
       message: { 
         english: "I need a place to sleep tonight", 
         swahili: "Nahitaji mahali pa kulala leo usiku", 
-        sheng: "Niaje, nahitaji kejani ya kulala leo. Niko baridi sana.", 
+        sheng: "Bro, sina base ya kulala leo. Niko baridi sana na sina mahali.", 
         arabic: "أحتاج مكان للنوم الليلة" 
       },
       icon: MapPin,
@@ -43,7 +43,7 @@ export const ChatQuickActions = ({ currentLanguage, onActionClick }: ChatQuickAc
       message: { 
         english: "I'm hungry and need food", 
         swahili: "Nina njaa na nahitaji chakula", 
-        sheng: "Bro, nina njaa kubwa. Nahitaji dishi haraka.", 
+        sheng: "Maze, nina njaa kubwa. Sina pesa ya food. Nisaidie kupata dishi.", 
         arabic: "أنا جوعان وأحتاج طعام" 
       },
       icon: Heart,
@@ -59,7 +59,7 @@ export const ChatQuickActions = ({ currentLanguage, onActionClick }: ChatQuickAc
       message: { 
         english: "I need medical help", 
         swahili: "Nahitaji msaada wa kimatibabu", 
-        sheng: "Nahitaji kuona doki haraka. Nina shida ya health.", 
+        sheng: "Bro, nahitaji kuona doki haraka. Nina shida ya health na sina pesa ya hospital.", 
         arabic: "أحتاج مساعدة طبية" 
       },
       icon: Phone,
@@ -69,13 +69,13 @@ export const ChatQuickActions = ({ currentLanguage, onActionClick }: ChatQuickAc
       label: { 
         english: "Emergency", 
         swahili: "Dharura", 
-        sheng: "Dharura", 
+        sheng: "Emergency", 
         arabic: "طوارئ" 
       },
       message: { 
         english: "Help! I need urgent assistance", 
         swahili: "Msaada! Nahitaji msaada wa haraka", 
-        sheng: "Emergency bro! Nahitaji msaada haraka sana. Ni dharura.", 
+        sheng: "Emergency bro! Nahitaji msaada haraka sana. Hii ni dharura kubwa.", 
         arabic: "مساعدة! أحتاج مساعدة عاجلة" 
       },
       icon: AlertTriangle,
@@ -85,13 +85,13 @@ export const ChatQuickActions = ({ currentLanguage, onActionClick }: ChatQuickAc
       label: { 
         english: "Money", 
         swahili: "Pesa", 
-        sheng: "Munde", 
+        sheng: "Dough", 
         arabic: "نقود" 
       },
       message: { 
         english: "I need financial help", 
         swahili: "Nahitaji msaada wa kifedha", 
-        sheng: "Maze, sina munde kabisa. Nahitaji msaada wa pesa.", 
+        sheng: "Maze, sina dough kabisa. Nimejam na sina chapaa ya basic needs.", 
         arabic: "أحتاج مساعدة مالية" 
       },
       icon: DollarSign,
@@ -99,7 +99,7 @@ export const ChatQuickActions = ({ currentLanguage, onActionClick }: ChatQuickAc
     },
     { 
       label: { 
-        english: "Jobs", 
+        english: "Work", 
         swahili: "Kazi", 
         sheng: "Hustle", 
         arabic: "وظائف" 
@@ -107,7 +107,7 @@ export const ChatQuickActions = ({ currentLanguage, onActionClick }: ChatQuickAc
       message: { 
         english: "I need help finding work", 
         swahili: "Nahitaji msaada kupata kazi", 
-        sheng: "Bro, nahitaji msaada kupata hustle. Nina skills lakini sina kazi.", 
+        sheng: "Bro, nahitaji msaada kupata hustle. Nina skills lakini sina connections za job.", 
         arabic: "أحتاج مساعدة في العثور على عمل" 
       },
       icon: Briefcase,

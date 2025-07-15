@@ -1,7 +1,8 @@
-
-import { detectLanguage, getContextualGreeting, getCulturalResponse, detectEmotionalState } from '@/utils/languageUtils';
-import { matchIntent, getFallbackResponse, translateText, matchService } from '@/utils/intentMatcher';
 import { ChatMessage, Intent, Service } from '@/types/chatbot';
+import { detectLanguageWithContext } from '@/utils/enhancedLanguageDetection';
+import { generateCulturalResponse } from '@/utils/culturalResponseGenerator';
+import { getEnhancedTranslation, enhanceResponseWithEmotion } from '@/utils/languageUtils';
+import { matchIntent, matchService, getFallbackResponse, translateText } from '@/utils/intentMatcher';
 
 export const useChatMessageProcessor = (intents: Intent[], services: Service[]) => {
   const processMessage = async (
@@ -11,21 +12,33 @@ export const useChatMessageProcessor = (intents: Intent[], services: Service[]) 
   ): Promise<{ userMsg: ChatMessage; botMsg: ChatMessage }> => {
     console.log('Processing message:', userMessage);
     
-    const detectedLanguage = forcedLanguage || detectLanguage(userMessage);
+    // Use enhanced language detection
+    const detection = detectLanguageWithContext(userMessage);
+    const detectedLanguage = forcedLanguage || detection.language;
     const emotionalState = detectEmotionalState(userMessage, detectedLanguage);
     
-    console.log('Detected language:', detectedLanguage);
-    console.log('Emotional state:', emotionalState);
+    console.log('Enhanced detection:', {
+      language: detectedLanguage,
+      confidence: detection.confidence,
+      formality: detection.formality,
+      context: detection.context,
+      emotionalState
+    });
 
-    // Translate to English for intent matching if needed
+    // Try enhanced translation first
     let messageForMatching = userMessage;
     if (detectedLanguage !== 'english') {
-      try {
-        messageForMatching = await translateText(userMessage, detectedLanguage, 'english');
-        console.log('Translated message for matching:', messageForMatching);
-      } catch (error) {
-        console.error('Translation failed:', error);
-        // Continue with original message if translation fails
+      const enhancedTranslation = getEnhancedTranslation(userMessage, detectedLanguage, 'english');
+      if (enhancedTranslation) {
+        messageForMatching = enhancedTranslation;
+        console.log('Enhanced translation used:', messageForMatching);
+      } else {
+        try {
+          messageForMatching = await translateText(userMessage, detectedLanguage, 'english');
+          console.log('Fallback translation:', messageForMatching);
+        } catch (error) {
+          console.error('Translation failed:', error);
+        }
       }
     }
 
@@ -48,7 +61,7 @@ export const useChatMessageProcessor = (intents: Intent[], services: Service[]) 
     let matchedServiceId: string | undefined;
 
     if (matchedServices.length > 0) {
-      // Format service response with cultural context
+      // Use enhanced service response generation
       const service = matchedServices[0];
       matchedServiceId = service.id;
       
@@ -56,50 +69,49 @@ export const useChatMessageProcessor = (intents: Intent[], services: Service[]) 
         ? service.key_features.map(feature => `• ${feature}`).join('\n')
         : '• Professional support available';
 
-      // Culturally appropriate service response
-      const serviceIntro = getServiceResponseIntro(detectedLanguage, emotionalState);
+      // Generate culturally appropriate service intro
+      const serviceIntro = generateServiceResponseIntro(detectedLanguage, emotionalState, detection.formality);
       response = `${serviceIntro}\n\n🔹 ${service.title}\n${service.description}\n\nKey Features:\n${features}`;
       
+      // Add contact information with cultural context
       if (service.contact_phone) {
-        const callText = detectedLanguage === 'swahili' ? 'Piga simu' : 
-                        detectedLanguage === 'sheng' ? 'Call' : 'Call';
+        const callText = getCallText(detectedLanguage, detection.formality);
         response += `\n\n📞 ${callText}: ${service.contact_phone}`;
       }
       
       if (service.contact_url) {
-        const moreInfoText = detectedLanguage === 'swahili' ? 'Maelezo zaidi' :
-                            detectedLanguage === 'sheng' ? 'More info' : 'More info';
+        const moreInfoText = getMoreInfoText(detectedLanguage, detection.formality);
         response += `\n🌐 ${moreInfoText}: ${service.contact_url}`;
       }
 
-      // Add encouraging note based on emotional state
+      // Add culturally appropriate encouragement
       if (emotionalState === 'distressed') {
-        response += getEncouragementNote(detectedLanguage);
+        const encouragement = generateCulturalResponse(userMessage, 'encouragement', detectedLanguage);
+        response += `\n\n${encouragement.text}`;
       }
 
-      console.log('Using service response for:', service.title);
+      console.log('Using enhanced service response for:', service.title);
     } else if (intent && confidence > 0) {
-      // Get culturally appropriate response from intent
+      // Enhanced intent response with cultural context
       let baseResponse = intent.response_template[detectedLanguage] || 
                         intent.response_template['english'] || 
                         getFallbackResponse(detectedLanguage);
       
-      // Enhance response based on emotional state
+      // Enhance with emotional and cultural context
       response = enhanceResponseWithEmotion(baseResponse, emotionalState, detectedLanguage);
       matchedIntent = intent.intent_key;
-      console.log('Using matched intent response:', response);
+      console.log('Using enhanced intent response:', response);
     } else {
-      // Enhanced fallback with cultural greeting
-      const greeting = getContextualGreeting(detectedLanguage);
-      const helpResponse = getCulturalResponse('help', detectedLanguage);
-      response = `${greeting}\n\n${helpResponse}`;
-      console.log('Using culturally enhanced fallback response:', response);
+      // Enhanced fallback with cultural greeting and formality
+      const culturalResponse = generateCulturalResponse(userMessage, 'help', detectedLanguage);
+      response = culturalResponse.text;
+      console.log('Using enhanced cultural fallback:', response);
     }
 
-    // Add cultural sign-off if appropriate
+    // Add cultural sign-off based on emotional state
     if (emotionalState === 'grateful') {
-      const gratefulResponse = getCulturalResponse('thanks', detectedLanguage);
-      response += `\n\n${gratefulResponse}`;
+      const gratefulResponse = generateCulturalResponse(userMessage, 'thanks', detectedLanguage);
+      response += `\n\n${gratefulResponse.text}`;
     }
 
     // Create messages with enhanced metadata
@@ -118,6 +130,7 @@ export const useChatMessageProcessor = (intents: Intent[], services: Service[]) 
       intent: matchedIntent,
       confidence,
       matchedService: matchedServiceId,
+      translatedFrom: messageForMatching !== userMessage ? detectedLanguage : undefined,
     };
 
     return { userMsg, botMsg };
@@ -126,31 +139,89 @@ export const useChatMessageProcessor = (intents: Intent[], services: Service[]) 
   return { processMessage };
 };
 
-// Helper function to get service response intro based on language and emotion
-const getServiceResponseIntro = (language: string, emotionalState: string): string => {
+// Enhanced helper functions with cultural awareness
+const generateServiceResponseIntro = (language: string, emotionalState: string, formality: 'casual' | 'formal' | 'mixed'): string => {
   const intros = {
     urgent: {
-      sheng: "Sawa bro, naona ni emergency. Niko na service ya haraka:",
-      swahili: "Naona hii ni dharura. Nina huduma ya haraka:",
-      english: "I understand this is urgent. Here's immediate help:",
-      arabic: "أفهم أن هذا عاجل. إليك المساعدة الفورية:"
+      sheng: {
+        casual: "Emergency bro! Niko na service ya haraka:",
+        formal: "Hii ni dharura. Nina huduma ya haraka:",
+        mixed: "Emergency! Niko na service ya haraka:"
+      },
+      swahili: {
+        casual: "Hii ni dharura! Nina huduma ya haraka:",
+        formal: "Naona hii ni dharura kubwa. Nina huduma inayoweza kusaidia:",
+        mixed: "Dharura! Nina huduma ya haraka:"
+      },
+      english: {
+        casual: "Emergency! Here's immediate help:",
+        formal: "I understand this is urgent. Here's immediate assistance:",
+        mixed: "This is urgent! Here's quick help:"
+      }
     },
     distressed: {
-      sheng: "Pole sana maze. Tutakusaidia. Hii ni service inayoweza kukusaidia:",
-      swahili: "Pole sana kwa hali hii. Hii ni huduma inayoweza kukusaidia:",
-      english: "I'm sorry you're going through this. Here's a service that can help:",
-      arabic: "أنا آسف لما تمرين به. إليك خدمة يمكنها المساعدة:"
+      sheng: {
+        casual: "Pole sana bro. Tutakusaidia. Hii service inaweza help:",
+        formal: "Pole sana kwa hali hii. Hii ni huduma inayoweza kusaidia:",
+        mixed: "Pole sana rafiki. Hii service itakusaidia:"
+      },
+      swahili: {
+        casual: "Pole sana. Hii huduma itakusaidia:",
+        formal: "Samahani sana kwa hali hii. Hii ni huduma inayoweza kukusaidia:",
+        mixed: "Pole sana. Nina huduma inayoweza kusaidia:"
+      },
+      english: {
+        casual: "I'm sorry you're going through this. Here's help:",
+        formal: "I sincerely sympathize with your situation. Here's a service that can help:",
+        mixed: "Sorry about this. Here's a service that can help:"
+      }
     },
     neutral: {
-      sheng: "Poa, nimepata service inayofaa kwako:",
-      swahili: "Nimepata huduma inayokufaa:",
-      english: "I found a service that matches your needs:",
-      arabic: "وجدت خدمة تناسب احتياجاتك:"
+      sheng: {
+        casual: "Poa, nimepata service inayofaa kwako:",
+        formal: "Nimepata huduma inayokufaa:",
+        mixed: "Sawa, nina service inayofaa:"
+      },
+      swahili: {
+        casual: "Nimepata huduma inayokufaa:",
+        formal: "Nina huduma inayoweza kukusaidia:",
+        mixed: "Nimepata huduma nzuri kwako:"
+      },
+      english: {
+        casual: "Found a service that matches your needs:",
+        formal: "I have identified a service that may assist you:",
+        mixed: "Here's a service that fits your needs:"
+      }
     }
   };
   
   const stateIntros = intros[emotionalState as keyof typeof intros] || intros.neutral;
-  return stateIntros[language as keyof typeof stateIntros] || stateIntros.english;
+  const langIntros = stateIntros[language as keyof typeof stateIntros] || stateIntros.english;
+  return langIntros[formality];
+};
+
+const getCallText = (language: string, formality: 'casual' | 'formal' | 'mixed'): string => {
+  const callTexts = {
+    sheng: { casual: 'Call', formal: 'Piga simu', mixed: 'Call/Piga simu' },
+    swahili: { casual: 'Piga simu', formal: 'Piga simu', mixed: 'Piga simu' },
+    english: { casual: 'Call', formal: 'Contact', mixed: 'Call' },
+    arabic: { casual: 'اتصل', formal: 'اتصل', mixed: 'اتصل' }
+  };
+  
+  const langTexts = callTexts[language as keyof typeof callTexts] || callTexts.english;
+  return langTexts[formality];
+};
+
+const getMoreInfoText = (language: string, formality: 'casual' | 'formal' | 'mixed'): string => {
+  const infoTexts = {
+    sheng: { casual: 'More info', formal: 'Maelezo zaidi', mixed: 'More info' },
+    swahili: { casual: 'Maelezo zaidi', formal: 'Taarifa zaidi', mixed: 'Maelezo zaidi' },
+    english: { casual: 'More info', formal: 'Additional information', mixed: 'More info' },
+    arabic: { casual: 'معلومات أكثر', formal: 'مزيد من المعلومات', mixed: 'معلومات أكثر' }
+  };
+  
+  const langTexts = infoTexts[language as keyof typeof infoTexts] || infoTexts.english;
+  return langTexts[formality];
 };
 
 // Helper function to add encouragement based on language
@@ -163,31 +234,4 @@ const getEncouragementNote = (language: string): string => {
   };
   
   return notes[language as keyof typeof notes] || notes.english;
-};
-
-// Helper function to enhance responses based on emotional state
-const enhanceResponseWithEmotion = (baseResponse: string, emotionalState: string, language: string): string => {
-  if (emotionalState === 'urgent') {
-    const urgentPrefixes = {
-      sheng: "Emergency! ",
-      swahili: "Dharura! ",
-      english: "Emergency! ",
-      arabic: "طوارئ! "
-    };
-    const prefix = urgentPrefixes[language as keyof typeof urgentPrefixes] || urgentPrefixes.english;
-    return `${prefix}${baseResponse}`;
-  }
-  
-  if (emotionalState === 'distressed') {
-    const comfortPrefixes = {
-      sheng: "Pole sana bro. ",
-      swahili: "Pole sana. ",
-      english: "I'm so sorry. ",
-      arabic: "أنا آسف جداً. "
-    };
-    const prefix = comfortPrefixes[language as keyof typeof comfortPrefixes] || comfortPrefixes.english;
-    return `${prefix}${baseResponse}`;
-  }
-  
-  return baseResponse;
 };
