@@ -1,5 +1,5 @@
 
-// Enhanced language detection utility with improved Sheng support
+// Enhanced language detection utility with comprehensive Sheng and Swahili support
 export const detectLanguage = (text: string): string => {
   const lowerText = text.toLowerCase().trim();
   
@@ -8,54 +8,91 @@ export const detectLanguage = (text: string): string => {
     return 'arabic';
   }
   
-  // Enhanced Sheng detection - common words and patterns
+  // Enhanced Sheng detection - comprehensive street slang patterns
   const shengWords = [
+    // Greetings and casual expressions
+    'niaje', 'sasa', 'mambo', 'vipi', 'poa', 'sawa', 'maze', 'msee', 'bro',
     // Money/Financial terms
-    'dough', 'munde', 'ganji', 'bread', 'coins',
+    'dough', 'munde', 'ganji', 'bread', 'coins', 'chapaa', 'pesa', 'sina pesa',
     // Police/Authority terms  
     'karao', 'mse', 'sonko', 'kanjo',
     // Food terms
-    'dishi', 'mlo',
+    'dishi', 'mlo', 'chakula',
     // Housing terms
-    'kejani', 'base', 'place', 'crib',
+    'kejani', 'base', 'place', 'crib', 'kuna',
     // Health terms
-    'dokta', 'hosp',
+    'dokta', 'hosp', 'sick',
     // Work terms
     'hustle', 'job', 'kazi',
     // Transport terms
     'mat', 'basi', 'fare',
-    // Common Sheng expressions
-    'naeza', 'napenda', 'niaje', 'poa', 'sawa', 'uko', 'sort', 'connect',
-    'bro', 'msee', 'dem', 'wasee', 'kitu', 'vitu', 'place', 'area'
+    // Common Sheng expressions and verbs
+    'cheki', 'jinga', 'ngoma', 'sort', 'connect', 'umeskia', 'niko', 'naeza',
+    'dem', 'wasee', 'kitu', 'vitu', 'area', 'ndio', 'hapana'
   ];
   
-  // Swahili words - more comprehensive list
+  // Comprehensive Swahili words - formal and standard
   const swahiliWords = [
+    // Greetings and formal expressions
+    'hujambo', 'habari', 'salamu', 'karibu', 'asante', 'pole', 'jambo',
+    // Common verbs and expressions
     'nina', 'naweza', 'nataka', 'ninahitaji', 'ninaumwa', 'niko', 'sijui', 
-    'ndiyo', 'hapana', 'asante', 'karibu', 'jambo', 'habari', 'pole',
+    'ndiyo', 'hapana', 'nzuri', 'mbaya', 'vizuri', 'haraka', 'taratibu',
+    // Nouns and daily life
     'chakula', 'nyumba', 'pesa', 'kazi', 'shule', 'daktari', 'polisi',
-    'msaada', 'hali', 'sawa', 'mzuri', 'mbaya', 'kidogo', 'kubwa',
-    'mimi', 'wewe', 'yeye', 'sisi', 'nyinyi', 'wao'
+    'msaada', 'hali', 'mzuri', 'kidogo', 'kubwa', 'shida', 'furaha',
+    // Personal pronouns and family
+    'mimi', 'wewe', 'yeye', 'sisi', 'nyinyi', 'wao', 'familia', 'mama', 'baba',
+    // Time and place
+    'leo', 'kesho', 'jana', 'sasa', 'hapa', 'pale', 'mahali',
+    // Actions and states
+    'subiri', 'omba', 'fanya', 'enda', 'kuja', 'ona', 'sikia', 'elewa'
   ];
   
   const words = lowerText.split(/\s+/);
   
+  // Enhanced matching with phrase detection
   const shengMatches = words.filter(word => 
     shengWords.some(shengWord => 
-      word.includes(shengWord) || shengWord.includes(word)
+      word.includes(shengWord) || shengWord.includes(word) || 
+      lowerText.includes(shengWord)
     )
   ).length;
   
   const swahiliMatches = words.filter(word => 
     swahiliWords.some(swahiliWord => 
-      word.includes(swahiliWord) || swahiliWord.includes(word)
+      word.includes(swahiliWord) || swahiliWord.includes(word) ||
+      lowerText.includes(swahiliWord)
     )
   ).length;
   
-  // Enhanced scoring system
+  // Enhanced scoring system with phrase detection
   const totalWords = words.length;
   const shengScore = shengMatches / totalWords;
   const swahiliScore = swahiliMatches / totalWords;
+  
+  // Check for specific Sheng greeting patterns
+  const shengGreetingPatterns = [
+    /^(niaje|sasa|mambo|vipi)/i,
+    /\b(poa\s+sana|sina\s+pesa|umeskia|niko\s+poa)\b/i,
+    /\b(eh\s+bro|maze|msee)\b/i
+  ];
+  
+  // Check for formal Swahili patterns
+  const swahiliGreetingPatterns = [
+    /^(hujambo|habari|salamu)/i,
+    /\b(asante\s+sana|karibu\s+sana|nzuri\s+sana)\b/i,
+    /\b(nimefurahi|samahani|pole\s+sana)\b/i
+  ];
+  
+  // Pattern-based detection
+  if (shengGreetingPatterns.some(pattern => pattern.test(text))) {
+    return 'sheng';
+  }
+  
+  if (swahiliGreetingPatterns.some(pattern => pattern.test(text))) {
+    return 'swahili';
+  }
   
   // If we have strong Sheng indicators, return Sheng
   if (shengScore > 0.3 || (shengMatches > 0 && shengScore >= swahiliScore)) {
@@ -69,7 +106,8 @@ export const detectLanguage = (text: string): string => {
     /ni(ko|me|li)\s+(down|stressed|broke)/i,
     /sina\s+(dough|munde|ganji)/i,
     /nataka\s+(help|support)/i,
-    /niko\s+(place|area|base)/i
+    /niko\s+(place|area|base)/i,
+    /eh\s+(bro|maze)/i
   ];
   
   if (mixedPatterns.some(pattern => pattern.test(text))) {
@@ -87,6 +125,63 @@ export const getSupportedLanguages = () => [
   { code: 'arabic', name: 'Arabic', nativeName: 'العربية' }
 ];
 
+// Helper function to get appropriate greeting based on time and language
+export const getContextualGreeting = (language: string): string => {
+  const hour = new Date().getHours();
+  
+  switch (language) {
+    case 'sheng':
+      if (hour < 12) return 'Sasa! Mambo za asubuhi?';
+      if (hour < 17) return 'Niaje! Vipi mchana?';
+      return 'Mambo! Poa usiku?';
+    
+    case 'swahili':
+      if (hour < 12) return 'Habari za asubuhi?';
+      if (hour < 17) return 'Habari za mchana?';
+      return 'Habari za jioni?';
+    
+    case 'arabic':
+      return 'السلام عليكم';
+    
+    default:
+      if (hour < 12) return 'Good morning!';
+      if (hour < 17) return 'Good afternoon!';
+      return 'Good evening!';
+  }
+};
+
+// Helper function to get culturally appropriate responses
+export const getCulturalResponse = (type: 'thanks' | 'goodbye' | 'help' | 'problem', language: string): string => {
+  const responses = {
+    thanks: {
+      sheng: 'Hakuna shida bro! Wakati wowote.',
+      swahili: 'Hakuna tatizo. Karibu tena.',
+      arabic: 'لا شكر على واجب',
+      english: "You're welcome! Anytime."
+    },
+    goodbye: {
+      sheng: 'Sawa maze, tutaonana! Jisort.',
+      swahili: 'Haya, tutaonana. Usalie salama.',
+      arabic: 'مع السلامة',
+      english: 'Take care! See you later.'
+    },
+    help: {
+      sheng: 'Sawa bro, nina haraka kukusaidia. Ni nini unauliza?',
+      swahili: 'Haya, nitakusaidia. Ni nini unahitaji?',
+      arabic: 'بالطبع، كيف يمكنني مساعدتك؟',
+      english: 'Of course! How can I help you?'
+    },
+    problem: {
+      sheng: 'Pole sana bro, tutasolve hiyo issue. Niambie zaidi.',
+      swahili: 'Pole sana kwa hiyo tatizo. Niambie ni nini kimehappen.',
+      arabic: 'آسف لهذه المشكلة، أخبريني المزيد',
+      english: "I'm sorry to hear about this problem. Tell me more."
+    }
+  };
+  
+  return responses[type][language as keyof typeof responses[type]] || responses[type].english;
+};
+
 // Helper function to get language display name
 export const getLanguageDisplayName = (languageCode: string): string => {
   const language = getSupportedLanguages().find(lang => lang.code === languageCode);
@@ -96,4 +191,45 @@ export const getLanguageDisplayName = (languageCode: string): string => {
 // Helper function to check if a language is supported
 export const isLanguageSupported = (languageCode: string): boolean => {
   return getSupportedLanguages().some(lang => lang.code === languageCode);
+};
+
+// Helper function to detect emotional state from text
+export const detectEmotionalState = (text: string, language: string): 'distressed' | 'grateful' | 'urgent' | 'neutral' => {
+  const lowerText = text.toLowerCase();
+  
+  const distressWords = {
+    sheng: ['niko down', 'sina pesa', 'shida kubwa', 'najiskia vibaya', 'stressed sana'],
+    swahili: ['nina shida', 'nina hofu', 'nimechoka', 'nina stress', 'hali mbaya'],
+    english: ['stressed', 'overwhelmed', 'desperate', 'scared', 'worried'],
+    arabic: ['قلقان', 'خائف', 'متوتر']
+  };
+  
+  const urgentWords = {
+    sheng: ['haraka', 'emergency', 'dharura', 'nina haraka'],
+    swahili: ['dharura', 'haraka sana', 'tatizo kubwa'],
+    english: ['urgent', 'emergency', 'immediately', 'help'],
+    arabic: ['عاجل', 'طوارئ', 'بسرعة']
+  };
+  
+  const gratefulWords = {
+    sheng: ['asante sana', 'poa sana', 'umesaidia'],
+    swahili: ['asante', 'nashukuru', 'nimefurahi'],
+    english: ['thank', 'grateful', 'appreciate'],
+    arabic: ['شكرا', 'ممتن']
+  };
+  
+  const checkWords = (wordList: string[]) => 
+    wordList.some(word => lowerText.includes(word));
+  
+  if (checkWords(distressWords[language as keyof typeof distressWords] || [])) {
+    return 'distressed';
+  }
+  if (checkWords(urgentWords[language as keyof typeof urgentWords] || [])) {
+    return 'urgent';
+  }
+  if (checkWords(gratefulWords[language as keyof typeof gratefulWords] || [])) {
+    return 'grateful';
+  }
+  
+  return 'neutral';
 };

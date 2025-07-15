@@ -22,7 +22,7 @@ export const ChatInput = ({
       case 'swahili':
         return "Niambie unachohitaji...";
       case 'sheng':
-        return "Niambie unachohitaji...";
+        return "Niambie unachohitaji bro...";
       case 'arabic':
         return "أخبريني بما تحتاجينه...";
       default:
@@ -35,11 +35,18 @@ export const ChatInput = ({
       case 'swahili':
         return "Mazungumzo yako ni siri na salama";
       case 'sheng':
-        return "Mazungumzo yako ni confidential";
+        return "Conversation yako ni confidential na safe";
       case 'arabic':
         return "محادثتك سرية وآمنة";
       default:
         return "Your conversation is confidential and safe";
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      onSend();
     }
   };
 
@@ -50,7 +57,7 @@ export const ChatInput = ({
           value={inputValue}
           onChange={(e) => onInputChange(e.target.value)}
           placeholder={getPlaceholder()}
-          onKeyPress={(e) => e.key === 'Enter' && onSend()}
+          onKeyPress={handleKeyPress}
           className="flex-1 border-gray-300 focus:border-primary"
         />
         <Button 

@@ -18,66 +18,96 @@ interface ChatQuickActionsProps {
 export const ChatQuickActions = ({ currentLanguage, onActionClick }: ChatQuickActionsProps) => {
   const quickActions: QuickAction[] = [
     { 
-      label: { english: "Shelter", swahili: "Makazi", sheng: "Kejani", arabic: "مأوى" },
+      label: { 
+        english: "Shelter", 
+        swahili: "Makazi", 
+        sheng: "Kejani", 
+        arabic: "مأوى" 
+      },
       message: { 
         english: "I need a place to sleep tonight", 
         swahili: "Nahitaji mahali pa kulala leo usiku", 
-        sheng: "Nahitaji kejani ya kulala leo", 
+        sheng: "Niaje, nahitaji kejani ya kulala leo. Niko baridi sana.", 
         arabic: "أحتاج مكان للنوم الليلة" 
       },
       icon: MapPin,
       variant: "destructive" as const
     },
     { 
-      label: { english: "Food", swahili: "Chakula", sheng: "Dishi", arabic: "طعام" },
+      label: { 
+        english: "Food", 
+        swahili: "Chakula", 
+        sheng: "Dishi", 
+        arabic: "طعام" 
+      },
       message: { 
         english: "I'm hungry and need food", 
         swahili: "Nina njaa na nahitaji chakula", 
-        sheng: "Nina njaa, nahitaji dishi", 
+        sheng: "Bro, nina njaa kubwa. Nahitaji dishi haraka.", 
         arabic: "أنا جوعان وأحتاج طعام" 
       },
       icon: Heart,
       variant: "default" as const
     },
     { 
-      label: { english: "Health", swahili: "Afya", sheng: "Health", arabic: "صحة" },
+      label: { 
+        english: "Health", 
+        swahili: "Afya", 
+        sheng: "Doki", 
+        arabic: "صحة" 
+      },
       message: { 
         english: "I need medical help", 
         swahili: "Nahitaji msaada wa kimatibabu", 
-        sheng: "Nahitaji help ya dokta", 
+        sheng: "Nahitaji kuona doki haraka. Nina shida ya health.", 
         arabic: "أحتاج مساعدة طبية" 
       },
       icon: Phone,
       variant: "default" as const
     },
     { 
-      label: { english: "Emergency", swahili: "Dharura", sheng: "Emergency", arabic: "طوارئ" },
+      label: { 
+        english: "Emergency", 
+        swahili: "Dharura", 
+        sheng: "Dharura", 
+        arabic: "طوارئ" 
+      },
       message: { 
         english: "Help! I need urgent assistance", 
         swahili: "Msaada! Nahitaji msaada wa haraka", 
-        sheng: "Help! Nahitaji msaada haraka sana", 
+        sheng: "Emergency bro! Nahitaji msaada haraka sana. Ni dharura.", 
         arabic: "مساعدة! أحتاج مساعدة عاجلة" 
       },
       icon: AlertTriangle,
       variant: "destructive" as const
     },
     { 
-      label: { english: "Money", swahili: "Pesa", sheng: "Munde", arabic: "نقود" },
+      label: { 
+        english: "Money", 
+        swahili: "Pesa", 
+        sheng: "Munde", 
+        arabic: "نقود" 
+      },
       message: { 
         english: "I need financial help", 
         swahili: "Nahitaji msaada wa kifedha", 
-        sheng: "Nahitaji msaada wa munde", 
+        sheng: "Maze, sina munde kabisa. Nahitaji msaada wa pesa.", 
         arabic: "أحتاج مساعدة مالية" 
       },
       icon: DollarSign,
       variant: "outline" as const
     },
     { 
-      label: { english: "Jobs", swahili: "Kazi", sheng: "Hustle", arabic: "وظائف" },
+      label: { 
+        english: "Jobs", 
+        swahili: "Kazi", 
+        sheng: "Hustle", 
+        arabic: "وظائف" 
+      },
       message: { 
         english: "I need help finding work", 
         swahili: "Nahitaji msaada kupata kazi", 
-        sheng: "Nahitaji msaada kupata hustle", 
+        sheng: "Bro, nahitaji msaada kupata hustle. Nina skills lakini sina kazi.", 
         arabic: "أحتاج مساعدة في العثور على عمل" 
       },
       icon: Briefcase,
