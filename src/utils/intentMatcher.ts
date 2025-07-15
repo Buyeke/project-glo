@@ -1,4 +1,3 @@
-
 interface Intent {
   id: string;
   category: string;
@@ -29,18 +28,26 @@ export const matchIntent = (message: string, intents: Intent[], language: string
   console.log('Available intents:', intents.length);
   
   for (const intent of intents) {
-    const keywords = intent.keywords[language] || intent.keywords['english'] || [];
+    // Get keywords for the detected language, with fallbacks
+    let keywords = intent.keywords[language] || intent.keywords['english'] || [];
+    
+    // If language is Sheng, also include some Swahili keywords for better matching
+    if (language === 'sheng' && intent.keywords['swahili']) {
+      keywords = [...keywords, ...intent.keywords['swahili']];
+    }
+    
     let matchCount = 0;
     let totalKeywords = keywords.length;
     let emotionalBoost = 0;
+    let languageBoost = 0;
     
     console.log(`Checking intent ${intent.intent_key} with keywords:`, keywords);
     
-    // Check for keyword matches with enhanced emotional context
+    // Enhanced matching logic for Sheng and multilingual support
     for (const keyword of keywords) {
       const lowerKeyword = keyword.toLowerCase();
       
-      // Enhanced matching logic for better accuracy
+      // Direct match
       if (lowerMessage.includes(lowerKeyword)) {
         matchCount++;
         console.log(`Matched keyword: ${keyword}`);
@@ -54,32 +61,46 @@ export const matchIntent = (message: string, intents: Intent[], language: string
         if (lowerKeyword.includes(' ') && lowerMessage.includes(lowerKeyword)) {
           emotionalBoost += 0.1;
         }
+        
+        // Language-specific boost
+        if (language === 'sheng' && isShengKeyword(lowerKeyword)) {
+          languageBoost += 0.1;
+        }
       } else {
-        // Check for partial matches and word boundaries
+        // Enhanced partial matching for mixed languages
         const messageWords = lowerMessage.split(/\s+/);
         const keywordWords = lowerKeyword.split(/\s+/);
         
         for (const msgWord of messageWords) {
           for (const keyWord of keywordWords) {
-            if (msgWord.includes(keyWord) || keyWord.includes(msgWord)) {
-              matchCount += 0.5; // Partial match gets half credit
-              console.log(`Partial match: ${msgWord} ~= ${keyWord}`);
-              break;
+            // Fuzzy matching for similar words
+            if (msgWord.length > 2 && keyWord.length > 2) {
+              if (msgWord.includes(keyWord) || keyWord.includes(msgWord) || 
+                  levenshteinDistance(msgWord, keyWord) <= 1) {
+                matchCount += 0.5;
+                console.log(`Partial match: ${msgWord} ~= ${keyWord}`);
+                break;
+              }
             }
           }
         }
       }
     }
     
-    // Calculate confidence score with emotional context
+    // Calculate confidence score with enhanced context
     let confidence = totalKeywords > 0 ? matchCount / totalKeywords : 0;
-    confidence = Math.min(confidence + emotionalBoost, 1.0);
+    confidence = Math.min(confidence + emotionalBoost + languageBoost, 1.0);
     
-    console.log(`Intent ${intent.intent_key} confidence: ${confidence} (${matchCount}/${totalKeywords}) + emotional boost: ${emotionalBoost}`);
+    console.log(`Intent ${intent.intent_key} confidence: ${confidence} (${matchCount}/${totalKeywords}) + emotional: ${emotionalBoost} + language: ${languageBoost}`);
     
     // Prioritize emergency intents
     if (intent.category === 'emergency' && confidence > 0.3) {
       confidence += 0.2;
+    }
+    
+    // Boost for exact language match
+    if (intent.intent_key.includes(language) && confidence > 0.2) {
+      confidence += 0.15;
     }
     
     // Lower threshold for better matching
@@ -107,6 +128,38 @@ const isEmotionalKeyword = (keyword: string): boolean => {
   ];
   
   return emotionalWords.some(word => keyword.includes(word));
+};
+
+// Helper function to identify Sheng-specific keywords
+const isShengKeyword = (keyword: string): boolean => {
+  const shengWords = [
+    'karao', 'mse', 'sonko', 'kanjo', 'dough', 'munde', 'ganji', 'bread', 'coins',
+    'dishi', 'mlo', 'kejani', 'base', 'crib', 'dokta', 'hosp', 'hustle', 'mat',
+    'basi', 'msee', 'dem', 'wasee', 'poa', 'sawa', 'niaje', 'naeza'
+  ];
+  
+  return shengWords.some(word => keyword.includes(word));
+};
+
+// Simple Levenshtein distance function for fuzzy matching
+const levenshteinDistance = (str1: string, str2: string): number => {
+  const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(null));
+  
+  for (let i = 0; i <= str1.length; i++) matrix[0][i] = i;
+  for (let j = 0; j <= str2.length; j++) matrix[j][0] = j;
+  
+  for (let j = 1; j <= str2.length; j++) {
+    for (let i = 1; i <= str1.length; i++) {
+      const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
+      matrix[j][i] = Math.min(
+        matrix[j][i - 1] + 1, // deletion
+        matrix[j - 1][i] + 1, // insertion
+        matrix[j - 1][i - 1] + indicator // substitution
+      );
+    }
+  }
+  
+  return matrix[str2.length][str1.length];
 };
 
 export const matchService = (message: string, services: Service[]): Service[] => {
@@ -243,12 +296,13 @@ const getServiceKeywords = (category: string, title: string): string[] => {
   return keywords;
 };
 
+// Enhanced fallback response with better Sheng support
 export const getFallbackResponse = (language: string): string => {
   const responses = {
     english: "I'm here to help you, and I want to make sure I understand what you need. Could you tell me a bit more? I can assist with shelter, food, healthcare, job support, or just someone to talk to. You're not alone in this.",
     swahili: "Niko hapa kukusaidia, na nataka kuhakikisha naelewa unachohitaji. Unaweza kuniambia zaidi? Naweza kusaidia na makazi, chakula, afya, msaada wa kazi, au mtu wa kuongea naye. Haumo peke yako.",
-    arabic: "أنا هنا لمساعدتك، وأريد أن أتأكد من فهمي لما تحتاجينه. هل يمكنك إخباري أكثر؟ يمكنني المساعدة في المأوى والطعام والرعاية الصحية ودعم العمل أو مجرد شخص للحديث معه. لست وحدك.",
-    sheng: "Niko hapa kukusaidia, na nataka kuelewa unachohitaji. Unaweza niambie zaidi? Naeza help na shelter, food, healthcare, job support, ama mtu wa kuongea. Haumo peke yako."
+    sheng: "Niko hapa kukusaidia, bro. Nataka kuelewa unachohitaji. Unaweza niambie zaidi? Naeza help na kejani, dishi, health, job opportunities, ama mtu wa kuongea. Haumo peke yako kwa hii.",
+    arabic: "أنا هنا لمساعدتك، وأريد أن أتأكد من فهمي لما تحتاجينه. هل يمكنك إخباري أكثر؟ يمكنني المساعدة في المأوى والطعام والرعاية الصحية ودعم العمل أو مجرد شخص للحديث معه. لست وحدك."
   };
   
   return responses[language as keyof typeof responses] || responses.english;

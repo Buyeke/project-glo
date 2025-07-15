@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { MapPin, Heart, Phone, AlertTriangle, Briefcase } from 'lucide-react';
+import { MapPin, Heart, Phone, AlertTriangle, Briefcase, DollarSign } from 'lucide-react';
 
 interface QuickAction {
   label: Record<string, string>;
@@ -18,38 +18,68 @@ interface ChatQuickActionsProps {
 export const ChatQuickActions = ({ currentLanguage, onActionClick }: ChatQuickActionsProps) => {
   const quickActions: QuickAction[] = [
     { 
-      label: { english: "Shelter", swahili: "Makazi", sheng: "Base", arabic: "مأوى" },
-      message: { english: "I need a place to sleep tonight", swahili: "Nahitaji mahali pa kulala leo usiku", sheng: "Nahitaji place ya kulala leo", arabic: "أحتاج مكان للنوم الليلة" },
+      label: { english: "Shelter", swahili: "Makazi", sheng: "Kejani", arabic: "مأوى" },
+      message: { 
+        english: "I need a place to sleep tonight", 
+        swahili: "Nahitaji mahali pa kulala leo usiku", 
+        sheng: "Nahitaji kejani ya kulala leo", 
+        arabic: "أحتاج مكان للنوم الليلة" 
+      },
       icon: MapPin,
       variant: "destructive" as const
     },
     { 
-      label: { english: "Food", swahili: "Chakula", sheng: "Food", arabic: "طعام" },
-      message: { english: "I'm hungry and need food", swahili: "Nina njaa na nahitaji chakula", sheng: "Nina njaa, nahitaji food", arabic: "أنا جوعان وأحتاج طعام" },
+      label: { english: "Food", swahili: "Chakula", sheng: "Dishi", arabic: "طعام" },
+      message: { 
+        english: "I'm hungry and need food", 
+        swahili: "Nina njaa na nahitaji chakula", 
+        sheng: "Nina njaa, nahitaji dishi", 
+        arabic: "أنا جوعان وأحتاج طعام" 
+      },
       icon: Heart,
       variant: "default" as const
     },
     { 
       label: { english: "Health", swahili: "Afya", sheng: "Health", arabic: "صحة" },
-      message: { english: "I need medical help", swahili: "Nahitaji msaada wa kimatibabu", sheng: "Nahitaji medical help", arabic: "أحتاج مساعدة طبية" },
+      message: { 
+        english: "I need medical help", 
+        swahili: "Nahitaji msaada wa kimatibabu", 
+        sheng: "Nahitaji help ya dokta", 
+        arabic: "أحتاج مساعدة طبية" 
+      },
       icon: Phone,
       variant: "default" as const
     },
     { 
       label: { english: "Emergency", swahili: "Dharura", sheng: "Emergency", arabic: "طوارئ" },
-      message: { english: "Help! I need urgent assistance", swahili: "Msaada! Nahitaji msaada wa haraka", sheng: "Help! Nahitaji msaada haraka", arabic: "مساعدة! أحتاج مساعدة عاجلة" },
+      message: { 
+        english: "Help! I need urgent assistance", 
+        swahili: "Msaada! Nahitaji msaada wa haraka", 
+        sheng: "Help! Nahitaji msaada haraka sana", 
+        arabic: "مساعدة! أحتاج مساعدة عاجلة" 
+      },
       icon: AlertTriangle,
       variant: "destructive" as const
     },
     { 
-      label: { english: "Talk", swahili: "Ongea", sheng: "Talk", arabic: "تحدث" },
-      message: { english: "I need someone to talk to", swahili: "Nahitaji mtu wa kuongea naye", sheng: "Nahitaji mtu wa kuongea", arabic: "أحتاج شخص للحديث معه" },
-      icon: Heart,
+      label: { english: "Money", swahili: "Pesa", sheng: "Munde", arabic: "نقود" },
+      message: { 
+        english: "I need financial help", 
+        swahili: "Nahitaji msaada wa kifedha", 
+        sheng: "Nahitaji msaada wa munde", 
+        arabic: "أحتاج مساعدة مالية" 
+      },
+      icon: DollarSign,
       variant: "outline" as const
     },
     { 
-      label: { english: "Jobs", swahili: "Kazi", sheng: "Job", arabic: "وظائف" },
-      message: { english: "I need help finding work", swahili: "Nahitaji msaada kupata kazi", sheng: "Nahitaji msaada kupata job", arabic: "أحتاج مساعدة في العثور على عمل" },
+      label: { english: "Jobs", swahili: "Kazi", sheng: "Hustle", arabic: "وظائف" },
+      message: { 
+        english: "I need help finding work", 
+        swahili: "Nahitaji msaada kupata kazi", 
+        sheng: "Nahitaji msaada kupata hustle", 
+        arabic: "أحتاج مساعدة في العثور على عمل" 
+      },
       icon: Briefcase,
       variant: "outline" as const
     }
@@ -69,7 +99,7 @@ export const ChatQuickActions = ({ currentLanguage, onActionClick }: ChatQuickAc
               variant={action.variant}
               size="sm"
               onClick={() => onActionClick(message, currentLanguage)}
-              className="text-xs h-8 px-2 flex items-center gap-1"
+              className="text-xs h-8 px-2 flex items-center gap-1 hover:scale-105 transition-transform"
             >
               <Icon className="h-3 w-3" />
               <span className="truncate">{label}</span>
