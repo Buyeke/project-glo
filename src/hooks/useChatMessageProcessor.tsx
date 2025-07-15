@@ -1,7 +1,8 @@
+
 import { ChatMessage, Intent, Service } from '@/types/chatbot';
 import { detectLanguageWithContext } from '@/utils/enhancedLanguageDetection';
 import { generateCulturalResponse } from '@/utils/culturalResponseGenerator';
-import { getEnhancedTranslation, enhanceResponseWithEmotion } from '@/utils/languageUtils';
+import { getEnhancedTranslation, enhanceResponseWithEmotion, detectEmotionalState } from '@/utils/languageUtils';
 import { matchIntent, matchService, getFallbackResponse, translateText } from '@/utils/intentMatcher';
 
 export const useChatMessageProcessor = (intents: Intent[], services: Service[]) => {
