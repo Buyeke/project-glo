@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Calendar, dateFns } from 'react-day-picker';
+import { DayPicker } from 'react-day-picker';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -23,7 +23,17 @@ interface Appointment {
   };
 }
 
-const ServiceCalendar = () => {
+interface ServiceCalendarProps {
+  services?: any[];
+  selectedService?: any;
+  onBookingCreate?: () => void;
+}
+
+const ServiceCalendar: React.FC<ServiceCalendarProps> = ({ 
+  services, 
+  selectedService, 
+  onBookingCreate 
+}) => {
   const { user } = useAuth();
   const [selectedDate, setSelectedDate] = useState<Date>();
   const { toast } = useToast();
@@ -43,7 +53,7 @@ const ServiceCalendar = () => {
           status,
           duration_minutes,
           notes,
-          caseworker:caseworker_id (
+          caseworker:caseworker_id!inner (
             full_name
           )
         `)
@@ -139,7 +149,7 @@ const ServiceCalendar = () => {
         <CardContent>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
-              <Calendar
+              <DayPicker
                 mode="single"
                 selected={selectedDate}
                 onSelect={setSelectedDate}

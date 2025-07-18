@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -119,8 +120,6 @@ const ServiceBookingModal: React.FC<ServiceBookingModalProps> = ({
             <div className="border-t pt-6">
               <h3 className="font-semibold mb-4">Select Date & Time</h3>
               <ServiceCalendar 
-                services={[service]}
-                selectedService={service}
                 onBookingCreate={handleBookingSuccess}
               />
             </div>
