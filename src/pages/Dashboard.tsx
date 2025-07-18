@@ -1,13 +1,22 @@
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import SimpleDashboard from '@/components/dashboard/SimpleDashboard';
-import NgoDashboard from '@/components/dashboard/NgoDashboard';
-import AdminDashboard from '@/components/admin/AdminDashboard';
+import { LazyComponents } from '@/utils/performanceOptimizations';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
+
+const DashboardLoader = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <Card className="w-96">
+      <CardContent className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Loading your dashboard...</span>
+      </CardContent>
+    </Card>
+  </div>
+);
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -18,7 +27,7 @@ const Dashboard = () => {
       if (!user) return null;
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, user_type, full_name')
         .eq('id', user.id)
         .single();
       
@@ -26,19 +35,11 @@ const Dashboard = () => {
       return data;
     },
     enabled: !!user,
+    staleTime: 10 * 60 * 1000, // 10 minutes - profile data doesn't change often
   });
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-96">
-          <CardContent className="flex items-center justify-center p-8">
-            <Loader2 className="h-8 w-8 animate-spin" />
-            <span className="ml-2">Loading your dashboard...</span>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <DashboardLoader />;
   }
 
   if (!profile) {
@@ -58,17 +59,29 @@ const Dashboard = () => {
 
   // Admin users get the admin dashboard
   if (profile.user_type === 'admin') {
-    return <AdminDashboard />;
+    return (
+      <Suspense fallback={<DashboardLoader />}>
+        <LazyComponents.AdminDashboard />
+      </Suspense>
+    );
   }
 
   // NGO and partner users get the NGO dashboard
   if (profile.user_type === 'ngo' || profile.user_type === 'partner') {
-    return <NgoDashboard profile={profile} />;
+    return (
+      <Suspense fallback={<DashboardLoader />}>
+        <LazyComponents.NgoDashboard profile={profile} />
+      </Suspense>
+    );
   }
 
   // Individual users get the simple dashboard
   if (profile.user_type === 'individual') {
-    return <SimpleDashboard profile={profile} />;
+    return (
+      <Suspense fallback={<DashboardLoader />}>
+        <LazyComponents.SimpleDashboard profile={profile} />
+      </Suspense>
+    );
   }
 
   return (

@@ -8,7 +8,7 @@ export const useResources = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('resources')
-        .select('*')
+        .select('id, title, category, summary, description, location, service_type, contact_info')
         .eq('published', true)
         .order('title');
       
@@ -22,5 +22,7 @@ export const useResources = () => {
       
       return transformedData;
     },
+    staleTime: 15 * 60 * 1000, // 15 minutes - resources don't change frequently
+    cacheTime: 30 * 60 * 1000, // 30 minutes
   });
 };

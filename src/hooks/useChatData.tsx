@@ -11,7 +11,7 @@ export const useChatData = () => {
       console.log('Fetching chatbot intents...');
       const { data, error } = await supabase
         .from('chatbot_intents')
-        .select('*');
+        .select('id, category, intent_key, keywords, response_template');
       
       if (error) {
         console.error('Error fetching intents:', error);
@@ -21,6 +21,8 @@ export const useChatData = () => {
       console.log('Fetched intents:', data);
       return data as Intent[];
     },
+    staleTime: 30 * 60 * 1000, // 30 minutes - intents are relatively static
+    cacheTime: 60 * 60 * 1000, // 1 hour
   });
 
   // Fetch services from database
@@ -30,7 +32,7 @@ export const useChatData = () => {
       console.log('Fetching services...');
       const { data, error } = await supabase
         .from('services')
-        .select('*')
+        .select('id, title, description, category, priority_level, language_support, contact_phone, contact_url, location, delivery_mode')
         .eq('availability', 'Available');
       
       if (error) {
@@ -41,6 +43,8 @@ export const useChatData = () => {
       console.log('Fetched services:', data);
       return data as Service[];
     },
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    cacheTime: 30 * 60 * 1000, // 30 minutes
   });
 
   return {

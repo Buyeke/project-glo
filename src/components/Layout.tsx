@@ -1,11 +1,11 @@
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 import Navigation from './Navigation';
 import Footer from './Footer';
-import ChatBot from './ChatBot';
 import FloatingHelpButton from './FloatingHelpButton';
 import QuickExitButton from './QuickExitButton';
+import { LazyComponents } from '@/utils/performanceOptimizations';
 
 const Layout = () => {
   return (
@@ -16,7 +16,12 @@ const Layout = () => {
         <Outlet />
       </main>
       <Footer />
-      <ChatBot />
+      
+      {/* Lazy load ChatBot to improve initial page load */}
+      <Suspense fallback={null}>
+        <LazyComponents.ChatBot />
+      </Suspense>
+      
       <FloatingHelpButton />
     </div>
   );
