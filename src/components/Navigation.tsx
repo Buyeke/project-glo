@@ -51,6 +51,14 @@ const Navigation = () => {
                   {item.name}
                 </Link>
               ))}
+              {user && (
+                <Link
+                  to="/dashboard"
+                  className="text-sm text-foreground hover:text-primary transition-colors duration-200 font-medium nav-link"
+                >
+                  Dashboard
+                </Link>
+              )}
             </div>
 
             {/* Desktop Actions */}
@@ -104,6 +112,15 @@ const Navigation = () => {
                     {item.name}
                   </Link>
                 ))}
+                {user && (
+                  <Link
+                    to="/dashboard"
+                    className="block px-3 py-2 text-sm text-foreground hover:text-primary hover:bg-muted/50 transition-colors rounded-md nav-link"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                )}
                 <div className="px-3 py-2 space-y-2">
                   <div className="flex justify-center">
                     <LanguageToggle />

@@ -3,9 +3,9 @@ import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import IndividualDashboard from '@/components/dashboard/IndividualDashboard';
-import NgoDashboard from '@/components/dashboard/NgoDashboard';
 import SimpleDashboard from '@/components/dashboard/SimpleDashboard';
+import NgoDashboard from '@/components/dashboard/NgoDashboard';
+import AdminDashboard from '@/components/admin/AdminDashboard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 
@@ -56,10 +56,19 @@ const Dashboard = () => {
     );
   }
 
+  // Admin users get the admin dashboard
+  if (profile.user_type === 'admin') {
+    return <AdminDashboard />;
+  }
+
+  // NGO and partner users get the NGO dashboard
+  if (profile.user_type === 'ngo' || profile.user_type === 'partner') {
+    return <NgoDashboard profile={profile} />;
+  }
+
+  // Individual users get the simple dashboard
   if (profile.user_type === 'individual') {
     return <SimpleDashboard profile={profile} />;
-  } else if (profile.user_type === 'ngo' || profile.user_type === 'partner') {
-    return <NgoDashboard profile={profile} />;
   }
 
   return (
