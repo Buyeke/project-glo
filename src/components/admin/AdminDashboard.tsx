@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,9 +22,11 @@ import {
   ExternalLink,
   CheckCircle,
   XCircle,
-  Clock
+  Clock,
+  BookOpen
 } from 'lucide-react';
 import { toast } from 'sonner';
+import BlogManagement from './BlogManagement';
 
 const AdminDashboard = () => {
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
@@ -217,11 +218,12 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="bookings" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="bookings">Bookings</TabsTrigger>
             <TabsTrigger value="requests">Support Requests</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="interactions">Chat Logs</TabsTrigger>
+            <TabsTrigger value="blog">Blog</TabsTrigger>
             <TabsTrigger value="exports">Export Data</TabsTrigger>
           </TabsList>
 
@@ -420,6 +422,10 @@ const AdminDashboard = () => {
                 </Card>
               ))}
             </div>
+          </TabsContent>
+
+          <TabsContent value="blog" className="space-y-6">
+            <BlogManagement />
           </TabsContent>
 
           <TabsContent value="exports" className="space-y-6">
