@@ -35,12 +35,12 @@ export const debounce = <T extends (...args: any[]) => void>(
   wait: number,
   immediate: boolean = false
 ): ((...args: Parameters<T>) => void) => {
-  let timeout: NodeJS.Timeout;
+  let timeout: NodeJS.Timeout | null = null;
   return (...args: Parameters<T>) => {
     const callNow = immediate && !timeout;
-    clearTimeout(timeout);
+    if (timeout) clearTimeout(timeout);
     timeout = setTimeout(() => {
-      timeout = null!;
+      timeout = null;
       if (!immediate) func(...args);
     }, wait);
     if (callNow) func(...args);
@@ -52,9 +52,9 @@ export const throttle = <T extends (...args: any[]) => void>(
   func: T,
   limit: number
 ): ((...args: Parameters<T>) => void) => {
-  let inThrottle: boolean;
-  let lastFunc: NodeJS.Timeout;
-  let lastRan: number;
+  let inThrottle: boolean = false;
+  let lastFunc: NodeJS.Timeout | null = null;
+  let lastRan: number = 0;
   
   return (...args: Parameters<T>) => {
     if (!inThrottle) {
@@ -62,7 +62,7 @@ export const throttle = <T extends (...args: any[]) => void>(
       lastRan = Date.now();
       inThrottle = true;
     } else {
-      clearTimeout(lastFunc);
+      if (lastFunc) clearTimeout(lastFunc);
       lastFunc = setTimeout(() => {
         if (Date.now() - lastRan >= limit) {
           func(...args);
@@ -82,7 +82,7 @@ export const memoizeApiCall = <T>(
 ): (() => Promise<T>) => {
   const cache = new Map<string, { data: T; timestamp: number; accessCount: number }>();
   
-  return async () => {
+  return async (): Promise<T> => {
     const cached = cache.get(cacheKey);
     const now = Date.now();
     
