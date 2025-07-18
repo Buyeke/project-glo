@@ -49,6 +49,118 @@ export type Database = {
           },
         ]
       }
+      allocated_resources: {
+        Row: {
+          allocated_at: string | null
+          allocated_by: string | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          resource_id: string | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          allocated_at?: string | null
+          allocated_by?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          resource_id?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          allocated_at?: string | null
+          allocated_by?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          resource_id?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "allocated_resources_allocated_by_fkey"
+            columns: ["allocated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "allocated_resources_resource_id_fkey"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "resources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "allocated_resources_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      appointments: {
+        Row: {
+          appointment_date: string
+          caseworker_id: string | null
+          created_at: string | null
+          duration_minutes: number | null
+          google_calendar_event_id: string | null
+          id: string
+          notes: string | null
+          service_type: string
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          appointment_date: string
+          caseworker_id?: string | null
+          created_at?: string | null
+          duration_minutes?: number | null
+          google_calendar_event_id?: string | null
+          id?: string
+          notes?: string | null
+          service_type: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          appointment_date?: string
+          caseworker_id?: string | null
+          created_at?: string | null
+          duration_minutes?: number | null
+          google_calendar_event_id?: string | null
+          id?: string
+          notes?: string | null
+          service_type?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_caseworker_id_fkey"
+            columns: ["caseworker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_posts: {
         Row: {
           content: string | null
@@ -401,32 +513,98 @@ export type Database = {
           created_at: string | null
           full_name: string | null
           id: string
+          id_number: string | null
+          id_type: string | null
           location: string | null
           phone: string | null
+          profile_photo_url: string | null
+          progress_notes: Json | null
+          support_stage: string | null
           updated_at: string | null
           user_type: string
+          visit_count: number | null
         }
         Insert: {
           age?: number | null
           created_at?: string | null
           full_name?: string | null
           id: string
+          id_number?: string | null
+          id_type?: string | null
           location?: string | null
           phone?: string | null
+          profile_photo_url?: string | null
+          progress_notes?: Json | null
+          support_stage?: string | null
           updated_at?: string | null
           user_type?: string
+          visit_count?: number | null
         }
         Update: {
           age?: number | null
           created_at?: string | null
           full_name?: string | null
           id?: string
+          id_number?: string | null
+          id_type?: string | null
           location?: string | null
           phone?: string | null
+          profile_photo_url?: string | null
+          progress_notes?: Json | null
+          support_stage?: string | null
           updated_at?: string | null
           user_type?: string
+          visit_count?: number | null
         }
         Relationships: []
+      }
+      progress_notes: {
+        Row: {
+          caseworker_id: string | null
+          content: string
+          created_at: string | null
+          id: string
+          note_type: string | null
+          updated_at: string | null
+          user_id: string | null
+          visibility: string | null
+        }
+        Insert: {
+          caseworker_id?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          note_type?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          visibility?: string | null
+        }
+        Update: {
+          caseworker_id?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          note_type?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          visibility?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "progress_notes_caseworker_id_fkey"
+            columns: ["caseworker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "progress_notes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       resources: {
         Row: {
@@ -826,6 +1004,47 @@ export type Database = {
         }
         Relationships: []
       }
+      team_members: {
+        Row: {
+          created_at: string | null
+          department: string | null
+          id: string
+          permissions: Json | null
+          role: string
+          updated_at: string | null
+          user_id: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          department?: string | null
+          id?: string
+          permissions?: Json | null
+          role: string
+          updated_at?: string | null
+          user_id?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          department?: string | null
+          id?: string
+          permissions?: Json | null
+          role?: string
+          updated_at?: string | null
+          user_id?: string | null
+          verified?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       usage_stats: {
         Row: {
           action_type: string
@@ -916,6 +1135,57 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "user_assessments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_concerns: {
+        Row: {
+          assigned_caseworker: string | null
+          concern_type: string
+          created_at: string | null
+          date_logged: string | null
+          description: string | null
+          id: string
+          resolved: boolean | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          assigned_caseworker?: string | null
+          concern_type: string
+          created_at?: string | null
+          date_logged?: string | null
+          description?: string | null
+          id?: string
+          resolved?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          assigned_caseworker?: string | null
+          concern_type?: string
+          created_at?: string | null
+          date_logged?: string | null
+          description?: string | null
+          id?: string
+          resolved?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_concerns_assigned_caseworker_fkey"
+            columns: ["assigned_caseworker"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_concerns_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"

@@ -1,217 +1,280 @@
 
-import React, { useState, useMemo } from 'react';
-import { Calendar } from '@/components/ui/calendar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Calendar, dateFns } from 'react-day-picker';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, MapPin, Calendar as CalendarIcon, Users } from 'lucide-react';
-import { useBookings } from '@/hooks/useBookings';
-import { format, addDays, isSameDay, getDay } from 'date-fns';
+import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { CalendarDays, Clock, User } from 'lucide-react';
+import 'react-day-picker/dist/style.css';
 
-interface Service {
+interface Appointment {
   id: string;
-  title: string;
-  location: string;
-  delivery_mode: string;
+  appointment_date: string;
+  service_type: string;
+  status: string;
+  duration_minutes: number;
+  notes?: string;
+  caseworker: {
+    full_name: string;
+  };
 }
 
-interface ServiceCalendarProps {
-  services: Service[];
-  selectedService?: Service;
-  onBookingCreate?: () => void;
-}
+const ServiceCalendar = () => {
+  const { user } = useAuth();
+  const [selectedDate, setSelectedDate] = useState<Date>();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const { data: appointments, isLoading } = useQuery({
+    queryKey: ['appointments', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      const { data, error } = await supabase
+        .from('appointments')
+        .select(`
+          id,
+          appointment_date,
+          service_type,
+          status,
+          duration_minutes,
+          notes,
+          caseworker:caseworker_id (
+            full_name
+          )
+        `)
+        .eq('user_id', user.id)
+        .order('appointment_date', { ascending: true });
 
-const ServiceCalendar: React.FC<ServiceCalendarProps> = ({ 
-  services, 
-  selectedService,
-  onBookingCreate 
-}) => {
-  const { schedules, bookings, createBooking, loading } = useBookings();
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+      if (error) throw error;
+      return data as Appointment[];
+    },
+    enabled: !!user,
+  });
 
-  const availableSlots = useMemo(() => {
-    if (!selectedDate || !selectedService) return [];
+  const updateAppointment = useMutation({
+    mutationFn: async ({ appointmentId, status }: { appointmentId: string; status: string }) => {
+      const { error } = await supabase
+        .from('appointments')
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq('id', appointmentId);
 
-    const dayOfWeek = dayNames[getDay(selectedDate)];
-    const serviceSchedules = schedules.filter(
-      schedule => schedule.service_id === selectedService.id && 
-                 schedule.available_day === dayOfWeek
-    );
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      toast({
+        title: "Appointment updated",
+        description: "The appointment status has been updated.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update appointment.",
+        variant: "destructive",
+      });
+    },
+  });
 
-    return serviceSchedules.map(schedule => {
-      const slotDateTime = new Date(selectedDate);
-      const [hours, minutes] = schedule.available_time.split(':');
-      slotDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+  const getAppointmentDates = () => {
+    if (!appointments) return [];
+    return appointments.map(apt => new Date(apt.appointment_date));
+  };
 
-      const isBooked = bookings.some(booking => 
-        booking.service_id === selectedService.id &&
-        booking.status === 'confirmed' &&
-        isSameDay(new Date(booking.booking_date), slotDateTime) &&
-        new Date(booking.booking_date).getTime() === slotDateTime.getTime()
-      );
-
-      return {
-        ...schedule,
-        dateTime: slotDateTime,
-        isBooked,
-        isPast: slotDateTime < new Date()
-      };
+  const getAppointmentsForDate = (date: Date) => {
+    if (!appointments) return [];
+    return appointments.filter(apt => {
+      const aptDate = new Date(apt.appointment_date);
+      return aptDate.toDateString() === date.toDateString();
     });
-  }, [selectedDate, selectedService, schedules, bookings]);
+  };
 
-  const upcomingBookings = useMemo(() => {
-    return bookings
-      .filter(booking => 
-        new Date(booking.booking_date) >= new Date() && 
-        booking.status === 'confirmed'
-      )
-      .sort((a, b) => new Date(a.booking_date).getTime() - new Date(b.booking_date).getTime())
-      .slice(0, 5);
-  }, [bookings]);
-
-  const handleBookSlot = async (slot: any) => {
-    if (!selectedService || slot.isBooked || slot.isPast) return;
-
-    const success = await createBooking(
-      selectedService.id,
-      selectedService.title,
-      slot.dateTime
-    );
-
-    if (success && onBookingCreate) {
-      onBookingCreate();
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'scheduled': return 'bg-blue-100 text-blue-800';
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      case 'rescheduled': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
+  const formatTime = (dateString: string) => {
+    return new Date(dateString).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Appointment Calendar</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-4">Loading calendar...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Calendar Section */}
+    <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <CalendarIcon className="h-5 w-5" />
-            Select Date
+            <CalendarDays className="w-5 h-5" />
+            Appointment Calendar
           </CardTitle>
+          <CardDescription>
+            View and manage your scheduled appointments
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={setSelectedDate}
-            disabled={(date) => date < new Date()}
-            className="rounded-md border"
-          />
-          
-          {selectedService && (
-            <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-              <h4 className="font-semibold text-blue-900">{selectedService.title}</h4>
-              <div className="flex items-center gap-2 mt-2 text-sm text-blue-700">
-                <MapPin className="h-4 w-4" />
-                {selectedService.location} ({selectedService.delivery_mode})
-              </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                modifiers={{
+                  appointment: getAppointmentDates(),
+                }}
+                modifiersStyles={{
+                  appointment: { 
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    border: '2px solid rgb(59, 130, 246)',
+                    borderRadius: '4px'
+                  },
+                }}
+                className="rounded-md border"
+              />
             </div>
-          )}
+
+            <div>
+              {selectedDate ? (
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">
+                    Appointments for {selectedDate.toLocaleDateString()}
+                  </h3>
+                  {getAppointmentsForDate(selectedDate).length === 0 ? (
+                    <p className="text-muted-foreground">No appointments scheduled for this date.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {getAppointmentsForDate(selectedDate).map((appointment) => (
+                        <div key={appointment.id} className="p-4 border rounded-lg bg-card">
+                          <div className="flex items-start justify-between mb-2">
+                            <div>
+                              <h4 className="font-medium">{appointment.service_type}</h4>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                                <Clock className="w-4 h-4" />
+                                <span>{formatTime(appointment.appointment_date)}</span>
+                                <span>({appointment.duration_minutes} min)</span>
+                              </div>
+                            </div>
+                            <Badge className={getStatusColor(appointment.status)}>
+                              {appointment.status}
+                            </Badge>
+                          </div>
+                          
+                          {appointment.caseworker && (
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
+                              <User className="w-4 h-4" />
+                              <span>with {appointment.caseworker.full_name}</span>
+                            </div>
+                          )}
+
+                          {appointment.notes && (
+                            <p className="text-sm text-muted-foreground mb-3">
+                              {appointment.notes}
+                            </p>
+                          )}
+
+                          {appointment.status === 'scheduled' && (
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() =>
+                                  updateAppointment.mutate({
+                                    appointmentId: appointment.id,
+                                    status: 'completed',
+                                  })
+                                }
+                                disabled={updateAppointment.isPending}
+                              >
+                                Mark Complete
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() =>
+                                  updateAppointment.mutate({
+                                    appointmentId: appointment.id,
+                                    status: 'cancelled',
+                                  })
+                                }
+                                disabled={updateAppointment.isPending}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <CalendarDays className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>Select a date to view appointments</p>
+                </div>
+              )}
+            </div>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Available Slots */}
       <Card>
         <CardHeader>
-          <CardTitle>
-            Available Time Slots
-            {selectedDate && (
-              <span className="text-sm font-normal text-muted-foreground ml-2">
-                {format(selectedDate, 'EEEE, MMMM d, yyyy')}
-              </span>
-            )}
-          </CardTitle>
+          <CardTitle>Upcoming Appointments</CardTitle>
         </CardHeader>
         <CardContent>
-          {!selectedService ? (
-            <p className="text-muted-foreground">Please select a service to view available slots</p>
-          ) : availableSlots.length === 0 ? (
-            <p className="text-muted-foreground">No available slots for this date</p>
+          {!appointments || appointments.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <CalendarDays className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p>No appointments scheduled</p>
+            </div>
           ) : (
             <div className="space-y-3">
-              {availableSlots.map((slot, index) => (
-                <div
-                  key={index}
-                  className={`p-3 rounded-lg border transition-colors ${
-                    slot.isBooked 
-                      ? 'bg-gray-100 border-gray-200' 
-                      : slot.isPast
-                      ? 'bg-gray-50 border-gray-200'
-                      : 'bg-white border-blue-200 hover:bg-blue-50 cursor-pointer'
-                  }`}
-                  onClick={() => !slot.isBooked && !slot.isPast && handleBookSlot(slot)}
-                >
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-blue-600" />
-                      <span className="font-medium">
-                        {format(slot.dateTime, 'h:mm a')}
-                      </span>
-                      <span className="text-sm text-muted-foreground">
-                        ({slot.duration_minutes} min)
-                      </span>
-                    </div>
+              {appointments
+                .filter(apt => apt.status === 'scheduled' && new Date(apt.appointment_date) >= new Date())
+                .slice(0, 3)
+                .map((appointment) => (
+                  <div key={appointment.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div>
-                      {slot.isBooked ? (
-                        <Badge variant="secondary">Booked</Badge>
-                      ) : slot.isPast ? (
-                        <Badge variant="outline">Past</Badge>
-                      ) : (
-                        <Button 
-                          size="sm" 
-                          disabled={loading}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleBookSlot(slot);
-                          }}
-                        >
-                          Book Now
-                        </Button>
-                      )}
+                      <p className="font-medium">{appointment.service_type}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(appointment.appointment_date).toLocaleDateString()} at{' '}
+                        {formatTime(appointment.appointment_date)}
+                      </p>
                     </div>
+                    <Badge className={getStatusColor(appointment.status)}>
+                      {appointment.status}
+                    </Badge>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           )}
         </CardContent>
       </Card>
-
-      {/* Upcoming Bookings */}
-      {upcomingBookings.length > 0 && (
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Your Upcoming Sessions
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {upcomingBookings.map((booking) => (
-                <div key={booking.id} className="p-4 border rounded-lg bg-green-50 border-green-200">
-                  <h4 className="font-semibold text-green-900">{booking.service_title}</h4>
-                  <p className="text-sm text-green-700 mt-1">
-                    {format(new Date(booking.booking_date), 'EEEE, MMM d')}
-                  </p>
-                  <p className="text-sm text-green-700">
-                    {format(new Date(booking.booking_date), 'h:mm a')}
-                  </p>
-                  <Badge variant="outline" className="mt-2 text-green-700 border-green-300">
-                    {booking.status}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };
