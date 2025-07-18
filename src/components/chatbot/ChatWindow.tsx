@@ -5,7 +5,9 @@ import { ChatBotHeader } from './ChatBotHeader';
 import { ChatMessage } from './ChatMessage';
 import { ChatQuickActions } from './ChatQuickActions';
 import { ChatInput } from './ChatInput';
+import { VoiceControls } from './VoiceControls';
 import { AIProcessingIndicator } from './AIProcessingIndicator';
+import { ProactiveFollowUps } from './ProactiveFollowUps';
 import { ChatMessage as ChatMessageType } from '@/types/chatbot';
 
 interface ChatWindowProps {
@@ -35,8 +37,15 @@ export const ChatWindow = ({
   onSend,
   onProcessMessage
 }: ChatWindowProps) => {
+  const lastBotMessage = messages.filter(m => m.isBot).pop()?.text;
+
+  const handleVoiceInput = (text: string) => {
+    onInputChange(text);
+    setTimeout(() => onSend(), 100); // Small delay to ensure input is set
+  };
+
   return (
-    <Card className="fixed bottom-6 left-6 w-96 h-[32rem] shadow-2xl z-50 border-primary/20">
+    <Card className="fixed bottom-6 left-6 w-96 h-[36rem] shadow-2xl z-50 border-primary/20">
       <ChatBotHeader
         currentLanguage={currentLanguage}
         supportedLanguages={supportedLanguages}
@@ -44,7 +53,10 @@ export const ChatWindow = ({
         onClose={onClose}
       />
       
-      <CardContent className="p-0 flex flex-col h-96">
+      <CardContent className="p-0 flex flex-col h-[32rem]">
+        {/* Proactive Follow-ups */}
+        <ProactiveFollowUps onActionClick={onProcessMessage} />
+        
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.map((message, index) => (
@@ -71,6 +83,11 @@ export const ChatWindow = ({
         <ChatQuickActions
           currentLanguage={currentLanguage}
           onActionClick={onProcessMessage}
+        />
+
+        <VoiceControls
+          onVoiceInput={handleVoiceInput}
+          lastBotMessage={lastBotMessage}
         />
 
         <ChatInput

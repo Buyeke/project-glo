@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    const { message, conversationHistory, language = 'english' } = await req.json();
+    const { message, conversationHistory, language = 'english', knowledgeContext = '' } = await req.json();
     
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -36,7 +36,7 @@ serve(async (req) => {
       .from('chatbot_intents')
       .select('*');
 
-    // Build context for OpenAI
+    // Build enhanced context for OpenAI
     const serviceContext = services?.map(s => `${s.title}: ${s.description}`).join('\n') || '';
     const intentContext = intents?.map(i => `${i.intent_key}: ${i.response_template.english || i.response_template[Object.keys(i.response_template)[0]]}`).join('\n') || '';
     
@@ -44,26 +44,31 @@ serve(async (req) => {
       `${msg.isBot ? 'Assistant' : 'User'}: ${msg.text}`
     ).join('\n') || '';
 
-    const systemPrompt = `You are Glo's AI assistant, helping women and children access support services. You are compassionate, professional, and culturally sensitive.
+    const enhancedSystemPrompt = `You are Glo's AI assistant, helping women and children access support services. You are compassionate, professional, and culturally sensitive.
 
 AVAILABLE SERVICES:
 ${serviceContext}
 
-CONVERSATION CONTEXT:
+KNOWLEDGE BASE CONTEXT:
+${knowledgeContext}
+
+CONVERSATION HISTORY:
 ${conversationContext}
 
 RESPONSE GUIDELINES:
 1. Be empathetic and supportive
 2. Respond in ${language === 'english' ? 'English' : language === 'swahili' ? 'Swahili' : language === 'sheng' ? 'Sheng (Kenyan street language)' : 'Arabic'}
 3. If someone needs emergency help, prioritize safety and immediate resources
-4. Match services to user needs accurately
-5. Ask clarifying questions when needed
-6. Keep responses concise but helpful
-7. Use cultural context appropriately for the language
+4. Match services to user needs accurately using both service database and knowledge base
+5. Use the knowledge base context to provide more detailed and accurate information
+6. Ask clarifying questions when needed
+7. Keep responses concise but helpful
+8. Use cultural context appropriately for the language
+9. If knowledge base has relevant information, incorporate it naturally into your response
 
-CRITICAL: Always analyze the user's emotional state and respond appropriately. For distressed users, be extra supportive.`;
+CRITICAL: Always analyze the user's emotional state and respond appropriately. For distressed users, be extra supportive and consider scheduling follow-ups.`;
 
-    // Call OpenAI for intelligent response generation
+    // Call OpenAI for intelligent response generation with enhanced context
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -73,11 +78,11 @@ CRITICAL: Always analyze the user's emotional state and respond appropriately. F
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: systemPrompt },
+          { role: 'system', content: enhancedSystemPrompt },
           { role: 'user', content: message }
         ],
         temperature: 0.7,
-        max_tokens: 500,
+        max_tokens: 600,
       }),
     });
 
@@ -89,7 +94,7 @@ CRITICAL: Always analyze the user's emotional state and respond appropriately. F
 
     const aiResponse = aiResult.choices[0].message.content;
 
-    // Use OpenAI to classify intent and extract key information
+    // Use OpenAI to classify intent and extract key information with enhanced analysis
     const classificationResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -101,18 +106,27 @@ CRITICAL: Always analyze the user's emotional state and respond appropriately. F
         messages: [
           {
             role: 'system',
-            content: `Analyze this message and return JSON with:
+            content: `Analyze this message in context of Glo's support services and return JSON with:
 {
-  "intent": "emergency|shelter|food|healthcare|mental_health|legal|general_help|greeting|thanks",
+  "intent": "emergency|shelter|food|healthcare|mental_health|legal|general_help|greeting|thanks|followup_response",
   "urgency": "low|medium|high|critical",
-  "emotional_state": "neutral|distressed|grateful|angry|scared",
+  "emotional_state": "neutral|distressed|grateful|angry|scared|hopeful",
   "services_needed": ["array of relevant service types"],
   "confidence": 0.0-1.0,
   "requires_human": boolean,
-  "language_detected": "english|swahili|sheng|arabic"
-}`
+  "language_detected": "english|swahili|sheng|arabic",
+  "follow_up_recommended": boolean,
+  "knowledge_base_relevance": 0.0-1.0
+}
+
+Consider:
+- Urgency level based on safety concerns
+- Emotional indicators in the message
+- Whether the user needs immediate human intervention
+- If proactive follow-up would be beneficial
+- How relevant the knowledge base context was to answering the query`
           },
-          { role: 'user', content: message }
+          { role: 'user', content: `Message: "${message}"\nKnowledge Context: "${knowledgeContext}"` }
         ],
         temperature: 0.1,
       }),
@@ -131,20 +145,29 @@ CRITICAL: Always analyze the user's emotional state and respond appropriately. F
         services_needed: [],
         confidence: 0.5,
         requires_human: false,
-        language_detected: language
+        language_detected: language,
+        follow_up_recommended: false,
+        knowledge_base_relevance: 0.0
       };
     }
 
-    // Find matching services based on AI analysis
-    const matchedServices = services?.filter(service => 
-      analysis.services_needed.some((need: string) => 
+    // Find matching services based on AI analysis with enhanced matching
+    const matchedServices = services?.filter(service => {
+      const serviceMatch = analysis.services_needed.some((need: string) => 
         service.category.toLowerCase().includes(need.toLowerCase()) ||
-        service.title.toLowerCase().includes(need.toLowerCase())
-      )
-    ).slice(0, 3) || [];
+        service.title.toLowerCase().includes(need.toLowerCase()) ||
+        service.description.toLowerCase().includes(need.toLowerCase())
+      );
+      
+      // Also check if the service is mentioned in knowledge context
+      const knowledgeMatch = knowledgeContext.toLowerCase().includes(service.title.toLowerCase());
+      
+      return serviceMatch || knowledgeMatch;
+    }).slice(0, 3) || [];
 
-    console.log('AI Analysis:', analysis);
+    console.log('Enhanced AI Analysis:', analysis);
     console.log('Matched Services:', matchedServices.length);
+    console.log('Knowledge Base Relevance:', analysis.knowledge_base_relevance);
 
     return new Response(JSON.stringify({
       response: aiResponse,
@@ -155,14 +178,16 @@ CRITICAL: Always analyze the user's emotional state and respond appropriately. F
         confidence: analysis.confidence,
         urgency: analysis.urgency,
         emotional_state: analysis.emotional_state,
-        requires_human: analysis.requires_human
+        requires_human: analysis.requires_human,
+        follow_up_recommended: analysis.follow_up_recommended,
+        knowledge_base_used: analysis.knowledge_base_relevance > 0.5
       }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('Error in AI chat processor:', error);
+    console.error('Error in enhanced AI chat processor:', error);
     return new Response(JSON.stringify({ 
       error: 'Failed to process message',
       details: error.message 
