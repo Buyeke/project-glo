@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DayPicker } from 'react-day-picker';
@@ -20,7 +19,7 @@ interface Appointment {
   notes?: string;
   caseworker: {
     full_name: string;
-  };
+  } | null;
 }
 
 interface ServiceCalendarProps {
@@ -53,7 +52,7 @@ const ServiceCalendar: React.FC<ServiceCalendarProps> = ({
           status,
           duration_minutes,
           notes,
-          caseworker:caseworker_id (
+          profiles!appointments_caseworker_id_fkey (
             full_name
           )
         `)
@@ -61,7 +60,16 @@ const ServiceCalendar: React.FC<ServiceCalendarProps> = ({
         .order('appointment_date', { ascending: true });
 
       if (error) throw error;
-      return data as Appointment[];
+      
+      // Transform the data to match our interface
+      const transformedData = data?.map(appointment => ({
+        ...appointment,
+        caseworker: appointment.profiles ? {
+          full_name: appointment.profiles.full_name
+        } : null
+      })) || [];
+
+      return transformedData as Appointment[];
     },
     enabled: !!user,
   });
