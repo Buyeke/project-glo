@@ -3,7 +3,8 @@ import { useState } from 'react';
 import { ChatMessage } from '@/types/chatbot';
 import { useChatData } from './useChatData';
 import { useChatInteractionLogger } from './useChatInteractionLogger';
-import { useChatMessageProcessor } from './useChatMessageProcessor';
+import { useEnhancedChatMessageProcessor } from './useEnhancedChatMessageProcessor';
+import { useConversationMemory } from './useConversationMemory';
 
 export const useChatbot = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -17,17 +18,30 @@ export const useChatbot = () => {
 
   const { intents, services, isLoadingIntents, isLoadingServices } = useChatData();
   const { logInteraction } = useChatInteractionLogger();
-  const { processMessage: processMessageLogic } = useChatMessageProcessor(intents, services);
+  const { processMessage: processMessageLogic, isAIProcessing } = useEnhancedChatMessageProcessor(intents, services);
+  const { memory, updateMemory, getContextSummary, clearMemory } = useConversationMemory();
 
   const processMessage = async (userMessage: string, forcedLanguage?: string) => {
+    console.log('Processing message with AI enhancement:', userMessage);
+    
     const { userMsg, botMsg } = await processMessageLogic(userMessage, messages, forcedLanguage);
+    
+    // Update conversation memory
+    updateMemory(userMsg);
+    updateMemory(botMsg, {
+      urgency: botMsg.confidence && botMsg.confidence > 0.8 ? 'high' : 'medium',
+      emotional_state: 'neutral', // This would be enhanced with sentiment analysis
+      language_detected: userMsg.language,
+      services_needed: botMsg.matchedService ? [botMsg.matchedService] : []
+    });
+
     setMessages(prev => [...prev, userMsg, botMsg]);
 
-    // Log interaction (always log, even for fallback responses)
+    // Log interaction with enhanced metadata
     logInteraction({
       original_message: userMessage,
       detected_language: userMsg.language || 'english',
-      translated_message: undefined, // This would be set by processMessageLogic if needed
+      translated_message: undefined,
       matched_intent: botMsg.intent,
       matched_service: botMsg.matchedService,
       response: botMsg.text,
@@ -50,6 +64,18 @@ export const useChatbot = () => {
     };
     
     setMessages(prev => [...prev, switchMessage]);
+    updateMemory(switchMessage);
+  };
+
+  const resetConversation = () => {
+    setMessages([
+      {
+        id: 1,
+        text: "Hi! I'm Glo's AI assistant. I'm here to help you navigate our services and find the support you need. How can I assist you today?",
+        isBot: true,
+      },
+    ]);
+    clearMemory();
   };
 
   return {
@@ -57,9 +83,13 @@ export const useChatbot = () => {
     processMessage,
     currentLanguage,
     switchLanguage,
+    resetConversation,
     intents,
     services,
     isLoadingIntents,
     isLoadingServices,
+    isAIProcessing,
+    conversationMemory: memory,
+    getContextSummary,
   };
 };

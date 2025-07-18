@@ -5,6 +5,7 @@ import { ChatBotHeader } from './ChatBotHeader';
 import { ChatMessage } from './ChatMessage';
 import { ChatQuickActions } from './ChatQuickActions';
 import { ChatInput } from './ChatInput';
+import { AIProcessingIndicator } from './AIProcessingIndicator';
 import { ChatMessage as ChatMessageType } from '@/types/chatbot';
 
 interface ChatWindowProps {
@@ -13,6 +14,7 @@ interface ChatWindowProps {
   supportedLanguages: Array<{ code: string; nativeName: string }>;
   inputValue: string;
   isLoadingIntents: boolean;
+  isAIProcessing?: boolean;
   onLanguageChange: (language: string) => void;
   onClose: () => void;
   onInputChange: (value: string) => void;
@@ -26,6 +28,7 @@ export const ChatWindow = ({
   supportedLanguages,
   inputValue,
   isLoadingIntents,
+  isAIProcessing = false,
   onLanguageChange,
   onClose,
   onInputChange,
@@ -55,6 +58,9 @@ export const ChatWindow = ({
             />
           ))}
           
+          {/* AI Processing Indicator */}
+          {isAIProcessing && <AIProcessingIndicator />}
+          
           {isLoadingIntents && (
             <div className="text-center text-sm text-gray-500 py-4">
               <div className="animate-pulse">Setting up multilingual support...</div>
@@ -72,6 +78,7 @@ export const ChatWindow = ({
           onInputChange={onInputChange}
           onSend={onSend}
           currentLanguage={currentLanguage}
+          disabled={isAIProcessing}
         />
       </CardContent>
     </Card>

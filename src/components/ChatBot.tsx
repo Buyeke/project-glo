@@ -9,15 +9,22 @@ import { ChatBotStyles } from './chatbot/ChatBotStyles';
 const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
-  const { messages, processMessage, currentLanguage, switchLanguage, isLoadingIntents } = useChatbot();
+  const { 
+    messages, 
+    processMessage, 
+    currentLanguage, 
+    switchLanguage, 
+    isLoadingIntents,
+    isAIProcessing 
+  } = useChatbot();
 
   const handleSend = async () => {
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || isAIProcessing) return;
 
     const userInput = inputValue;
     setInputValue('');
 
-    // Process the message
+    // Process the message with AI enhancement
     await processMessage(userInput);
   };
 
@@ -26,6 +33,7 @@ const ChatBot = () => {
   };
 
   const handleProcessMessage = async (message: string, language: string) => {
+    if (isAIProcessing) return;
     await processMessage(message, language);
   };
 
@@ -48,6 +56,7 @@ const ChatBot = () => {
           supportedLanguages={supportedLanguages}
           inputValue={inputValue}
           isLoadingIntents={isLoadingIntents}
+          isAIProcessing={isAIProcessing}
           onLanguageChange={handleLanguageChange}
           onClose={() => setIsOpen(false)}
           onInputChange={setInputValue}
