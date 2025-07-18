@@ -53,7 +53,7 @@ const ServiceCalendar: React.FC<ServiceCalendarProps> = ({
           status,
           duration_minutes,
           notes,
-          caseworker:caseworker_id!inner (
+          caseworker:caseworker_id (
             full_name
           )
         `)
