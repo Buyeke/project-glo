@@ -30,7 +30,7 @@ export const useProactiveFollowups = () => {
       const scheduledFor = new Date();
       scheduledFor.setHours(scheduledFor.getHours() + delayHours);
 
-      const { data: followup, error } = await supabase
+      const { data: followup, error } = await (supabase as any)
         .from('followup_actions')
         .insert({
           user_id: user.id,
@@ -59,7 +59,7 @@ export const useProactiveFollowups = () => {
 
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('followup_actions')
         .select('*')
         .eq('user_id', user.id)
@@ -82,7 +82,7 @@ export const useProactiveFollowups = () => {
 
   const markFollowUpCompleted = async (followUpId: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('followup_actions')
         .update({ status: 'completed', completed_at: new Date().toISOString() })
         .eq('id', followUpId);
