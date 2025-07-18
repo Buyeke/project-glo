@@ -8,6 +8,7 @@ interface AIProcessorRequest {
   message: string;
   conversationHistory: ChatMessage[];
   language?: string;
+  knowledgeContext?: string;
 }
 
 interface AIProcessorResponse {

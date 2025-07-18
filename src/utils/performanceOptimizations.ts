@@ -1,5 +1,5 @@
 
-import { lazy } from 'react';
+import React, { lazy } from 'react';
 
 // Lazy load components for better performance
 export const LazyComponents = {

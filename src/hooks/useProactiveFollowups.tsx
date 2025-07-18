@@ -46,7 +46,7 @@ export const useProactiveFollowups = () => {
 
       if (error) throw error;
 
-      setPendingFollowups(prev => [...prev, followup]);
+      setPendingFollowups(prev => [...prev, followup as FollowUpAction]);
       return followup;
     } catch (error) {
       console.error('Error scheduling follow-up:', error);
@@ -70,7 +70,7 @@ export const useProactiveFollowups = () => {
 
       if (error) throw error;
 
-      setPendingFollowups(data || []);
+      setPendingFollowups((data || []) as FollowUpAction[]);
       return data;
     } catch (error) {
       console.error('Error fetching follow-ups:', error);
