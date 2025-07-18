@@ -77,7 +77,7 @@ export const throttle = <T extends (...args: any[]) => void>(
 export const memoizeApiCall = <T>(
   apiCall: () => Promise<T>,
   cacheKey: string,
-  ttl: number = 300000, // 5 minutes
+  ttl: number = 300000,
   maxCacheSize: number = 50
 ): (() => Promise<T>) => {
   const cache = new Map<string, { data: T; timestamp: number; accessCount: number }>();
@@ -91,7 +91,6 @@ export const memoizeApiCall = <T>(
       return cached.data;
     }
     
-    // Clean cache if it's getting too large
     if (cache.size >= maxCacheSize) {
       const entries = Array.from(cache.entries());
       entries.sort((a, b) => a[1].accessCount - b[1].accessCount);
@@ -179,7 +178,6 @@ export const registerServiceWorker = async () => {
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // New content is available, notify user
               console.log('New content available, please refresh.');
             }
           });
@@ -197,7 +195,6 @@ export const registerServiceWorker = async () => {
 
 // Enhanced preload critical resources
 export const preloadCriticalResources = () => {
-  // Preload fonts
   const fontUrls = [
     '/fonts/inter-var.woff2',
     '/fonts/inter-regular.woff2'
@@ -213,7 +210,6 @@ export const preloadCriticalResources = () => {
     document.head.appendChild(link);
   });
   
-  // Preload critical images
   const criticalImages = [
     '/logo.svg',
     '/hero-bg.webp',
@@ -228,7 +224,6 @@ export const preloadCriticalResources = () => {
     document.head.appendChild(link);
   });
   
-  // Prefetch likely next pages
   const prefetchUrls = ['/dashboard', '/services', '/resources'];
   prefetchUrls.forEach(url => {
     const link = document.createElement('link');
