@@ -5,7 +5,7 @@ import React, { lazy } from 'react';
 const createLazyComponent = (importFn: () => Promise<any>, fallback?: React.ComponentType) => {
   const LazyComponent = lazy(importFn);
   
-  return React.forwardRef((props: any, ref) => (
+  return React.forwardRef<any, any>((props, ref) => (
     <React.Suspense fallback={
       fallback ? React.createElement(fallback) : 
       <div className="flex items-center justify-center p-8">
