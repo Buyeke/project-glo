@@ -113,10 +113,13 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
+      console.log('Starting individual signup process...', { email: individualForm.email });
+      
       const { data, error } = await supabase.auth.signUp({
         email: individualForm.email,
         password: individualForm.password,
         options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
             full_name: individualForm.fullName,
             user_type: 'individual',
@@ -127,10 +130,13 @@ const Auth = () => {
         }
       });
 
+      console.log('Signup response:', { data, error });
+
       if (error) throw error;
 
       // Create user needs entries
       if (data.user && individualForm.needs.length > 0) {
+        console.log('Creating user needs...', individualForm.needs);
         const needsPromises = individualForm.needs.map(need => 
           supabase.from('user_needs').insert({
             user_id: data.user.id,
@@ -148,6 +154,7 @@ const Auth = () => {
 
       navigate('/dashboard');
     } catch (error) {
+      console.error('Individual signup error:', error);
       toast({
         title: "Error",
         description: error.message,
@@ -163,10 +170,13 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
+      console.log('Starting NGO signup process...', { email: ngoForm.email });
+      
       const { data, error } = await supabase.auth.signUp({
         email: ngoForm.email,
         password: ngoForm.password,
         options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
             full_name: ngoForm.fullName,
             user_type: 'ngo',
@@ -175,10 +185,13 @@ const Auth = () => {
         }
       });
 
+      console.log('NGO signup response:', { data, error });
+
       if (error) throw error;
 
       // Create NGO details entry
       if (data.user) {
+        console.log('Creating NGO details...', ngoForm.organizationName);
         await supabase.from('ngo_details').insert({
           user_id: data.user.id,
           organization_name: ngoForm.organizationName,
@@ -200,6 +213,7 @@ const Auth = () => {
 
       navigate('/dashboard');
     } catch (error) {
+      console.error('NGO signup error:', error);
       toast({
         title: "Error",
         description: error.message,
