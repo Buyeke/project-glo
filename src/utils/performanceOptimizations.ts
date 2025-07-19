@@ -35,7 +35,7 @@ export const debounce = <T extends (...args: any[]) => void>(
   wait: number,
   immediate: boolean = false
 ): ((...args: Parameters<T>) => void) => {
-  let timeout: NodeJS.Timeout | null = null;
+  let timeout: ReturnType<typeof setTimeout> | null = null;
   return (...args: Parameters<T>) => {
     const callNow = immediate && !timeout;
     if (timeout) clearTimeout(timeout);
@@ -53,7 +53,7 @@ export const throttle = <T extends (...args: any[]) => void>(
   limit: number
 ): ((...args: Parameters<T>) => void) => {
   let inThrottle: boolean = false;
-  let lastFunc: NodeJS.Timeout | null = null;
+  let lastFunc: ReturnType<typeof setTimeout> | null = null;
   let lastRan: number = 0;
   
   return (...args: Parameters<T>) => {
