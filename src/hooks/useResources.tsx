@@ -23,6 +23,6 @@ export const useResources = () => {
       return transformedData;
     },
     staleTime: 15 * 60 * 1000, // 15 minutes - resources don't change frequently
-    cacheTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
   });
 };

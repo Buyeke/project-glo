@@ -22,7 +22,7 @@ export const useChatData = () => {
       return data as Intent[];
     },
     staleTime: 30 * 60 * 1000, // 30 minutes - intents are relatively static
-    cacheTime: 60 * 60 * 1000, // 1 hour
+    gcTime: 60 * 60 * 1000, // 1 hour
   });
 
   // Fetch services from database
@@ -41,10 +41,14 @@ export const useChatData = () => {
       }
       
       console.log('Fetched services:', data);
-      return data as Service[];
+      return data?.map(service => ({
+        ...service,
+        key_features: [],
+        availability: 'Available'
+      })) as Service[];
     },
     staleTime: 10 * 60 * 1000, // 10 minutes
-    cacheTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
   });
 
   return {

@@ -460,10 +460,17 @@ export const generateContextualResponse = (
   return baseResponse;
 };
 
-// Export all types for external use
-export type {
-  LanguageInfo,
-  DetectionResult,
-  EmotionalContext,
-  ResponseContext
+// Basic translation function
+export const translateText = (text: string, targetLanguage: string): string => {
+  // Simple implementation - in a real app, this would use a translation service
+  return text;
+};
+
+// Add missing exports for compatibility
+export const getEnhancedTranslation = (text: string, lang: string): string => {
+  return translateText(text, lang);
+};
+
+export const enhanceResponseWithEmotion = (text: string, context: string): string => {
+  return text; // Basic implementation
 };

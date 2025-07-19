@@ -5,16 +5,14 @@ import React, { lazy } from 'react';
 const createLazyComponent = (importFn: () => Promise<any>, fallback?: React.ComponentType) => {
   const LazyComponent = lazy(importFn);
   
-  return React.forwardRef<any, any>((props, ref) => (
-    <React.Suspense fallback={
-      fallback ? React.createElement(fallback) : 
-      <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    }>
-      <LazyComponent {...props} ref={ref} />
-    </React.Suspense>
-  ));
+  return React.forwardRef<any, any>((props, ref) => 
+    React.createElement(React.Suspense, {
+      fallback: fallback ? React.createElement(fallback) : 
+        React.createElement('div', { className: "flex items-center justify-center p-8" },
+          React.createElement('div', { className: "animate-spin rounded-full h-8 w-8 border-b-2 border-primary" })
+        )
+    }, React.createElement(LazyComponent, { ...props, ref }))
+  );
 };
 
 // Lazy load components for better performance

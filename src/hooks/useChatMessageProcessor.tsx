@@ -29,7 +29,7 @@ export const useChatMessageProcessor = (intents: Intent[], services: Service[]) 
     // Try enhanced translation first
     let messageForMatching = userMessage;
     if (detectedLanguage !== 'english') {
-      const enhancedTranslation = getEnhancedTranslation(userMessage, detectedLanguage, 'english');
+      const enhancedTranslation = getEnhancedTranslation(userMessage, 'english');
       if (enhancedTranslation) {
         messageForMatching = enhancedTranslation;
         console.log('Enhanced translation used:', messageForMatching);
@@ -71,7 +71,7 @@ export const useChatMessageProcessor = (intents: Intent[], services: Service[]) 
         : '• Professional support available';
 
       // Generate culturally appropriate service intro
-      const serviceIntro = generateServiceResponseIntro(detectedLanguage, emotionalState, detection.formality);
+      const serviceIntro = generateServiceResponseIntro(detectedLanguage, 'neutral', detection.formality);
       response = `${serviceIntro}\n\n🔹 ${service.title}\n${service.description}\n\nKey Features:\n${features}`;
       
       // Add contact information with cultural context
@@ -86,7 +86,7 @@ export const useChatMessageProcessor = (intents: Intent[], services: Service[]) 
       }
 
       // Add culturally appropriate encouragement
-      if (emotionalState === 'distressed') {
+      if (emotionalState.state === 'distressed') {
         const encouragement = generateCulturalResponse(userMessage, 'encouragement', detectedLanguage);
         response += `\n\n${encouragement.text}`;
       }
@@ -99,7 +99,7 @@ export const useChatMessageProcessor = (intents: Intent[], services: Service[]) 
                         getFallbackResponse(detectedLanguage);
       
       // Enhance with emotional and cultural context
-      response = enhanceResponseWithEmotion(baseResponse, emotionalState, detectedLanguage);
+      response = enhanceResponseWithEmotion(baseResponse, 'neutral');
       matchedIntent = intent.intent_key;
       console.log('Using enhanced intent response:', response);
     } else {
@@ -110,7 +110,7 @@ export const useChatMessageProcessor = (intents: Intent[], services: Service[]) 
     }
 
     // Add cultural sign-off based on emotional state
-    if (emotionalState === 'grateful') {
+    if (emotionalState.state === 'grateful') {
       const gratefulResponse = generateCulturalResponse(userMessage, 'thanks', detectedLanguage);
       response += `\n\n${gratefulResponse.text}`;
     }

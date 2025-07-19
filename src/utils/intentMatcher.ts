@@ -109,9 +109,9 @@ export const matchIntent = (message: string, intents: Intent[], language: string
     
     // Detect emotional state and apply context boost
     const emotionalState = detectEmotionalState(lowerMessage, language);
-    if (emotionalState === 'urgent' && intent.category === 'emergency') {
+    if (emotionalState.state === 'urgent' && intent.category === 'emergency') {
       contextBoost += 0.4;
-    } else if (emotionalState === 'distressed' && intent.category === 'emotional_support') {
+    } else if (emotionalState.state === 'distressed' && intent.category === 'emotional_support') {
       contextBoost += 0.3;
     }
     
@@ -239,7 +239,8 @@ const levenshteinDistance = (str1: string, str2: string): number => {
 export const matchService = (message: string, services: Service[]): Service[] => {
   const lowerMessage = message.toLowerCase().trim();
   const scoredServices: { service: Service; score: number }[] = [];
-  const detectedLang = detectLanguage(message);
+  const detectedLangResult = detectLanguage(message);
+  const detectedLang = typeof detectedLangResult === 'string' ? detectedLangResult : detectedLangResult.language;
   
   console.log('Matching services for message:', lowerMessage, 'in language:', detectedLang);
   console.log('Available services:', services.length);
@@ -289,12 +290,12 @@ export const matchService = (message: string, services: Service[]): Service[] =>
     // Enhanced priority system
     const emotionalState = detectEmotionalState(lowerMessage, detectedLang);
     
-    if (emotionalState === 'urgent' && (
+    if (emotionalState.state === 'urgent' && (
       service.category.toLowerCase().includes('emergency') || 
       service.priority_level === 'Urgent'
     )) {
       score += 5;
-    } else if (emotionalState === 'distressed' && (
+    } else if (emotionalState.state === 'distressed' && (
       service.category.toLowerCase().includes('mental') ||
       service.title.toLowerCase().includes('counseling')
     )) {
@@ -302,7 +303,7 @@ export const matchService = (message: string, services: Service[]): Service[] =>
     }
 
     // Basic needs priority for distressed users
-    if (emotionalState === 'distressed' && service.category.toLowerCase().includes('basic')) {
+    if (emotionalState.state === 'distressed' && service.category.toLowerCase().includes('basic')) {
       score += 3;
     }
 

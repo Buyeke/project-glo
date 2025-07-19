@@ -9,7 +9,6 @@ import { LazyComponents } from '@/utils/performanceOptimizations';
 import { Suspense } from 'react';
 
 // Import pages that need to be loaded immediately
-import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
 import Home from '@/pages/Home';
 import About from '@/pages/About';
@@ -61,7 +60,7 @@ function App() {
           <Router>
             <Routes>
               <Route path="/" element={<Layout />}>
-                <Route index element={<Index />} />
+                <Route index element={<Home />} />
                 <Route path="home" element={<Home />} />
                 <Route path="about" element={<About />} />
                 <Route path="auth" element={<Auth />} />
