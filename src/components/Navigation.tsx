@@ -1,151 +1,108 @@
-
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { useTheme } from 'next-themes';
+import { siteConfig } from '@/config/site';
+import { Icons } from '@/components/icons';
+import { ModeToggle } from '@/components/mode-toggle';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Menu, X, Heart } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import LanguageToggle from './LanguageToggle';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
-const Navigation = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const { user, signOut } = useAuth();
-  const navigate = useNavigate();
+interface MainNavItem {
+  title: string;
+  href: string;
+  disabled?: boolean;
+}
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/');
-  };
+interface Props extends React.HTMLAttributes<HTMLElement> {
+  mainNavItems?: MainNavItem[];
+}
 
-  const navItems = [
-    { name: 'Home', path: '/' },
-    { name: 'About', path: '/about' },
-    { name: 'Services', path: '/services' },
-    { name: 'Resources', path: '/resources' },
-    { name: 'Shop', path: '/shop' },
-    { name: 'Blog', path: '/blog' },
-    { name: 'Careers', path: '/careers' },
-    { name: 'Contact', path: '/contact' },
-  ];
+const Navigation = ({ mainNavItems }: Props) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   return (
-    <TooltipProvider>
-      <nav className="bg-background shadow-sm border-b border-border sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-14">
-            {/* Logo */}
-            <Link to="/" className="flex items-center space-x-2">
-              <Heart className="h-7 w-7 text-secondary" />
-              <span className="text-xl font-bold text-primary">Glo</span>
-            </Link>
-
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-6">
-              {navItems.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.path}
-                  className="text-sm text-foreground hover:text-primary transition-colors duration-200 font-medium nav-link"
-                >
-                  {item.name}
-                </Link>
-              ))}
-              {user && (
-                <Link
-                  to="/dashboard"
-                  className="text-sm text-foreground hover:text-primary transition-colors duration-200 font-medium nav-link"
-                >
-                  Dashboard
-                </Link>
-              )}
-            </div>
-
-            {/* Desktop Actions */}
-            <div className="hidden md:flex items-center space-x-3">
-              <LanguageToggle />
-              {user ? (
-                <div className="flex items-center space-x-3">
-                  <span className="text-xs text-muted-foreground">
-                    Welcome, {user.email}
-                  </span>
-                  <Button variant="outline" size="sm" onClick={handleSignOut} className="text-xs border-border hover:bg-muted">
-                    Sign Out
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  <Button variant="outline" size="sm" className="text-xs border-border hover:bg-muted" asChild>
-                    <Link to="/auth">Sign In</Link>
-                  </Button>
-                  <Button size="sm" className="bg-secondary hover:bg-secondary/90 text-secondary-foreground font-semibold text-xs btn-donate" asChild>
-                    <Link to="/donate">Donate</Link>
-                  </Button>
-                </>
-              )}
-            </div>
-
-            {/* Mobile menu button */}
-            <div className="md:hidden">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsOpen(!isOpen)}
-                className="text-foreground hover:bg-muted"
+    <header className="bg-background sticky top-0 z-50 w-full border-b">
+      <div className="container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0">
+        <Link to="/" className="flex items-center space-x-2">
+          <Icons.logo className="h-6 w-6" />
+          <span className="hidden font-bold sm:inline-block">{siteConfig.name}</span>
+        </Link>
+        <nav className="flex flex-1 items-center justify-end space-x-4">
+          <ul className="flex gap-6 items-center">
+            {mainNavItems?.length ? (
+              mainNavItems.map((item, index) => (
+                <li key={index}>
+                  <Link
+                    to={item.href}
+                    className="text-sm font-medium transition-colors hover:text-foreground sm:text-sm"
+                  >
+                    {item.title}
+                  </Link>
+                </li>
+              ))
+            ) : null}
+            <li className="hidden lg:block">
+              <Link
+                to="/resources"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Resources"
               >
-                {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </Button>
-            </div>
+                Resources
+              </Link>
+            </li>
+            <li className="hidden lg:block">
+              <Link
+                to="/services"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Services"
+              >
+                Services
+              </Link>
+            </li>
+            <li className="hidden lg:block">
+              <Link
+                to="/blog"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Blog"
+              >
+                Blog
+              </Link>
+            </li>
+            <li className="hidden lg:block">
+              <Link
+                to="/contact"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Contact"
+              >
+                Contact
+              </Link>
+            </li>
+            <li className="hidden lg:block">
+              <Link 
+                to="/admin-login" 
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Admin Login"
+              >
+                Admin
+              </Link>
+            </li>
+          </ul>
+          <div className="flex items-center space-x-2">
+            <ModeToggle />
+            <Button asChild size="sm" variant="ghost">
+              <Link to="/auth">
+                Sign In
+              </Link>
+            </Button>
+            <Avatar className="h-8 w-8">
+              <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+              <AvatarFallback>CN</AvatarFallback>
+            </Avatar>
           </div>
-
-          {/* Mobile Navigation */}
-          {isOpen && (
-            <div className="md:hidden">
-              <div className="px-2 pt-2 pb-3 space-y-1 bg-background border-t border-border">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.name}
-                    to={item.path}
-                    className="block px-3 py-2 text-sm text-foreground hover:text-primary hover:bg-muted/50 transition-colors rounded-md nav-link"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    {item.name}
-                  </Link>
-                ))}
-                {user && (
-                  <Link
-                    to="/dashboard"
-                    className="block px-3 py-2 text-sm text-foreground hover:text-primary hover:bg-muted/50 transition-colors rounded-md nav-link"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Dashboard
-                  </Link>
-                )}
-                <div className="px-3 py-2 space-y-2">
-                  <div className="flex justify-center">
-                    <LanguageToggle />
-                  </div>
-                  {user ? (
-                    <Button variant="outline" onClick={handleSignOut} className="w-full text-xs border-border hover:bg-muted" size="sm">
-                      Sign Out
-                    </Button>
-                  ) : (
-                    <>
-                      <Button variant="outline" asChild className="w-full text-xs border-border hover:bg-muted" size="sm">
-                        <Link to="/auth">Sign In</Link>
-                      </Button>
-                      <Button asChild className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground font-semibold text-xs btn-donate" size="sm">
-                        <Link to="/donate">Donate</Link>
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </nav>
-    </TooltipProvider>
+        </nav>
+      </div>
+    </header>
   );
 };
 
