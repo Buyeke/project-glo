@@ -10,28 +10,43 @@ import { Link } from 'react-router-dom';
 import { ShieldX } from 'lucide-react';
 
 const AdminPanel = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
-  const { data: profile, isLoading } = useQuery({
-    queryKey: ['profile', user?.id],
+  const { data: isAdmin, isLoading: adminCheckLoading } = useQuery({
+    queryKey: ['admin-check', user?.id],
     queryFn: async () => {
-      if (!user) return null;
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+      if (!user) return false;
       
-      if (error) throw error;
+      console.log('Checking admin status for user:', user.email);
+      const { data, error } = await supabase.rpc('is_admin_user');
+      
+      if (error) {
+        console.error('Admin check error:', error);
+        throw error;
+      }
+      
+      console.log('Admin check result:', data);
       return data;
     },
     enabled: !!user,
+    retry: 3,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  if (isLoading) {
+  // Show loading while auth is loading
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Loading...</div>
+        <div className="text-lg">Loading authentication...</div>
+      </div>
+    );
+  }
+
+  // Show loading while checking admin status
+  if (adminCheckLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg">Verifying admin access...</div>
       </div>
     );
   }
@@ -51,7 +66,7 @@ const AdminPanel = () => {
           </CardHeader>
           <CardContent>
             <Button asChild className="w-full">
-              <Link to="/auth">Sign In</Link>
+              <Link to="/admin/login">Sign In</Link>
             </Button>
           </CardContent>
         </Card>
@@ -59,7 +74,7 @@ const AdminPanel = () => {
     );
   }
 
-  if (profile?.user_type !== 'admin') {
+  if (isAdmin === false) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Card className="w-96">
@@ -82,7 +97,17 @@ const AdminPanel = () => {
     );
   }
 
-  return <AdminDashboard />;
+  // Only render AdminDashboard if user is confirmed admin
+  if (isAdmin === true) {
+    return <AdminDashboard />;
+  }
+
+  // Fallback loading state
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-lg">Loading admin panel...</div>
+    </div>
+  );
 };
 
 export default AdminPanel;

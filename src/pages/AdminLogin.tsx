@@ -17,33 +17,39 @@ const AdminLogin = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // If user is already logged in, redirect to admin panel
+  // If user is already logged in, check admin access immediately
   React.useEffect(() => {
     if (user) {
-      checkAdminAccess();
+      checkAdminAccessAndRedirect();
     }
   }, [user]);
 
-  const checkAdminAccess = async () => {
+  const checkAdminAccessAndRedirect = async () => {
     try {
-      // Use the admin function directly instead of checking profiles table
+      console.log('Checking admin access for user:', user?.email);
+      
       const { data, error } = await supabase.rpc('is_admin_user');
       
       if (error) {
         console.error('Error checking admin access:', error);
-        toast.error('Error checking admin access');
+        toast.error('Error verifying admin access');
         return;
       }
 
+      console.log('Admin check result:', data);
+
       if (data) {
+        console.log('User is admin, redirecting to admin panel');
         navigate('/admin');
       } else {
+        console.log('User is not admin, signing out');
         toast.error('Access denied. Admin privileges required.');
+        await supabase.auth.signOut();
         navigate('/');
       }
     } catch (error) {
-      console.error('Error checking admin access:', error);
-      toast.error('Error checking admin access');
+      console.error('Error in admin check:', error);
+      toast.error('Error verifying admin access');
     }
   };
 
@@ -65,24 +71,36 @@ const AdminLogin = () => {
       }
 
       if (data.user) {
-        console.log('Login successful, checking admin status...');
+        console.log('Login successful for user:', data.user.email);
+        toast.success('Login successful, verifying admin access...');
         
-        // Use the admin function to check admin status
-        const { data: isAdmin, error: adminError } = await supabase.rpc('is_admin_user');
-        
-        if (adminError) {
-          console.error('Admin check error:', adminError);
-          toast.error('Error checking admin privileges');
-          return;
-        }
+        // Wait a moment for the auth state to update, then check admin status
+        setTimeout(async () => {
+          try {
+            const { data: isAdmin, error: adminError } = await supabase.rpc('is_admin_user');
+            
+            if (adminError) {
+              console.error('Admin check error:', adminError);
+              toast.error('Error checking admin privileges');
+              await supabase.auth.signOut();
+              return;
+            }
 
-        if (isAdmin) {
-          toast.success('Admin login successful');
-          navigate('/admin');
-        } else {
-          toast.error('Access denied. Admin privileges required.');
-          await supabase.auth.signOut();
-        }
+            console.log('Admin status:', isAdmin);
+
+            if (isAdmin) {
+              toast.success('Admin access verified');
+              navigate('/admin');
+            } else {
+              toast.error('Access denied. Admin privileges required.');
+              await supabase.auth.signOut();
+            }
+          } catch (error) {
+            console.error('Error in admin verification:', error);
+            toast.error('Error verifying admin privileges');
+            await supabase.auth.signOut();
+          }
+        }, 1000);
       }
     } catch (error: any) {
       console.error('Login error:', error);
