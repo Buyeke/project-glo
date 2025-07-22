@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Shield, Lock } from 'lucide-react';
+import { Shield, Lock, Loader2 } from 'lucide-react';
 
 const AdminLogin = () => {
   const [email, setEmail] = useState('');
@@ -26,13 +26,16 @@ const AdminLogin = () => {
 
   const checkAdminAccess = async () => {
     try {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('user_type')
-        .eq('id', user?.id)
-        .single();
+      // Use the admin function directly instead of checking profiles table
+      const { data, error } = await supabase.rpc('is_admin_user');
+      
+      if (error) {
+        console.error('Error checking admin access:', error);
+        toast.error('Error checking admin access');
+        return;
+      }
 
-      if (profile?.user_type === 'admin') {
+      if (data) {
         navigate('/admin');
       } else {
         toast.error('Access denied. Admin privileges required.');
@@ -40,6 +43,7 @@ const AdminLogin = () => {
       }
     } catch (error) {
       console.error('Error checking admin access:', error);
+      toast.error('Error checking admin access');
     }
   };
 
@@ -48,24 +52,31 @@ const AdminLogin = () => {
     setLoading(true);
 
     try {
+      console.log('Attempting login for:', email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim(),
         password,
       });
 
       if (error) {
+        console.error('Login error:', error);
         throw error;
       }
 
       if (data.user) {
-        // Check if user is admin
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('user_type')
-          .eq('id', data.user.id)
-          .single();
+        console.log('Login successful, checking admin status...');
+        
+        // Use the admin function to check admin status
+        const { data: isAdmin, error: adminError } = await supabase.rpc('is_admin_user');
+        
+        if (adminError) {
+          console.error('Admin check error:', adminError);
+          toast.error('Error checking admin privileges');
+          return;
+        }
 
-        if (profile?.user_type === 'admin') {
+        if (isAdmin) {
           toast.success('Admin login successful');
           navigate('/admin');
         } else {
@@ -75,7 +86,13 @@ const AdminLogin = () => {
       }
     } catch (error: any) {
       console.error('Login error:', error);
-      toast.error(error.message || 'Login failed');
+      if (error.message?.includes('Invalid login credentials')) {
+        toast.error('Invalid email or password');
+      } else if (error.message?.includes('Email not confirmed')) {
+        toast.error('Please confirm your email address before signing in');
+      } else {
+        toast.error(error.message || 'Login failed');
+      }
     } finally {
       setLoading(false);
     }
@@ -108,6 +125,7 @@ const AdminLogin = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@glo.org"
                 required
+                disabled={loading}
                 className="mt-1"
               />
             </div>
@@ -120,6 +138,7 @@ const AdminLogin = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 required
+                disabled={loading}
                 className="mt-1"
               />
             </div>
@@ -130,7 +149,7 @@ const AdminLogin = () => {
             >
               {loading ? (
                 <>
-                  <Lock className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Signing In...
                 </>
               ) : (
