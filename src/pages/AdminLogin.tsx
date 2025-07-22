@@ -20,47 +20,32 @@ const AdminLogin = () => {
   // If user is already logged in, redirect to admin panel
   React.useEffect(() => {
     if (user) {
-      console.log("User already logged in, checking admin access...");
       checkAdminAccess();
     }
   }, [user]);
 
   const checkAdminAccess = async () => {
     try {
-      console.log("Checking admin access for user:", user?.id);
-      const { data: profile, error } = await supabase
+      const { data: profile } = await supabase
         .from('profiles')
         .select('user_type')
         .eq('id', user?.id)
         .single();
 
-      if (error) {
-        console.error("Error fetching profile:", error);
-        toast.error("Error checking admin status");
-        return;
-      }
-
-      console.log("User profile:", profile);
       if (profile?.user_type === 'admin') {
-        console.log("Admin access granted, redirecting to admin panel");
-        toast.success('Admin access granted');
         navigate('/admin');
       } else {
-        console.log("Admin access denied, user_type:", profile?.user_type);
         toast.error('Access denied. Admin privileges required.');
-        await supabase.auth.signOut();
         navigate('/');
       }
     } catch (error) {
       console.error('Error checking admin access:', error);
-      toast.error('Error checking admin access');
     }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    console.log(`Attempting admin login with email: ${email}`);
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -69,38 +54,27 @@ const AdminLogin = () => {
       });
 
       if (error) {
-        console.error("Login error:", error);
         throw error;
       }
 
-      console.log("Login successful, user data:", data.user);
-
       if (data.user) {
         // Check if user is admin
-        const { data: profile, error: profileError } = await supabase
+        const { data: profile } = await supabase
           .from('profiles')
           .select('user_type')
           .eq('id', data.user.id)
           .single();
 
-        if (profileError) {
-          console.error("Error fetching profile:", profileError);
-          throw new Error('Error checking admin status');
-        }
-
-        console.log("User profile for admin check:", profile);
-
         if (profile?.user_type === 'admin') {
           toast.success('Admin login successful');
           navigate('/admin');
         } else {
-          console.log("User is not an admin. User type:", profile?.user_type);
           toast.error('Access denied. Admin privileges required.');
           await supabase.auth.signOut();
         }
       }
     } catch (error: any) {
-      console.error('Login error details:', error);
+      console.error('Login error:', error);
       toast.error(error.message || 'Login failed');
     } finally {
       setLoading(false);

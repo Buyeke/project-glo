@@ -20,7 +20,6 @@ import NotFound from '@/pages/NotFound';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import TermsOfService from '@/pages/TermsOfService';
 import DataProtection from '@/pages/DataProtection';
-import AdminLogin from '@/pages/AdminLogin';
 
 // Enhanced query client with performance optimizations
 const queryClient = new QueryClient({
@@ -65,7 +64,6 @@ function App() {
                 <Route path="home" element={<Home />} />
                 <Route path="about" element={<About />} />
                 <Route path="auth" element={<Auth />} />
-                <Route path="admin-login" element={<AdminLogin />} />
                 <Route 
                   path="dashboard" 
                   element={
