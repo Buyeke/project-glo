@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Menu, X, Heart } from 'lucide-react';
+import { Menu, X, Heart, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import LanguageToggle from './LanguageToggle';
@@ -78,6 +78,18 @@ const Navigation = () => {
                   <Button variant="outline" size="sm" className="text-xs border-border hover:bg-muted" asChild>
                     <Link to="/auth">Sign In</Link>
                   </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="sm" className="text-xs p-2" asChild>
+                        <Link to="/admin-login">
+                          <Shield className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Admin Access</p>
+                    </TooltipContent>
+                  </Tooltip>
                   <Button size="sm" className="bg-secondary hover:bg-secondary/90 text-secondary-foreground font-semibold text-xs btn-donate" asChild>
                     <Link to="/donate">Donate</Link>
                   </Button>
@@ -133,6 +145,12 @@ const Navigation = () => {
                     <>
                       <Button variant="outline" asChild className="w-full text-xs border-border hover:bg-muted" size="sm">
                         <Link to="/auth">Sign In</Link>
+                      </Button>
+                      <Button variant="outline" asChild className="w-full text-xs border-border hover:bg-muted" size="sm">
+                        <Link to="/admin-login">
+                          <Shield className="mr-2 h-4 w-4" />
+                          Admin Access
+                        </Link>
                       </Button>
                       <Button asChild className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground font-semibold text-xs btn-donate" size="sm">
                         <Link to="/donate">Donate</Link>
