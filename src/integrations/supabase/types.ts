@@ -345,8 +345,10 @@ export type Database = {
           ip_address: string | null
           message: string
           name: string
+          rate_limit_passed: boolean | null
           responded_at: string | null
           status: string
+          submission_hash: string | null
           updated_at: string
           user_agent: string | null
         }
@@ -358,8 +360,10 @@ export type Database = {
           ip_address?: string | null
           message: string
           name: string
+          rate_limit_passed?: boolean | null
           responded_at?: string | null
           status?: string
+          submission_hash?: string | null
           updated_at?: string
           user_agent?: string | null
         }
@@ -371,8 +375,10 @@ export type Database = {
           ip_address?: string | null
           message?: string
           name?: string
+          rate_limit_passed?: boolean | null
           responded_at?: string | null
           status?: string
+          submission_hash?: string | null
           updated_at?: string
           user_agent?: string | null
         }
@@ -693,6 +699,39 @@ export type Database = {
           },
         ]
       }
+      rate_limits: {
+        Row: {
+          action_type: string
+          attempt_count: number | null
+          blocked_until: string | null
+          created_at: string | null
+          id: string
+          identifier: string
+          updated_at: string | null
+          window_start: string | null
+        }
+        Insert: {
+          action_type: string
+          attempt_count?: number | null
+          blocked_until?: string | null
+          created_at?: string | null
+          id?: string
+          identifier: string
+          updated_at?: string | null
+          window_start?: string | null
+        }
+        Update: {
+          action_type?: string
+          attempt_count?: number | null
+          blocked_until?: string | null
+          created_at?: string | null
+          id?: string
+          identifier?: string
+          updated_at?: string | null
+          window_start?: string | null
+        }
+        Relationships: []
+      }
       resources: {
         Row: {
           category: string
@@ -748,6 +787,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      security_logs: {
+        Row: {
+          created_at: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       service_bookings: {
         Row: {
@@ -1376,6 +1445,10 @@ export type Database = {
     Functions: {
       is_admin_user: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      validate_contact_submission: {
+        Args: { p_name: string; p_email: string; p_message: string }
         Returns: boolean
       }
     }
