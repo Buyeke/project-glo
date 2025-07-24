@@ -40,13 +40,13 @@ interface ContactSubmission {
   name: string;
   email: string;
   message: string;
-  status: 'new' | 'in_progress' | 'resolved';
+  status: string;
   created_at: string;
   updated_at: string;
-  responded_at?: string;
-  admin_notes?: string;
-  ip_address?: string;
-  user_agent?: string;
+  responded_at?: string | null;
+  admin_notes?: string | null;
+  ip_address?: string | null;
+  user_agent?: string | null;
 }
 
 const ContactSubmissionsPanel = () => {
@@ -75,7 +75,7 @@ const ContactSubmissionsPanel = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setSubmissions(data || []);
+      setSubmissions(data as ContactSubmission[] || []);
     } catch (error) {
       console.error('Error fetching submissions:', error);
       toast({
@@ -184,6 +184,10 @@ const ContactSubmissionsPanel = () => {
     }
   };
 
+  const getStatusDisplay = (status: string) => {
+    return status.replace('_', ' ');
+  };
+
   if (isLoading) {
     return <div className="p-6">Loading contact submissions...</div>;
   }
@@ -282,7 +286,7 @@ const ContactSubmissionsPanel = () => {
                         </span>
                       </div>
                       <Badge className={getStatusColor(submission.status)}>
-                        {submission.status.replace('_', ' ')}
+                        {getStatusDisplay(submission.status)}
                       </Badge>
                     </div>
                     <div className="flex items-start gap-2 mb-3">

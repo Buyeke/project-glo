@@ -78,10 +78,16 @@ const AdminDashboard = () => {
 
   const exportContactData = async () => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        alert('Authentication required');
+        return;
+      }
+
       const response = await fetch('/functions/v1/contact-data-export', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${supabase.supabaseKey}`,
+          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -89,6 +95,8 @@ const AdminDashboard = () => {
       if (response.ok) {
         const result = await response.json();
         alert(`Export successful! ${result.message}`);
+      } else {
+        alert('Export failed. Please try again.');
       }
     } catch (error) {
       console.error('Error exporting contact data:', error);
