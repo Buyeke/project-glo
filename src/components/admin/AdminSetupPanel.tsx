@@ -3,14 +3,18 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Shield, CheckCircle, XCircle, AlertTriangle, TestTube, RefreshCw } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Loader2, Shield, CheckCircle, XCircle, AlertTriangle, TestTube, RefreshCw, Key } from 'lucide-react';
 import { setupAdminUsers, verifyAdminSetup, testAdminLogin } from '@/utils/adminSetup';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const AdminSetupPanel = () => {
   const [isVerifying, setIsVerifying] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [verificationResults, setVerificationResults] = useState(null);
   const [testResults, setTestResults] = useState(null);
 
@@ -59,7 +63,7 @@ const AdminSetupPanel = () => {
       if (results.every(r => r.success && r.isAdmin)) {
         toast.success('All admin login tests passed!');
       } else {
-        toast.error('Some admin login tests failed. Check the results below.');
+        toast.error('Some admin login tests failed. You may need to reset the passwords.');
       }
     } catch (error) {
       console.error('Test error:', error);
@@ -88,6 +92,27 @@ const AdminSetupPanel = () => {
     }
   };
 
+  const handleResetPassword = async (email: string) => {
+    setIsResettingPassword(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/admin/reset-password`,
+      });
+
+      if (error) {
+        console.error('Password reset error:', error);
+        toast.error(`Failed to send password reset email: ${error.message}`);
+      } else {
+        toast.success(`Password reset email sent to ${email}. Check your inbox and follow the link to set a new password.`);
+      }
+    } catch (error) {
+      console.error('Password reset error:', error);
+      toast.error('Failed to send password reset email');
+    } finally {
+      setIsResettingPassword(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <Card>
@@ -101,7 +126,7 @@ const AdminSetupPanel = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <Button 
               onClick={handleVerifySetup}
               disabled={isVerifying}
@@ -184,8 +209,28 @@ const AdminSetupPanel = () => {
                           </div>
                         </div>
                         {user.profile_exists && user.is_admin && user.email_confirmed && (
-                          <div className="text-sm text-green-600 font-medium">
-                            ✓ Ready for admin access
+                          <div className="flex items-center justify-between">
+                            <div className="text-sm text-green-600 font-medium">
+                              ✓ Ready for admin access
+                            </div>
+                            <Button
+                              onClick={() => handleResetPassword(user.email)}
+                              disabled={isResettingPassword}
+                              variant="outline"
+                              size="sm"
+                            >
+                              {isResettingPassword ? (
+                                <>
+                                  <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                                  Sending...
+                                </>
+                              ) : (
+                                <>
+                                  <Key className="mr-2 h-3 w-3" />
+                                  Reset Password
+                                </>
+                              )}
+                            </Button>
                           </div>
                         )}
                       </div>
@@ -227,7 +272,27 @@ const AdminSetupPanel = () => {
                         <p className="text-sm text-green-600">{result.message}</p>
                       )}
                       {result.error && (
-                        <p className="text-sm text-red-600">{result.error}</p>
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm text-red-600">{result.error}</p>
+                          <Button
+                            onClick={() => handleResetPassword(result.email)}
+                            disabled={isResettingPassword}
+                            variant="outline"
+                            size="sm"
+                          >
+                            {isResettingPassword ? (
+                              <>
+                                <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                                Sending...
+                              </>
+                            ) : (
+                              <>
+                                <Key className="mr-2 h-3 w-3" />
+                                Reset Password
+                              </>
+                            )}
+                          </Button>
+                        </div>
                       )}
                     </div>
                   ))}
@@ -269,8 +334,10 @@ const AdminSetupPanel = () => {
           <div className="space-y-2 text-sm">
             <p>1. Click "Verify Setup" to check the current admin configuration</p>
             <p>2. Click "Test Login" to verify both admin accounts can log in successfully</p>
-            <p>3. If tests pass, you can now access the admin panel at <code>/admin</code></p>
-            <p>4. Use the admin login page at <code>/admin-login</code> to access the system</p>
+            <p>3. If login tests fail, use the "Reset Password" button to set new passwords</p>
+            <p>4. After password reset, check your email and follow the link to set a new password</p>
+            <p>5. Once passwords are set, you can access the admin panel at <code>/admin</code></p>
+            <p>6. Use the admin login page at <code>/admin-login</code> to access the system</p>
           </div>
         </CardContent>
       </Card>
