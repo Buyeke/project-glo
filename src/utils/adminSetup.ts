@@ -93,34 +93,79 @@ export const testAdminLogin = async (email: string, password: string) => {
   }
 };
 
+// Updated function to work with the fixed database structure
+export const setupAdminUsers = async () => {
+  console.log('Setting up admin users with fixed database structure...');
+  
+  try {
+    // First verify the setup works
+    const verification = await verifyAdminSetup();
+    
+    if (!verification.success) {
+      console.error('Admin verification failed:', verification.error);
+      return {
+        creationResults: [
+          { 
+            email: 'founder@projectglo.org', 
+            success: false, 
+            error: 'Verification failed' 
+          },
+          { 
+            email: 'projectglo2024@gmail.com', 
+            success: false, 
+            error: 'Verification failed' 
+          }
+        ],
+        verification
+      };
+    }
+
+    // Check if both users are properly set up
+    const adminUsers = verification.data || [];
+    const founderUser = adminUsers.find(u => u.email === 'founder@projectglo.org');
+    const adminUser = adminUsers.find(u => u.email === 'projectglo2024@gmail.com');
+
+    const creationResults = [
+      { 
+        email: 'founder@projectglo.org', 
+        success: founderUser ? founderUser.profile_exists && founderUser.is_admin : false,
+        error: founderUser ? null : 'User not found or not properly configured'
+      },
+      { 
+        email: 'projectglo2024@gmail.com', 
+        success: adminUser ? adminUser.profile_exists && adminUser.is_admin : false,
+        error: adminUser ? null : 'User not found or not properly configured'
+      }
+    ];
+
+    return {
+      creationResults,
+      verification
+    };
+  } catch (error) {
+    console.error('Setup admin users error:', error);
+    return {
+      creationResults: [
+        { 
+          email: 'founder@projectglo.org', 
+          success: false, 
+          error: error.message 
+        },
+        { 
+          email: 'projectglo2024@gmail.com', 
+          success: false, 
+          error: error.message 
+        }
+      ],
+      verification: { success: false, error: error.message }
+    };
+  }
+};
+
 // Legacy function for backward compatibility
 export const createAdminUser = async (email: string, password: string, fullName: string) => {
   return { 
     success: false, 
-    error: 'User creation not needed - users already exist. Use setupExistingAdminUsers instead.' 
-  };
-};
-
-// Legacy function for backward compatibility
-export const setupAdminUsers = async () => {
-  console.log('Setting up admin users (existing users)...');
-  
-  const setupResult = await setupExistingAdminUsers();
-  const verification = await verifyAdminSetup();
-  
-  return {
-    creationResults: [
-      { 
-        email: 'founder@projectglo.org', 
-        success: setupResult.success, 
-        error: setupResult.errors?.[0]?.message || null 
-      },
-      { 
-        email: 'projectglo2024@gmail.com', 
-        success: setupResult.success, 
-        error: setupResult.errors?.[1]?.message || null 
-      }
-    ],
-    verification
+    error: 'User creation not needed - users already exist and are configured via database migration.' 
   };
 };

@@ -1448,7 +1448,9 @@ export type Database = {
         Returns: boolean
       }
       setup_admin_user: {
-        Args: { user_email: string; user_name: string }
+        Args:
+          | Record<PropertyKey, never>
+          | { user_email: string; user_name: string }
         Returns: undefined
       }
       validate_contact_submission: {

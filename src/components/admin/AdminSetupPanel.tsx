@@ -3,37 +3,16 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Shield, CheckCircle, XCircle, AlertTriangle, TestTube } from 'lucide-react';
+import { Loader2, Shield, CheckCircle, XCircle, AlertTriangle, TestTube, RefreshCw } from 'lucide-react';
 import { setupAdminUsers, verifyAdminSetup, testAdminLogin } from '@/utils/adminSetup';
 import { toast } from 'sonner';
 
 const AdminSetupPanel = () => {
-  const [isCreating, setIsCreating] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
-  const [setupResults, setSetupResults] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [verificationResults, setVerificationResults] = useState(null);
   const [testResults, setTestResults] = useState(null);
-
-  const handleSetupAdmins = async () => {
-    setIsCreating(true);
-    setSetupResults(null);
-    try {
-      const results = await setupAdminUsers();
-      setSetupResults(results);
-      
-      if (results.creationResults.every(r => r.success)) {
-        toast.success('Admin users set up successfully!');
-      } else {
-        toast.error('Some admin users failed to set up. Check the results.');
-      }
-    } catch (error) {
-      console.error('Setup error:', error);
-      toast.error('Failed to set up admin users');
-    } finally {
-      setIsCreating(false);
-    }
-  };
 
   const handleVerifySetup = async () => {
     setIsVerifying(true);
@@ -43,9 +22,17 @@ const AdminSetupPanel = () => {
       setVerificationResults(results);
       
       if (results.success) {
-        toast.success('Admin setup verified successfully!');
+        const allConfigured = results.data.every(user => 
+          user.profile_exists && user.is_admin && user.email_confirmed
+        );
+        
+        if (allConfigured) {
+          toast.success('Admin setup verified successfully! Both users are properly configured.');
+        } else {
+          toast.success('Admin setup verified, but some users need configuration.');
+        }
       } else {
-        toast.error('Admin setup verification failed');
+        toast.error('Admin setup verification failed: ' + results.error);
       }
     } catch (error) {
       console.error('Verification error:', error);
@@ -72,7 +59,7 @@ const AdminSetupPanel = () => {
       if (results.every(r => r.success && r.isAdmin)) {
         toast.success('All admin login tests passed!');
       } else {
-        toast.error('Some admin login tests failed');
+        toast.error('Some admin login tests failed. Check the results below.');
       }
     } catch (error) {
       console.error('Test error:', error);
@@ -82,42 +69,42 @@ const AdminSetupPanel = () => {
     }
   };
 
+  const handleRefreshStatus = async () => {
+    setIsRefreshing(true);
+    try {
+      const setupResults = await setupAdminUsers();
+      
+      if (setupResults.verification.success) {
+        setVerificationResults(setupResults.verification);
+        toast.success('Status refreshed successfully');
+      } else {
+        toast.error('Failed to refresh status: ' + setupResults.verification.error);
+      }
+    } catch (error) {
+      console.error('Refresh error:', error);
+      toast.error('Failed to refresh status');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5" />
-            Admin User Setup
+            Admin User Setup Status
           </CardTitle>
           <CardDescription>
-            Set up admin users for the GLO system. This will configure proper admin accounts with all necessary permissions.
+            The admin users have been configured via database migration. Use these tools to verify and test the setup.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <Button 
-              onClick={handleSetupAdmins}
-              disabled={isCreating}
-              className="flex-1"
-            >
-              {isCreating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Setting Up...
-                </>
-              ) : (
-                <>
-                  <Shield className="mr-2 h-4 w-4" />
-                  Setup Admin Users
-                </>
-              )}
-            </Button>
-            
-            <Button 
               onClick={handleVerifySetup}
               disabled={isVerifying}
-              variant="outline"
               className="flex-1"
             >
               {isVerifying ? (
@@ -136,7 +123,7 @@ const AdminSetupPanel = () => {
             <Button 
               onClick={handleTestLogin}
               disabled={isTesting}
-              variant="secondary"
+              variant="outline"
               className="flex-1"
             >
               {isTesting ? (
@@ -151,39 +138,31 @@ const AdminSetupPanel = () => {
                 </>
               )}
             </Button>
-          </div>
 
-          {setupResults && (
-            <Card className="mt-4">
-              <CardHeader>
-                <CardTitle className="text-lg">Setup Results</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {setupResults.creationResults.map((result, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 border rounded">
-                      <div className="flex items-center gap-2">
-                        {result.success ? (
-                          <CheckCircle className="h-4 w-4 text-green-600" />
-                        ) : (
-                          <XCircle className="h-4 w-4 text-red-600" />
-                        )}
-                        <span className="font-medium">{result.email}</span>
-                      </div>
-                      <Badge variant={result.success ? "default" : "destructive"}>
-                        {result.success ? "Set Up" : "Failed"}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+            <Button 
+              onClick={handleRefreshStatus}
+              disabled={isRefreshing}
+              variant="secondary"
+              className="flex-1"
+            >
+              {isRefreshing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Refreshing...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Refresh Status
+                </>
+              )}
+            </Button>
+          </div>
 
           {verificationResults && (
             <Card className="mt-4">
               <CardHeader>
-                <CardTitle className="text-lg">Verification Results</CardTitle>
+                <CardTitle className="text-lg">Admin Setup Status</CardTitle>
               </CardHeader>
               <CardContent>
                 {verificationResults.success ? (
@@ -204,6 +183,11 @@ const AdminSetupPanel = () => {
                             </Badge>
                           </div>
                         </div>
+                        {user.profile_exists && user.is_admin && user.email_confirmed && (
+                          <div className="text-sm text-green-600 font-medium">
+                            ✓ Ready for admin access
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -240,7 +224,7 @@ const AdminSetupPanel = () => {
                         </div>
                       </div>
                       {result.message && (
-                        <p className="text-sm text-muted-foreground">{result.message}</p>
+                        <p className="text-sm text-green-600">{result.message}</p>
                       )}
                       {result.error && (
                         <p className="text-sm text-red-600">{result.error}</p>
@@ -256,9 +240,9 @@ const AdminSetupPanel = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Admin Credentials</CardTitle>
+          <CardTitle>Admin Login Information</CardTitle>
           <CardDescription>
-            Use these credentials to log in as admin after setup is complete.
+            Use these credentials to access the admin panel after setup verification.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -273,6 +257,20 @@ const AdminSetupPanel = () => {
               <p className="text-sm text-muted-foreground">Email: projectglo2024@gmail.com</p>
               <p className="text-sm text-muted-foreground">Password: GLOAdmin2024!</p>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Next Steps</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2 text-sm">
+            <p>1. Click "Verify Setup" to check the current admin configuration</p>
+            <p>2. Click "Test Login" to verify both admin accounts can log in successfully</p>
+            <p>3. If tests pass, you can now access the admin panel at <code>/admin</code></p>
+            <p>4. Use the admin login page at <code>/admin-login</code> to access the system</p>
           </div>
         </CardContent>
       </Card>
