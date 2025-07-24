@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -5,7 +6,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
-import { Mail, Phone, MapPin } from 'lucide-react';
+import { Mail, Phone, MapPin, Users } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -19,20 +21,40 @@ const Contact = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate form submission
     try {
-      // Log to console as requested
-      console.log('Contact form submitted:', formData);
-      
+      // Get IP address and user agent for tracking
+      const ipAddress = await fetch('https://api.ipify.org?format=json')
+        .then(res => res.json())
+        .then(data => data.ip)
+        .catch(() => 'unknown');
+
+      const userAgent = navigator.userAgent;
+
+      // Store contact submission in database
+      const { error } = await supabase
+        .from('contact_submissions')
+        .insert({
+          name: formData.name,
+          email: formData.email,
+          message: formData.message,
+          ip_address: ipAddress,
+          user_agent: userAgent
+        });
+
+      if (error) {
+        throw error;
+      }
+
       // Show success message
       toast({
-        title: "Message sent!",
+        title: "Message sent successfully!",
         description: "Thank you for your message. We'll get back to you soon.",
       });
 
       // Reset form
       setFormData({ name: '', email: '', message: '' });
     } catch (error) {
+      console.error('Error submitting contact form:', error);
       toast({
         title: "Error",
         description: "Failed to send message. Please try again.",
@@ -128,8 +150,19 @@ const Contact = () => {
                 <div className="flex items-center space-x-3">
                   <Mail className="h-5 w-5 text-primary" />
                   <div>
-                    <p className="font-medium">Email</p>
-                    <p className="text-muted-foreground">support@glo-platform.com</p>
+                    <p className="font-medium">General Inquiries</p>
+                    <p className="text-muted-foreground">info@projectglo.org</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-3">
+                  <Users className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="font-medium">Partnerships & Grants</p>
+                    <p className="text-muted-foreground">founder@projectglo.org</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      For partnership or grant-related matters only
+                    </p>
                   </div>
                 </div>
 

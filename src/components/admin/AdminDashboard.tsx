@@ -1,459 +1,239 @@
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+
+import { useState, useEffect } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { 
-  Users, 
-  Calendar, 
-  MessageSquare, 
-  Building, 
-  FileText, 
-  Settings,
-  Plus,
-  Edit,
-  Trash2,
-  ExternalLink,
-  CheckCircle,
-  XCircle,
-  Clock,
-  BookOpen
-} from 'lucide-react';
-import { toast } from 'sonner';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Users, MessageSquare, Calendar, TrendingUp, Mail, Phone, Globe } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import BlogManagement from './BlogManagement';
+import ContactSubmissionsPanel from './ContactSubmissionsPanel';
 
 const AdminDashboard = () => {
-  const [selectedBooking, setSelectedBooking] = useState<any>(null);
-  const [meetingLink, setMeetingLink] = useState('');
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalContactSubmissions: 0,
+    newSubmissions: 0,
+    totalBookings: 0,
+    totalFeedback: 0
+  });
+  const [chartData, setChartData] = useState([]);
 
-  // Fetch all users
-  const { data: users = [] } = useQuery({
-    queryKey: ['admin-users'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      // Fetch various statistics
+      const [
+        { count: totalUsers },
+        { count: totalContactSubmissions },
+        { count: newSubmissions },
+        { count: totalBookings },
+        { count: totalFeedback }
+      ] = await Promise.all([
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('contact_submissions').select('*', { count: 'exact', head: true }),
+        supabase.from('contact_submissions').select('*', { count: 'exact', head: true }).eq('status', 'new'),
+        supabase.from('service_bookings').select('*', { count: 'exact', head: true }),
+        supabase.from('user_feedback').select('*', { count: 'exact', head: true })
+      ]);
+
+      setStats({
+        totalUsers: totalUsers || 0,
+        totalContactSubmissions: totalContactSubmissions || 0,
+        newSubmissions: newSubmissions || 0,
+        totalBookings: totalBookings || 0,
+        totalFeedback: totalFeedback || 0
+      });
+
+      // Fetch chart data (submissions by month)
+      const { data: submissionData } = await supabase
+        .from('contact_submissions')
+        .select('created_at')
         .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data;
-    }
-  });
 
-  // Fetch all service bookings
-  const { data: bookings = [] } = useQuery({
-    queryKey: ['admin-bookings'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('service_bookings')
-        .select(`
-          *,
-          profiles:user_id (full_name, user_type)
-        `)
-        .order('booking_date', { ascending: false });
-      
-      if (error) throw error;
-      return data;
-    }
-  });
+      // Process data for chart
+      const monthlyData = submissionData?.reduce((acc, submission) => {
+        const month = new Date(submission.created_at).toLocaleDateString('en-US', { 
+          month: 'short', 
+          year: 'numeric' 
+        });
+        acc[month] = (acc[month] || 0) + 1;
+        return acc;
+      }, {});
 
-  // Fetch all support requests
-  const { data: supportRequests = [] } = useQuery({
-    queryKey: ['admin-support-requests'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('support_requests')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data;
-    }
-  });
+      const chartData = Object.entries(monthlyData || {})
+        .map(([month, count]) => ({ month, submissions: count }))
+        .slice(0, 6)
+        .reverse();
 
-  // Fetch all chat interactions
-  const { data: chatInteractions = [] } = useQuery({
-    queryKey: ['admin-chat-interactions'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('chat_interactions')
-        .select(`
-          *,
-          profiles:user_id (full_name)
-        `)
-        .order('created_at', { ascending: false })
-        .limit(100);
-      
-      if (error) throw error;
-      return data;
-    }
-  });
-
-  const handleAssignMeetingLink = async (bookingId: string) => {
-    if (!meetingLink) {
-      toast.error('Please enter a meeting link');
-      return;
-    }
-
-    try {
-      const { error } = await supabase
-        .from('service_bookings')
-        .update({ 
-          meeting_link: meetingLink,
-          status: 'confirmed'
-        })
-        .eq('id', bookingId);
-
-      if (error) throw error;
-
-      toast.success('Meeting link assigned successfully');
-      setMeetingLink('');
-      setSelectedBooking(null);
+      setChartData(chartData);
     } catch (error) {
-      console.error('Error assigning meeting link:', error);
-      toast.error('Failed to assign meeting link');
+      console.error('Error fetching dashboard data:', error);
     }
   };
 
-  const handleApproveRequest = async (requestId: string) => {
+  const exportContactData = async () => {
     try {
-      const { error } = await supabase
-        .from('support_requests')
-        .update({ status: 'approved' })
-        .eq('id', requestId);
+      const response = await fetch('/functions/v1/contact-data-export', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${supabase.supabaseKey}`,
+          'Content-Type': 'application/json'
+        }
+      });
 
-      if (error) throw error;
-      toast.success('Request approved');
-    } catch (error) {
-      console.error('Error approving request:', error);
-      toast.error('Failed to approve request');
-    }
-  };
-
-  const handleDenyRequest = async (requestId: string) => {
-    try {
-      const { error } = await supabase
-        .from('support_requests')
-        .update({ status: 'denied' })
-        .eq('id', requestId);
-
-      if (error) throw error;
-      toast.success('Request denied');
-    } catch (error) {
-      console.error('Error denying request:', error);
-      toast.error('Failed to deny request');
-    }
-  };
-
-  const exportData = async (tableName: 'profiles' | 'service_bookings' | 'support_requests' | 'chat_interactions' | 'services') => {
-    try {
-      const { data, error } = await supabase
-        .from(tableName)
-        .select('*');
-
-      if (error) throw error;
-
-      if (!data || data.length === 0) {
-        toast.info(`No data found in ${tableName}`);
-        return;
+      if (response.ok) {
+        const result = await response.json();
+        alert(`Export successful! ${result.message}`);
       }
-
-      // Create CSV content
-      const csvContent = data.map(row => Object.values(row).join(',')).join('\n');
-      const csvHeader = Object.keys(data[0] || {}).join(',');
-      const fullCsv = csvHeader + '\n' + csvContent;
-
-      // Download CSV
-      const blob = new Blob([fullCsv], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${tableName}_export_${new Date().toISOString().split('T')[0]}.csv`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-
-      toast.success(`${tableName} data exported successfully`);
     } catch (error) {
-      console.error('Export error:', error);
-      toast.error('Failed to export data');
+      console.error('Error exporting contact data:', error);
+      alert('Export failed. Please try again.');
     }
   };
-
-  const stats = [
-    { label: 'Total Users', value: users.length, icon: Users },
-    { label: 'Active Bookings', value: bookings.filter(b => b.status === 'confirmed').length, icon: Calendar },
-    { label: 'Pending Requests', value: supportRequests.filter(r => r.status === 'pending').length, icon: MessageSquare },
-    { label: 'Chat Interactions', value: chatInteractions.length, icon: MessageSquare },
-  ];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
-          <p className="text-gray-600">Manage GLO platform operations</p>
-        </div>
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
+        <p className="text-muted-foreground">Manage your platform and monitor performance</p>
+      </div>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, index) => (
-            <Card key={index}>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">{stat.label}</p>
-                    <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="contact-submissions">Contact Submissions</TabsTrigger>
+          <TabsTrigger value="blog">Blog Management</TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalUsers}</div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Contact Submissions</CardTitle>
+                <Mail className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalContactSubmissions}</div>
+                <p className="text-xs text-muted-foreground">
+                  {stats.newSubmissions} new submissions
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Service Bookings</CardTitle>
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalBookings}</div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">User Feedback</CardTitle>
+                <MessageSquare className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalFeedback}</div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Contact Submissions Trend</CardTitle>
+              <CardDescription>Monthly contact form submissions</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="submissions" fill="#3b82f6" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button onClick={exportContactData} className="w-full">
+                  Export Contact Data
+                </Button>
+                <Button variant="outline" className="w-full">
+                  Generate Report
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Activity</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <Badge variant="outline">New</Badge>
+                    <span className="text-sm">Contact submission received</span>
                   </div>
-                  <stat.icon className="h-8 w-8 text-blue-600" />
+                  <div className="flex items-center gap-3">
+                    <Badge variant="secondary">Updated</Badge>
+                    <span className="text-sm">Service booking confirmed</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Badge variant="outline">New</Badge>
+                    <span className="text-sm">User feedback submitted</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
+          </div>
+        </TabsContent>
 
-        <Tabs defaultValue="bookings" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="bookings">Bookings</TabsTrigger>
-            <TabsTrigger value="requests">Support Requests</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="interactions">Chat Logs</TabsTrigger>
-            <TabsTrigger value="blog">Blog</TabsTrigger>
-            <TabsTrigger value="exports">Export Data</TabsTrigger>
-          </TabsList>
+        <TabsContent value="contact-submissions">
+          <ContactSubmissionsPanel />
+        </TabsContent>
 
-          <TabsContent value="bookings" className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Service Bookings</h2>
-              <Button onClick={() => exportData('service_bookings')}>
-                <FileText className="mr-2 h-4 w-4" />
-                Export CSV
-              </Button>
-            </div>
-            <div className="grid gap-4">
-              {bookings.map((booking) => (
-                <Card key={booking.id}>
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold">{booking.service_title}</h3>
-                          <Badge variant={booking.status === 'confirmed' ? 'default' : 'secondary'}>
-                            {booking.status}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-gray-600">
-                          User: {booking.profiles?.full_name || 'Unknown'}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          Date: {new Date(booking.booking_date).toLocaleDateString()}
-                        </p>
-                        {booking.meeting_link && (
-                          <p className="text-sm text-blue-600">
-                            Meeting Link: {booking.meeting_link}
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex gap-2">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button size="sm" onClick={() => setSelectedBooking(booking)}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Assign Link
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Assign Meeting Link</DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                              <div>
-                                <label className="block text-sm font-medium mb-2">
-                                  Meeting Link (Zoom, Google Meet, etc.)
-                                </label>
-                                <Input
-                                  value={meetingLink}
-                                  onChange={(e) => setMeetingLink(e.target.value)}
-                                  placeholder="https://zoom.us/j/..."
-                                />
-                              </div>
-                              <Button onClick={() => handleAssignMeetingLink(booking.id)}>
-                                Assign Link
-                              </Button>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
+        <TabsContent value="blog">
+          <BlogManagement />
+        </TabsContent>
 
-          <TabsContent value="requests" className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Support Requests</h2>
-              <Button onClick={() => exportData('support_requests')}>
-                <FileText className="mr-2 h-4 w-4" />
-                Export CSV
-              </Button>
-            </div>
-            <div className="grid gap-4">
-              {supportRequests.map((request) => (
-                <Card key={request.id}>
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold">{request.service_type}</h3>
-                          <Badge variant={
-                            request.status === 'approved' ? 'default' : 
-                            request.status === 'denied' ? 'destructive' : 'secondary'
-                          }>
-                            {request.status}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-gray-600">Email: {request.user_email}</p>
-                        <p className="text-sm text-gray-600">Phone: {request.phone_number || 'Not provided'}</p>
-                        <p className="text-sm text-gray-600">Language: {request.language}</p>
-                        <p className="text-sm text-gray-600">Priority: {request.priority}</p>
-                        {request.message && (
-                          <p className="text-sm text-gray-600">Message: {request.message}</p>
-                        )}
-                      </div>
-                      {request.status === 'pending' && (
-                        <div className="flex gap-2">
-                          <Button 
-                            size="sm" 
-                            onClick={() => handleApproveRequest(request.id)}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
-                            <CheckCircle className="mr-2 h-4 w-4" />
-                            Approve
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="destructive"
-                            onClick={() => handleDenyRequest(request.id)}
-                          >
-                            <XCircle className="mr-2 h-4 w-4" />
-                            Deny
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="users" className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">User Management</h2>
-              <Button onClick={() => exportData('profiles')}>
-                <FileText className="mr-2 h-4 w-4" />
-                Export CSV
-              </Button>
-            </div>
-            <div className="grid gap-4">
-              {users.map((user) => (
-                <Card key={user.id}>
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold">{user.full_name || 'Unknown User'}</h3>
-                          <Badge variant={user.user_type === 'admin' ? 'destructive' : 'default'}>
-                            {user.user_type}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-gray-600">Location: {user.location || 'Not specified'}</p>
-                        <p className="text-sm text-gray-600">Phone: {user.phone || 'Not provided'}</p>
-                        <p className="text-sm text-gray-600">
-                          Joined: {new Date(user.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="interactions" className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Chat Interactions</h2>
-              <Button onClick={() => exportData('chat_interactions')}>
-                <FileText className="mr-2 h-4 w-4" />
-                Export CSV
-              </Button>
-            </div>
-            <div className="grid gap-4">
-              {chatInteractions.map((interaction) => (
-                <Card key={interaction.id}>
-                  <CardContent className="p-6">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold">
-                          {interaction.profiles?.full_name || 'Anonymous User'}
-                        </h3>
-                        <Badge variant="outline">
-                          {interaction.detected_language || 'Unknown'}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-gray-600">
-                        <strong>Message:</strong> {interaction.original_message}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        <strong>Response:</strong> {interaction.response}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {new Date(interaction.created_at).toLocaleString()}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="blog" className="space-y-6">
-            <BlogManagement />
-          </TabsContent>
-
-          <TabsContent value="exports" className="space-y-6">
-            <h2 className="text-xl font-semibold">Export Data</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[
-                { name: 'Users', table: 'profiles' as const },
-                { name: 'Bookings', table: 'service_bookings' as const },
-                { name: 'Support Requests', table: 'support_requests' as const },
-                { name: 'Chat Interactions', table: 'chat_interactions' as const },
-                { name: 'Services', table: 'services' as const },
-              ].map((item) => (
-                <Card key={item.table}>
-                  <CardContent className="p-6">
-                    <div className="text-center space-y-4">
-                      <FileText className="h-8 w-8 mx-auto text-blue-600" />
-                      <h3 className="font-semibold">{item.name}</h3>
-                      <Button onClick={() => exportData(item.table)} className="w-full">
-                        Export CSV
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
+        <TabsContent value="settings">
+          <Card>
+            <CardHeader>
+              <CardTitle>Settings</CardTitle>
+              <CardDescription>Configure your platform settings</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">Settings panel coming soon...</p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
