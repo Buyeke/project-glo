@@ -1447,9 +1447,23 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      setup_admin_user: {
+        Args: { user_email: string; user_name: string }
+        Returns: undefined
+      }
       validate_contact_submission: {
         Args: { p_name: string; p_email: string; p_message: string }
         Returns: boolean
+      }
+      verify_admin_setup: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          email: string
+          user_id: string
+          profile_exists: boolean
+          is_admin: boolean
+          email_confirmed: boolean
+        }[]
       }
     }
     Enums: {
