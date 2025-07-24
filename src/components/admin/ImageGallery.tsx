@@ -10,23 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Trash2, Copy, Search, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import ImageUpload from './ImageUpload';
-
-interface StorageFile {
-  name: string;
-  id: string;
-  updated_at: string;
-  created_at: string;
-  last_accessed_at: string;
-  metadata: {
-    eTag: string;
-    size: number;
-    mimetype: string;
-    cacheControl: string;
-    lastModified: string;
-    contentLength: number;
-    httpStatusCode: number;
-  };
-}
+import type { FileObject } from '@supabase/storage-js';
 
 interface ImageGalleryProps {
   onImageSelect?: (url: string) => void;
@@ -46,7 +30,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ onImageSelect, selectionMod
         .list();
       
       if (error) throw error;
-      return data as StorageFile[];
+      return data as FileObject[];
     }
   });
 
@@ -207,7 +191,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ onImageSelect, selectionMod
                 </div>
                 <div className="flex items-center gap-2 mb-3">
                   <Badge variant="secondary" className="text-xs">
-                    {formatFileSize(image.metadata.size)}
+                    {image.metadata?.size ? formatFileSize(image.metadata.size) : 'Unknown size'}
                   </Badge>
                   <span className="text-xs text-gray-500">
                     {new Date(image.created_at).toLocaleDateString()}
