@@ -161,42 +161,87 @@ export type Database = {
           },
         ]
       }
+      blog_categories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       blog_posts: {
         Row: {
+          category: string | null
           content: string | null
           created_at: string | null
           created_by: string | null
           excerpt: string | null
+          featured_image_url: string | null
           id: string
+          meta_description: string | null
           published: boolean | null
           published_at: string | null
+          scheduled_publish_at: string | null
+          seo_title: string | null
           slug: string
+          tags: string[] | null
           thumbnail_url: string | null
           title: string
           updated_at: string | null
         }
         Insert: {
+          category?: string | null
           content?: string | null
           created_at?: string | null
           created_by?: string | null
           excerpt?: string | null
+          featured_image_url?: string | null
           id?: string
+          meta_description?: string | null
           published?: boolean | null
           published_at?: string | null
+          scheduled_publish_at?: string | null
+          seo_title?: string | null
           slug: string
+          tags?: string[] | null
           thumbnail_url?: string | null
           title: string
           updated_at?: string | null
         }
         Update: {
+          category?: string | null
           content?: string | null
           created_at?: string | null
           created_by?: string | null
           excerpt?: string | null
+          featured_image_url?: string | null
           id?: string
+          meta_description?: string | null
           published?: boolean | null
           published_at?: string | null
+          scheduled_publish_at?: string | null
+          seo_title?: string | null
           slug?: string
+          tags?: string[] | null
           thumbnail_url?: string | null
           title?: string
           updated_at?: string | null

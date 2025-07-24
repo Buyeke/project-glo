@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -8,11 +8,14 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Save, Eye, Calendar } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Save, Eye, Calendar, Image, Tag, FileText, Globe } from 'lucide-react';
 import { toast } from 'sonner';
+import ImageGallery from './ImageGallery';
 
 interface BlogPost {
   id: string;
@@ -21,10 +24,22 @@ interface BlogPost {
   excerpt: string;
   content: string;
   thumbnail_url?: string;
+  featured_image_url?: string;
   published: boolean;
   published_at?: string;
   created_at: string;
   updated_at: string;
+  category?: string;
+  tags?: string[];
+  meta_description?: string;
+  seo_title?: string;
+  scheduled_publish_at?: string;
+}
+
+interface BlogCategory {
+  id: string;
+  name: string;
+  slug: string;
 }
 
 interface BlogEditorProps {
@@ -41,7 +56,29 @@ const BlogEditor: React.FC<BlogEditorProps> = ({ post, onSave, onCancel }) => {
     excerpt: '',
     content: '',
     thumbnail_url: '',
-    published: false
+    featured_image_url: '',
+    published: false,
+    category: '',
+    tags: [] as string[],
+    meta_description: '',
+    seo_title: '',
+    scheduled_publish_at: ''
+  });
+  const [tagInput, setTagInput] = useState('');
+  const [imageGalleryOpen, setImageGalleryOpen] = useState(false);
+  const [imageTargetField, setImageTargetField] = useState<'thumbnail' | 'featured' | 'content'>('thumbnail');
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ['blog-categories'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('blog_categories')
+        .select('*')
+        .order('name');
+      
+      if (error) throw error;
+      return data as BlogCategory[];
+    }
   });
 
   useEffect(() => {
@@ -52,7 +89,13 @@ const BlogEditor: React.FC<BlogEditorProps> = ({ post, onSave, onCancel }) => {
         excerpt: post.excerpt || '',
         content: post.content || '',
         thumbnail_url: post.thumbnail_url || '',
-        published: post.published || false
+        featured_image_url: post.featured_image_url || '',
+        published: post.published || false,
+        category: post.category || '',
+        tags: post.tags || [],
+        meta_description: post.meta_description || '',
+        seo_title: post.seo_title || '',
+        scheduled_publish_at: post.scheduled_publish_at ? new Date(post.scheduled_publish_at).toISOString().slice(0, 16) : ''
       });
     }
   }, [post]);
@@ -70,14 +113,46 @@ const BlogEditor: React.FC<BlogEditorProps> = ({ post, onSave, onCancel }) => {
     setFormData(prev => ({
       ...prev,
       title,
-      slug: prev.slug || generateSlug(title)
+      slug: prev.slug || generateSlug(title),
+      seo_title: prev.seo_title || title
     }));
+  };
+
+  const handleAddTag = () => {
+    if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        tags: [...prev.tags, tagInput.trim()]
+      }));
+      setTagInput('');
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: prev.tags.filter(tag => tag !== tagToRemove)
+    }));
+  };
+
+  const handleImageSelect = (url: string) => {
+    if (imageTargetField === 'thumbnail') {
+      setFormData(prev => ({ ...prev, thumbnail_url: url }));
+    } else if (imageTargetField === 'featured') {
+      setFormData(prev => ({ ...prev, featured_image_url: url }));
+    } else if (imageTargetField === 'content') {
+      const imageMarkdown = `![Image](${url})`;
+      setFormData(prev => ({ ...prev, content: prev.content + '\n\n' + imageMarkdown }));
+    }
+    setImageGalleryOpen(false);
   };
 
   const saveMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       const postData = {
         ...data,
+        tags: data.tags.length > 0 ? data.tags : null,
+        scheduled_publish_at: data.scheduled_publish_at ? new Date(data.scheduled_publish_at).toISOString() : null,
         updated_at: new Date().toISOString(),
         ...(data.published && !post?.published_at && { published_at: new Date().toISOString() }),
         ...(post ? {} : { created_by: user?.id })
@@ -123,13 +198,27 @@ const BlogEditor: React.FC<BlogEditorProps> = ({ post, onSave, onCancel }) => {
 
   return (
     <div className="max-h-[70vh] overflow-y-auto">
-      <Tabs defaultValue="edit" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="edit">Edit</TabsTrigger>
-          <TabsTrigger value="preview">Preview</TabsTrigger>
+      <Tabs defaultValue="content" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="content">
+            <FileText className="h-4 w-4 mr-2" />
+            Content
+          </TabsTrigger>
+          <TabsTrigger value="media">
+            <Image className="h-4 w-4 mr-2" />
+            Media
+          </TabsTrigger>
+          <TabsTrigger value="seo">
+            <Globe className="h-4 w-4 mr-2" />
+            SEO
+          </TabsTrigger>
+          <TabsTrigger value="preview">
+            <Eye className="h-4 w-4 mr-2" />
+            Preview
+          </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="edit" className="space-y-4 mt-4">
+        <TabsContent value="content" className="space-y-4 mt-4">
           <div className="grid gap-4">
             <div>
               <Label htmlFor="title">Title *</Label>
@@ -166,37 +255,160 @@ const BlogEditor: React.FC<BlogEditorProps> = ({ post, onSave, onCancel }) => {
             </div>
             
             <div>
-              <Label htmlFor="thumbnail">Thumbnail URL</Label>
-              <Input
-                id="thumbnail"
-                value={formData.thumbnail_url}
-                onChange={(e) => setFormData(prev => ({ ...prev, thumbnail_url: e.target.value }))}
-                placeholder="https://example.com/image.jpg"
-              />
+              <Label htmlFor="category">Category</Label>
+              <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.slug}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <Label>Tags</Label>
+              <div className="flex gap-2 mb-2">
+                <Input
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  placeholder="Add a tag"
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+                />
+                <Button type="button" onClick={handleAddTag} variant="outline">
+                  <Tag className="h-4 w-4 mr-1" />
+                  Add
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {formData.tags.map((tag) => (
+                  <Badge key={tag} variant="secondary" className="cursor-pointer" onClick={() => handleRemoveTag(tag)}>
+                    {tag} ×
+                  </Badge>
+                ))}
+              </div>
             </div>
             
             <div>
               <Label htmlFor="content">Content *</Label>
+              <div className="flex gap-2 mb-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setImageTargetField('content');
+                    setImageGalleryOpen(true);
+                  }}
+                >
+                  <Image className="h-4 w-4 mr-1" />
+                  Insert Image
+                </Button>
+              </div>
               <Textarea
                 id="content"
                 value={formData.content}
                 onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
                 placeholder="Write your blog post content here..."
-                rows={12}
+                rows={15}
                 className="font-mono"
               />
               <p className="text-sm text-gray-500 mt-1">
-                You can use line breaks to separate paragraphs. Markdown support coming soon.
+                You can use Markdown syntax. Images: ![alt text](url), Links: [text](url)
+              </p>
+            </div>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="media" className="space-y-4 mt-4">
+          <div className="grid gap-4">
+            <div>
+              <Label>Thumbnail Image</Label>
+              <div className="flex gap-2 items-center">
+                <Input
+                  value={formData.thumbnail_url}
+                  onChange={(e) => setFormData(prev => ({ ...prev, thumbnail_url: e.target.value }))}
+                  placeholder="https://example.com/image.jpg"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setImageTargetField('thumbnail');
+                    setImageGalleryOpen(true);
+                  }}
+                >
+                  <Image className="h-4 w-4 mr-1" />
+                  Browse
+                </Button>
+              </div>
+              {formData.thumbnail_url && (
+                <div className="mt-2">
+                  <img src={formData.thumbnail_url} alt="Thumbnail" className="w-32 h-20 object-cover rounded" />
+                </div>
+              )}
+            </div>
+            
+            <div>
+              <Label>Featured Image</Label>
+              <div className="flex gap-2 items-center">
+                <Input
+                  value={formData.featured_image_url}
+                  onChange={(e) => setFormData(prev => ({ ...prev, featured_image_url: e.target.value }))}
+                  placeholder="https://example.com/featured.jpg"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setImageTargetField('featured');
+                    setImageGalleryOpen(true);
+                  }}
+                >
+                  <Image className="h-4 w-4 mr-1" />
+                  Browse
+                </Button>
+              </div>
+              {formData.featured_image_url && (
+                <div className="mt-2">
+                  <img src={formData.featured_image_url} alt="Featured" className="w-32 h-20 object-cover rounded" />
+                </div>
+              )}
+            </div>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="seo" className="space-y-4 mt-4">
+          <div className="grid gap-4">
+            <div>
+              <Label htmlFor="seo-title">SEO Title</Label>
+              <Input
+                id="seo-title"
+                value={formData.seo_title}
+                onChange={(e) => setFormData(prev => ({ ...prev, seo_title: e.target.value }))}
+                placeholder="SEO optimized title"
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                {formData.seo_title.length}/60 characters
               </p>
             </div>
             
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="published"
-                checked={formData.published}
-                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, published: checked }))}
+            <div>
+              <Label htmlFor="meta-description">Meta Description</Label>
+              <Textarea
+                id="meta-description"
+                value={formData.meta_description}
+                onChange={(e) => setFormData(prev => ({ ...prev, meta_description: e.target.value }))}
+                placeholder="Brief description for search engines"
+                rows={3}
               />
-              <Label htmlFor="published">Publish immediately</Label>
+              <p className="text-sm text-gray-500 mt-1">
+                {formData.meta_description.length}/160 characters
+              </p>
             </div>
           </div>
         </TabsContent>
@@ -208,6 +420,9 @@ const BlogEditor: React.FC<BlogEditorProps> = ({ post, onSave, onCancel }) => {
                 <Badge variant={formData.published ? 'default' : 'secondary'}>
                   {formData.published ? 'Published' : 'Draft'}
                 </Badge>
+                {formData.category && (
+                  <Badge variant="outline">{formData.category}</Badge>
+                )}
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="h-4 w-4 mr-1" />
                   {new Date().toLocaleDateString()}
@@ -217,6 +432,11 @@ const BlogEditor: React.FC<BlogEditorProps> = ({ post, onSave, onCancel }) => {
               <CardDescription className="text-base">
                 {formData.excerpt || 'Blog post excerpt will appear here...'}
               </CardDescription>
+              {formData.featured_image_url && (
+                <div className="mt-4">
+                  <img src={formData.featured_image_url} alt="Featured" className="w-full h-64 object-cover rounded" />
+                </div>
+              )}
             </CardHeader>
             <CardContent>
               <div className="prose prose-gray max-w-none">
@@ -230,20 +450,65 @@ const BlogEditor: React.FC<BlogEditorProps> = ({ post, onSave, onCancel }) => {
                   <p className="text-gray-500 italic">Blog post content will appear here...</p>
                 )}
               </div>
+              {formData.tags.length > 0 && (
+                <div className="mt-6 pt-4 border-t">
+                  <div className="flex flex-wrap gap-2">
+                    {formData.tags.map((tag) => (
+                      <Badge key={tag} variant="outline">{tag}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
       
-      <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
-        <Button variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button onClick={handleSave} disabled={saveMutation.isPending}>
-          <Save className="mr-2 h-4 w-4" />
-          {saveMutation.isPending ? 'Saving...' : (post ? 'Update' : 'Create')} Post
-        </Button>
+      <div className="flex justify-between items-center mt-6 pt-4 border-t">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="published"
+              checked={formData.published}
+              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, published: checked }))}
+            />
+            <Label htmlFor="published">Publish immediately</Label>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Label htmlFor="schedule">Schedule:</Label>
+            <Input
+              id="schedule"
+              type="datetime-local"
+              value={formData.scheduled_publish_at}
+              onChange={(e) => setFormData(prev => ({ ...prev, scheduled_publish_at: e.target.value }))}
+              className="w-auto"
+            />
+          </div>
+        </div>
+        
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={saveMutation.isPending}>
+            <Save className="mr-2 h-4 w-4" />
+            {saveMutation.isPending ? 'Saving...' : (post ? 'Update' : 'Create')} Post
+          </Button>
+        </div>
       </div>
+
+      {/* Image Gallery Dialog */}
+      <Dialog open={imageGalleryOpen} onOpenChange={setImageGalleryOpen}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle>Select Image</DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[70vh] overflow-y-auto">
+            <ImageGallery onImageSelect={handleImageSelect} selectionMode />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

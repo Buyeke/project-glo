@@ -6,17 +6,54 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar, User, ArrowRight, Search } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
 const POSTS_PER_PAGE = 6;
 
+interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  thumbnail_url?: string;
+  featured_image_url?: string;
+  published: boolean;
+  published_at?: string;
+  created_at: string;
+  category?: string;
+  tags?: string[];
+}
+
+interface BlogCategory {
+  id: string;
+  name: string;
+  slug: string;
+}
+
 const Blog = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ['blog-categories'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('blog_categories')
+        .select('*')
+        .order('name');
+      
+      if (error) throw error;
+      return data as BlogCategory[];
+    }
+  });
 
   const { data: blogData, isLoading, error } = useQuery({
-    queryKey: ['blog-posts', currentPage, searchTerm],
+    queryKey: ['blog-posts', currentPage, searchTerm, categoryFilter],
     queryFn: async () => {
       let query = supabase
         .from('blog_posts')
@@ -26,6 +63,10 @@ const Blog = () => {
 
       if (searchTerm) {
         query = query.or(`title.ilike.%${searchTerm}%,excerpt.ilike.%${searchTerm}%`);
+      }
+
+      if (categoryFilter !== 'all') {
+        query = query.eq('category', categoryFilter);
       }
 
       const from = (currentPage - 1) * POSTS_PER_PAGE;
@@ -40,6 +81,16 @@ const Blog = () => {
   });
 
   const totalPages = Math.ceil((blogData?.totalCount || 0) / POSTS_PER_PAGE);
+
+  const getCategoryName = (slug: string) => {
+    const category = categories.find(c => c.slug === slug);
+    return category ? category.name : slug;
+  };
+
+  const truncateContent = (content: string, maxLength: number = 150) => {
+    if (content.length <= maxLength) return content;
+    return content.substring(0, maxLength) + '...';
+  };
 
   if (isLoading) {
     return (
@@ -71,18 +122,36 @@ const Blog = () => {
             Updates, insights, and stories from our journey to support vulnerable communities
           </p>
           
-          {/* Search */}
-          <div className="max-w-md mx-auto relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search blog posts..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="pl-10"
-            />
+          {/* Search and Filters */}
+          <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Search blog posts..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="pl-10"
+              />
+            </div>
+            <Select value={categoryFilter} onValueChange={(value) => {
+              setCategoryFilter(value);
+              setCurrentPage(1);
+            }}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.slug}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -93,47 +162,75 @@ const Blog = () => {
           </div>
         ) : (
           <>
-            <div className="space-y-8">
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-1">
               {blogData?.posts.map((post) => (
                 <Card key={post.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
+                  <div className="md:flex">
+                    {post.thumbnail_url && (
+                      <div className="md:w-1/3">
+                        <img 
+                          src={post.thumbnail_url} 
+                          alt={post.title}
+                          className="w-full h-48 md:h-full object-cover rounded-t-lg md:rounded-l-lg md:rounded-t-none"
+                        />
+                      </div>
+                    )}
+                    <div className={post.thumbnail_url ? 'md:w-2/3' : 'w-full'}>
+                      <CardHeader>
                         <div className="flex items-center gap-2 mb-2">
-                          <Badge variant="secondary">Featured</Badge>
+                          {post.category && (
+                            <Badge variant="default">{getCategoryName(post.category)}</Badge>
+                          )}
                           <div className="flex items-center text-sm text-gray-500">
                             <Calendar className="h-4 w-4 mr-1" />
                             {new Date(post.published_at || post.created_at).toLocaleDateString()}
                           </div>
                         </div>
-                        <CardTitle className="text-2xl mb-2">{post.title}</CardTitle>
+                        <CardTitle className="text-xl mb-2">
+                          <Link to={`/blog/${post.slug}`} className="hover:text-blue-600 transition-colors">
+                            {post.title}
+                          </Link>
+                        </CardTitle>
                         <CardDescription className="text-base">
                           {post.excerpt}
                         </CardDescription>
-                      </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="mb-4">
+                          <p className="text-gray-700 leading-relaxed">
+                            {truncateContent(post.content)}
+                          </p>
+                        </div>
+                        
+                        {post.tags && post.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mb-4">
+                            {post.tags.slice(0, 3).map((tag) => (
+                              <Badge key={tag} variant="secondary" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))}
+                            {post.tags.length > 3 && (
+                              <Badge variant="secondary" className="text-xs">
+                                +{post.tags.length - 3} more
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center text-sm text-gray-500">
+                            <User className="h-4 w-4 mr-1" />
+                            Glo Team
+                          </div>
+                          <Button variant="outline" size="sm" asChild>
+                            <Link to={`/blog/${post.slug}`}>
+                              Read More <ArrowRight className="h-4 w-4 ml-2" />
+                            </Link>
+                          </Button>
+                        </div>
+                      </CardContent>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="prose prose-gray max-w-none mb-6">
-                      {post.content?.split('\n\n').slice(0, 3).map((paragraph, index) => (
-                        <p key={index} className="mb-4 text-gray-700 leading-relaxed">
-                          {paragraph}
-                        </p>
-                      ))}
-                      {post.content && post.content.split('\n\n').length > 3 && (
-                        <p className="text-gray-500 italic">...</p>
-                      )}
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center text-sm text-gray-500">
-                        <User className="h-4 w-4 mr-1" />
-                        Glo Team
-                      </div>
-                      <Button variant="outline" size="sm">
-                        Share <ArrowRight className="h-4 w-4 ml-2" />
-                      </Button>
-                    </div>
-                  </CardContent>
+                  </div>
                 </Card>
               ))}
             </div>
