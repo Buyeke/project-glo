@@ -3,26 +3,29 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Shield, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
-import { setupAdminUsers, verifyAdminSetup } from '@/utils/adminSetup';
+import { Loader2, Shield, CheckCircle, XCircle, AlertTriangle, TestTube } from 'lucide-react';
+import { setupAdminUsers, verifyAdminSetup, testAdminLogin } from '@/utils/adminSetup';
 import { toast } from 'sonner';
 
 const AdminSetupPanel = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
   const [setupResults, setSetupResults] = useState(null);
   const [verificationResults, setVerificationResults] = useState(null);
+  const [testResults, setTestResults] = useState(null);
 
   const handleSetupAdmins = async () => {
     setIsCreating(true);
+    setSetupResults(null);
     try {
       const results = await setupAdminUsers();
       setSetupResults(results);
       
       if (results.creationResults.every(r => r.success)) {
-        toast.success('Admin users created successfully!');
+        toast.success('Admin users set up successfully!');
       } else {
-        toast.error('Some admin users failed to create. Check the results.');
+        toast.error('Some admin users failed to set up. Check the results.');
       }
     } catch (error) {
       console.error('Setup error:', error);
@@ -34,6 +37,7 @@ const AdminSetupPanel = () => {
 
   const handleVerifySetup = async () => {
     setIsVerifying(true);
+    setVerificationResults(null);
     try {
       const results = await verifyAdminSetup();
       setVerificationResults(results);
@@ -51,6 +55,33 @@ const AdminSetupPanel = () => {
     }
   };
 
+  const handleTestLogin = async () => {
+    setIsTesting(true);
+    setTestResults(null);
+    try {
+      const founderTest = await testAdminLogin('founder@projectglo.org', 'GLOFounder2024!');
+      const adminTest = await testAdminLogin('projectglo2024@gmail.com', 'GLOAdmin2024!');
+      
+      const results = [
+        { email: 'founder@projectglo.org', ...founderTest },
+        { email: 'projectglo2024@gmail.com', ...adminTest }
+      ];
+      
+      setTestResults(results);
+      
+      if (results.every(r => r.success && r.isAdmin)) {
+        toast.success('All admin login tests passed!');
+      } else {
+        toast.error('Some admin login tests failed');
+      }
+    } catch (error) {
+      console.error('Test error:', error);
+      toast.error('Failed to test admin login');
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <Card>
@@ -60,11 +91,11 @@ const AdminSetupPanel = () => {
             Admin User Setup
           </CardTitle>
           <CardDescription>
-            Set up admin users for the GLO system. This will create proper admin accounts with all necessary permissions.
+            Set up admin users for the GLO system. This will configure proper admin accounts with all necessary permissions.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <Button 
               onClick={handleSetupAdmins}
               disabled={isCreating}
@@ -73,12 +104,12 @@ const AdminSetupPanel = () => {
               {isCreating ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating Admin Users...
+                  Setting Up...
                 </>
               ) : (
                 <>
                   <Shield className="mr-2 h-4 w-4" />
-                  Create Admin Users
+                  Setup Admin Users
                 </>
               )}
             </Button>
@@ -101,12 +132,31 @@ const AdminSetupPanel = () => {
                 </>
               )}
             </Button>
+
+            <Button 
+              onClick={handleTestLogin}
+              disabled={isTesting}
+              variant="secondary"
+              className="flex-1"
+            >
+              {isTesting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Testing...
+                </>
+              ) : (
+                <>
+                  <TestTube className="mr-2 h-4 w-4" />
+                  Test Login
+                </>
+              )}
+            </Button>
           </div>
 
           {setupResults && (
             <Card className="mt-4">
               <CardHeader>
-                <CardTitle className="text-lg">Creation Results</CardTitle>
+                <CardTitle className="text-lg">Setup Results</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -121,7 +171,7 @@ const AdminSetupPanel = () => {
                         <span className="font-medium">{result.email}</span>
                       </div>
                       <Badge variant={result.success ? "default" : "destructive"}>
-                        {result.success ? "Created" : "Failed"}
+                        {result.success ? "Set Up" : "Failed"}
                       </Badge>
                     </div>
                   ))}
@@ -163,6 +213,41 @@ const AdminSetupPanel = () => {
                     <span>Verification failed: {verificationResults.error}</span>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          )}
+
+          {testResults && (
+            <Card className="mt-4">
+              <CardHeader>
+                <CardTitle className="text-lg">Login Test Results</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {testResults.map((result, index) => (
+                    <div key={index} className="p-3 border rounded">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium">{result.email}</span>
+                        <div className="flex gap-2">
+                          <Badge variant={result.success ? "default" : "destructive"}>
+                            {result.success ? "Login ✓" : "Failed"}
+                          </Badge>
+                          {result.success && (
+                            <Badge variant={result.isAdmin ? "default" : "destructive"}>
+                              {result.isAdmin ? "Admin ✓" : "Not Admin"}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      {result.message && (
+                        <p className="text-sm text-muted-foreground">{result.message}</p>
+                      )}
+                      {result.error && (
+                        <p className="text-sm text-red-600">{result.error}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           )}
