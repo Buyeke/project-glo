@@ -8,12 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Shield, AlertTriangle, Activity, Eye, Search, Filter, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import type { Json } from '@/integrations/supabase/types';
 
 interface SecurityLog {
   id: string;
   user_id?: string;
   event_type: string;
-  event_data?: Record<string, any>;
+  event_data?: Json;
   ip_address?: string;
   user_agent?: string;
   created_at: string;
@@ -148,11 +149,20 @@ const SecurityPanel = () => {
     }
   };
 
+  const formatEventData = (eventData: Json): string => {
+    if (!eventData) return '';
+    if (typeof eventData === 'string') return eventData;
+    if (typeof eventData === 'object' && eventData !== null) {
+      return JSON.stringify(eventData);
+    }
+    return String(eventData);
+  };
+
   const filteredLogs = securityLogs.filter(log => {
     const matchesSearch = !searchTerm || 
       log.event_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.ip_address?.includes(searchTerm) ||
-      JSON.stringify(log.event_data || {}).toLowerCase().includes(searchTerm.toLowerCase());
+      formatEventData(log.event_data).toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesEventType = eventTypeFilter === 'all' || log.event_type === eventTypeFilter;
     
@@ -308,7 +318,7 @@ const SecurityPanel = () => {
                       </p>
                       {log.event_data && (
                         <p className="text-sm text-muted-foreground">
-                          {JSON.stringify(log.event_data)}
+                          {formatEventData(log.event_data)}
                         </p>
                       )}
                     </div>
