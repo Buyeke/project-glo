@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { SessionManager } from '@/utils/sessionManager';
 
 interface AuthContextType {
   user: User | null;
@@ -25,6 +26,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Start session monitoring when user logs in
+        if (session && event === 'SIGNED_IN') {
+          SessionManager.startSessionMonitoring();
+        } else if (event === 'SIGNED_OUT') {
+          SessionManager.stopSessionMonitoring();
+        }
       }
     );
 
@@ -34,13 +42,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      
+      // Start session monitoring if user is already logged in
+      if (session) {
+        SessionManager.startSessionMonitoring();
+      }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      SessionManager.stopSessionMonitoring();
+    };
   }, []);
 
   const signOut = async () => {
     setLoading(true);
+    SessionManager.stopSessionMonitoring();
+    
+    // Clear all stored tokens and session data
+    sessionStorage.clear();
+    localStorage.removeItem('supabase.auth.token');
+    
     await supabase.auth.signOut();
     setLoading(false);
   };

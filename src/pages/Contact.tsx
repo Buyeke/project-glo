@@ -11,6 +11,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { sanitizeInput, validateEmail, validateName, validateMessage, generateSubmissionHash } from '@/utils/inputValidation';
 import { checkRateLimit } from '@/utils/rateLimiter';
 import { logSecurityEvent, getClientIP } from '@/utils/securityLogger';
+import { validateFormData, sanitizeHTML } from '@/utils/enhancedInputValidation';
+import { generateCSRFToken, storeCSRFToken, getCSRFToken } from '@/utils/csrfProtection';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -20,6 +22,14 @@ const Contact = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [csrfToken, setCsrfToken] = useState<string>('');
+
+  // Initialize CSRF token
+  useState(() => {
+    const token = generateCSRFToken();
+    setCsrfToken(token);
+    storeCSRFToken(token);
+  });
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -36,6 +46,12 @@ const Contact = () => {
       newErrors.message = 'Message must be 10-5000 characters long';
     }
 
+    // Additional XSS validation
+    const { isValid, errors: xssErrors } = validateFormData(formData);
+    if (!isValid) {
+      Object.assign(newErrors, xssErrors);
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -43,6 +59,17 @@ const Contact = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate CSRF token
+    const storedToken = getCSRFToken();
+    if (storedToken !== csrfToken) {
+      toast({
+        title: "Security Error",
+        description: "Invalid request. Please refresh the page and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!validateForm()) {
       return;
     }
@@ -76,11 +103,11 @@ const Contact = () => {
         return;
       }
 
-      // Sanitize inputs
+      // Enhanced sanitization
       const sanitizedData = {
-        name: sanitizeInput(formData.name.trim()),
-        email: sanitizeInput(formData.email.trim().toLowerCase()),
-        message: sanitizeInput(formData.message.trim())
+        name: sanitizeHTML(sanitizeInput(formData.name.trim())),
+        email: sanitizeHTML(sanitizeInput(formData.email.trim().toLowerCase())),
+        message: sanitizeHTML(sanitizeInput(formData.message.trim()))
       };
 
       // Generate submission hash for duplicate detection
@@ -152,9 +179,14 @@ const Contact = () => {
         description: "Thank you for your message. We'll get back to you soon.",
       });
 
-      // Reset form
+      // Reset form and generate new CSRF token
       setFormData({ name: '', email: '', message: '' });
       setErrors({});
+      
+      const newToken = generateCSRFToken();
+      setCsrfToken(newToken);
+      storeCSRFToken(newToken);
+
     } catch (error) {
       console.error('Error submitting contact form:', error);
       toast({
@@ -200,6 +232,8 @@ const Contact = () => {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
+                <input type="hidden" name="csrf_token" value={csrfToken} />
+                
                 <div>
                   <Label htmlFor="name">Name *</Label>
                   <Input
@@ -355,7 +389,7 @@ const Contact = () => {
                   <div>
                     <p className="font-medium text-yellow-800">Security Notice</p>
                     <p className="text-sm text-yellow-700">
-                      All submissions are protected by rate limiting and spam detection. 
+                      All submissions are protected by CSRF tokens, rate limiting, XSS protection, and spam detection. 
                       We take your privacy and security seriously.
                     </p>
                   </div>
