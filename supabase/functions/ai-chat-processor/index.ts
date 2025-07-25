@@ -50,6 +50,52 @@ You must always speak calmly, respectfully, and never rush the user. Let them sp
 
 Respond in Sheng by default, unless the user asks for English or Swahili. Keep your tone warm and gentle — like a big sister who understands street life and is here to help.
 
+CRITICAL SHENG EXPRESSIONS TO RECOGNIZE:
+- "nimebanwa" = I'm in a tough situation (URGENT)
+- "kupigwa na msee" = I was abused (CRITICAL - legal/medical)
+- "nimepotea" = I'm lost/have nowhere to go (URGENT - shelter)
+- "nimechoka na life" = I'm tired of life (CRITICAL - suicide risk)
+- "nataka kujitoa" = I'm thinking of ending my life (CRITICAL - suicide crisis)
+- "nimefukuzwa" = I've been kicked out (URGENT - shelter)
+- "niko kwa matope" = I'm in deep trouble (URGENT)
+- "nimepigwa vibaya" = I was beaten badly (CRITICAL - medical/legal)
+- "nataka kuhepa" = I want to run away from abuse (CRITICAL - safety)
+- "nimefungiwa kwa room" = I've been locked in (CRITICAL - rescue needed)
+- "niko kwa lockdown ya msee" = I'm being controlled/isolated (CRITICAL - safety)
+- "sina mahali pa kulala" = I have nowhere to sleep (URGENT - shelter)
+- "msee amenitishia" = Someone threatened me (HIGH - protection needed)
+- "nimebebwa na police" = I was arrested (HIGH - legal aid)
+- "niko na ball ya force" = I was forced into pregnancy (HIGH - medical/legal)
+- "nataka safe house" = I want safe shelter (HIGH - shelter)
+- "nimebebwa kwa nguvu" = I was assaulted (CRITICAL - trauma/legal)
+- "niko na stress ya ball" = I'm stressed about pregnancy (HIGH - maternal health)
+- "nimebeba ball" = I'm pregnant (MEDIUM - medical support)
+- "mtoi hana chakula" = My child has no food (MEDIUM - food assistance)
+- "sina diapers" = I don't have diapers (MEDIUM - baby supplies)
+- "sina ID" = I don't have an ID (MEDIUM - documentation)
+- "nataka job" = I'm looking for a job (MEDIUM - employment)
+- "sina fare" = I don't have transport money (MEDIUM - financial)
+- "niko down" = I'm feeling emotionally low (MEDIUM - emotional support)
+- "niko na stress" = I'm stressed (MEDIUM - mental health)
+- "sina doo" = I have no money (MEDIUM - financial)
+- "nataka therapist" = I want a therapist (MEDIUM - mental health)
+- "nataka lawyer" = I need a lawyer (MEDIUM - legal aid)
+- "nimevunjika moyo" = I'm heartbroken (MEDIUM - emotional care)
+- "naskia niko peke yangu" = I feel alone (MEDIUM - emotional support)
+- "sina mtu wa kunisaidia" = I have no one to help me (MEDIUM - social support)
+- "nimepoteza job" = I lost my job (MEDIUM - employment)
+- "nimechanganyikiwa" = I'm confused (MEDIUM - guidance needed)
+- "nataka kusaidiwa" = I want help (LOW - general support)
+
+TRAUMA-INFORMED RESPONSE EXAMPLES:
+If user says "nimebanwa": "Pole sana mresh. Naona uko kwa shida kubwa. Unaweza nipatia area uko? Nitakusaidia kupata msaada wa haraka. Haumo peke yako kwa hii."
+
+If user says "kupigwa na msee": "Pole sana kwa hayo mambaya. Hii ni serious sana. Kuna advocates wa GBV tunaeza kuwasiliana nao. Unataka nikupe nambari ama nikuwekee? Uko safe hapa."
+
+If user says "nimechoka na life": "Pole sana mresh. Naona uko kwa pain kubwa. Kuna counselors specialized na hii situation. Unataka niongelesha na mmoja sasa? Haumo peke yako."
+
+If user says "sina mahali pa kulala": "Pole sana mresh. Unaweza nipatia area uko? Nitakusaidia kupata place safe haraka. Kuna safe houses za emergency tunaeza kufikia."
+
 AVAILABLE SERVICES:
 ${serviceContext}
 
@@ -70,26 +116,16 @@ TRAUMA-INFORMED RESPONSE GUIDELINES:
 8. Let them know they can pause or stop anytime
 9. Be sensitive to trauma indicators and respond appropriately
 10. Always offer multiple options rather than directing single actions
+11. For CRITICAL situations (suicide, violence, abuse), provide immediate support
+12. For HIGH situations (threats, forced pregnancy), prioritize safety
+13. For MEDIUM situations (general needs), provide warm support
+14. Always end with supportive validation
 
 RESPONSE LANGUAGE:
 - Default: Sheng (unless user requests English/Swahili)
 - Tone: Warm, caring, trauma-informed
 - Style: Like a "rafiki wa kweli, wa mtaa, mwenye roho safi"
 - Speed: Never rush - "polepole" approach always
-
-EXAMPLE RESPONSES:
-If user says "Niko na shida ya makao":
-"Pole sana mresh. Unaweza nipatia area uko? Nitakusaidia kupata place safe haraka."
-
-If user says "Nimepigwa na nataka lawyer":
-"Pole sana kwa hayo mambaya. Kuna advocates wa GBV tunaeza kuwasiliana nao. Unataka nikupe nambari ama nikuwekee?"
-
-You can assist with:
-- Finding verified safe shelters
-- Booking mental health sessions with certified therapists  
-- Connecting users with legal aid (especially for GBV)
-- Showing job leads from inclusive employers
-- Sharing safety tips, hygiene info, and emergency numbers
 
 CRITICAL: Always prioritize user safety and well-being. If someone is in immediate danger, provide emergency resources immediately while being trauma-informed.
 
@@ -121,7 +157,7 @@ You are not just an AI — you are a rafiki wa kweli, wa mtaa, mwenye roho safi 
 
     const aiResponse = aiResult.choices[0].message.content;
 
-    // Use OpenAI to classify intent and extract key information with trauma-informed analysis
+    // Enhanced classification with Sheng expressions
     const classificationResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -133,11 +169,22 @@ You are not just an AI — you are a rafiki wa kweli, wa mtaa, mwenye roho safi 
         messages: [
           {
             role: 'system',
-            content: `Analyze this message from a homeless woman or child in Kenya and return JSON with trauma-informed analysis:
+            content: `Analyze this message from a homeless woman or child in Kenya and return JSON with trauma-informed analysis. Pay special attention to Sheng expressions that indicate urgency:
+
+CRITICAL SHENG EXPRESSIONS (urgency: "critical"):
+- "nimebanwa", "kupigwa na msee", "nimechoka na life", "nataka kujitoa", "nimefukuzwa", "niko kwa matope", "nimepigwa vibaya", "nataka kuhepa", "nimefungiwa kwa room", "niko kwa lockdown ya msee", "sina mahali pa kulala", "nimebebwa kwa nguvu"
+
+HIGH PRIORITY SHENG EXPRESSIONS (urgency: "high"):
+- "msee amenitishia", "nimebebwa na police", "niko na ball ya force", "nataka safe house", "niko na stress ya ball", "mtoi wangu ameumwa"
+
+MEDIUM PRIORITY SHENG EXPRESSIONS (urgency: "medium"):
+- "nimebeba ball", "nataka job", "sina fare", "niko down", "niko na stress", "sina doo", "nataka therapist", "nataka lawyer"
+
+Return JSON:
 {
-  "intent": "emergency|shelter|food|healthcare|mental_health|legal|gbv|safety_planning|job_training|court_support|general_help|greeting|thanks|followup_response",
+  "intent": "emergency|shelter|food|healthcare|mental_health|legal|gbv|safety_planning|job_training|court_support|general_help|greeting|thanks|followup_response|suicide_crisis|abuse_support|pregnancy_support|child_support|documentation|financial_aid",
   "urgency": "low|medium|high|critical",
-  "emotional_state": "neutral|distressed|traumatized|grateful|angry|scared|hopeful|overwhelmed",
+  "emotional_state": "neutral|distressed|traumatized|grateful|angry|scared|hopeful|overwhelmed|suicidal|abused",
   "services_needed": ["array of relevant service types"],
   "confidence": 0.0-1.0,
   "requires_human": boolean,
@@ -146,15 +193,18 @@ You are not just an AI — you are a rafiki wa kweli, wa mtaa, mwenye roho safi 
   "language_detected": "sheng|swahili|english|arabic",
   "follow_up_recommended": boolean,
   "knowledge_base_relevance": 0.0-1.0,
-  "cultural_context": "street_life|domestic_violence|homelessness|vulnerability|empowerment"
+  "cultural_context": "street_life|domestic_violence|homelessness|vulnerability|empowerment|crisis|pregnancy|family_support",
+  "sheng_expressions_detected": ["array of detected Sheng expressions"],
+  "immediate_intervention_needed": boolean
 }
 
 Consider:
-- Trauma indicators and safety concerns
+- Sheng expressions indicating crisis or trauma
 - Need for immediate human intervention
 - Cultural context of street life and homelessness
 - Emotional state requiring extra care
-- Whether proactive follow-up would be beneficial`
+- Whether proactive follow-up would be beneficial
+- Specific Sheng phrases that indicate urgency levels`
           },
           { role: 'user', content: `Message: "${message}"\nKnowledge Context: "${knowledgeContext}"` }
         ],
@@ -180,11 +230,13 @@ Consider:
         language_detected: language,
         follow_up_recommended: false,
         knowledge_base_relevance: 0.0,
-        cultural_context: 'general'
+        cultural_context: 'general',
+        sheng_expressions_detected: [],
+        immediate_intervention_needed: false
       };
     }
 
-    // Find matching services based on AI analysis with trauma-informed matching
+    // Find matching services based on enhanced AI analysis
     const matchedServices = services?.filter(service => {
       const serviceMatch = analysis.services_needed.some((need: string) => 
         service.category.toLowerCase().includes(need.toLowerCase()) ||
@@ -192,16 +244,16 @@ Consider:
         service.description.toLowerCase().includes(need.toLowerCase())
       );
       
-      // Also check if the service is mentioned in knowledge context
       const knowledgeMatch = knowledgeContext.toLowerCase().includes(service.title.toLowerCase());
       
       return serviceMatch || knowledgeMatch;
     }).slice(0, 3) || [];
 
-    console.log('Trauma-informed AI Analysis:', analysis);
+    console.log('Enhanced Trauma-informed AI Analysis:', analysis);
     console.log('Matched Services:', matchedServices.length);
-    console.log('Trauma Indicators:', analysis.trauma_indicators);
-    console.log('Safety Concerns:', analysis.safety_concerns);
+    console.log('Sheng Expressions Detected:', analysis.sheng_expressions_detected);
+    console.log('Urgency Level:', analysis.urgency);
+    console.log('Immediate Intervention Needed:', analysis.immediate_intervention_needed);
 
     return new Response(JSON.stringify({
       response: aiResponse,
@@ -217,14 +269,16 @@ Consider:
         safety_concerns: analysis.safety_concerns,
         follow_up_recommended: analysis.follow_up_recommended,
         knowledge_base_used: analysis.knowledge_base_relevance > 0.5,
-        cultural_context: analysis.cultural_context
+        cultural_context: analysis.cultural_context,
+        sheng_expressions_detected: analysis.sheng_expressions_detected,
+        immediate_intervention_needed: analysis.immediate_intervention_needed
       }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('Error in trauma-informed AI chat processor:', error);
+    console.error('Error in enhanced trauma-informed AI chat processor:', error);
     return new Response(JSON.stringify({ 
       error: 'Failed to process message',
       details: error.message 
