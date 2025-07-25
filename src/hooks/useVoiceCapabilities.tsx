@@ -1,4 +1,3 @@
-
 import { useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -150,7 +149,7 @@ export const useVoiceCapabilities = (): VoiceCapabilities => {
     });
   };
 
-  const speakText = async (text: string, voice: string = 'alloy') => {
+  const speakText = async (text: string, voice: string = 'custom') => {
     try {
       setIsPlaying(true);
       
@@ -171,7 +170,7 @@ export const useVoiceCapabilities = (): VoiceCapabilities => {
         };
         
         utterance.onerror = async () => {
-          console.log('Browser TTS failed, trying API...');
+          console.log('Browser TTS failed, trying API with custom voice...');
           await tryApiTTS(text, voice);
         };
         
@@ -180,7 +179,7 @@ export const useVoiceCapabilities = (): VoiceCapabilities => {
         return;
       }
 
-      // Fallback to API
+      // Fallback to API with custom voice
       await tryApiTTS(text, voice);
     } catch (error) {
       console.error('Text-to-speech error:', error);

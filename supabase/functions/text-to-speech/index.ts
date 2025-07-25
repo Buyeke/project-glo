@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { text, voice = 'alloy' } = await req.json();
+    const { text, voice = 'custom' } = await req.json();
 
     if (!text) {
       throw new Error('Text is required');
@@ -24,8 +24,9 @@ serve(async (req) => {
       throw new Error('ElevenLabs API key not configured');
     }
 
-    // ElevenLabs voice mapping
+    // ElevenLabs voice mapping - now includes your custom voice as default
     const voiceIds = {
+      'custom': 'reKB9ckO5n20wBEh66qg', // Your custom voice as default
       'alloy': '9BWtsMINqrJLrRacOk9x', // Aria
       'echo': 'CwhRBWXzGAHq8TQ4Fs17', // Roger
       'fable': 'EXAVITQu4vr4xnSDxMaL', // Sarah
@@ -34,7 +35,7 @@ serve(async (req) => {
       'shimmer': 'JBFqnCBsd6RMkjVDRZzb' // George
     };
 
-    const voiceId = voiceIds[voice as keyof typeof voiceIds] || voiceIds.alloy;
+    const voiceId = voiceIds[voice as keyof typeof voiceIds] || voiceIds.custom;
 
     const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
       method: 'POST',
