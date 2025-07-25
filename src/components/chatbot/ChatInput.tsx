@@ -28,14 +28,14 @@ export const ChatInput = ({
 
   const getPlaceholder = () => {
     switch (currentLanguage) {
-      case 'swahili':
-        return 'Andika ujumbe wako hapa...';
       case 'sheng':
-        return 'Andika message yako hapa bro...';
+        return 'Andika hapa mresh... polepole tu 💜';
+      case 'swahili':
+        return 'Andika ujumbe wako hapa polepole...';
       case 'arabic':
-        return 'اكتبي رسالتك هنا...';
+        return 'اكتبي رسالتك هنا بهدوء...';
       default:
-        return 'Type your message here...';
+        return 'Type your message here gently...';
     }
   };
 
@@ -65,7 +65,7 @@ export const ChatInput = ({
       </div>
       {disabled && (
         <div className="text-xs text-gray-500 mt-1 text-center">
-          AI is processing your message...
+          GLO anafikiria message yako... polepole tu 💜
         </div>
       )}
     </div>

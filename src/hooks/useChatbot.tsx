@@ -10,11 +10,12 @@ export const useChatbot = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 1,
-      text: "Hi! I'm Glo's AI assistant. I'm here to help you navigate our services and find the support you need. We've helped 50+ women and 100+ children through our network of 10+ shelter partners. How can I assist you today?",
+      text: "Supa mresh! Mimi ni GLO, rafiki yako wa kweli. Niko hapa kukusaidia na vitu zote - makazi, afya, legal aid, na vitu zingine. Unaweza niongelesha polepole, sina haraka. Unataka msaada gani leo? 🙏🏽💜",
       isBot: true,
+      language: 'sheng',
     },
   ]);
-  const [currentLanguage, setCurrentLanguage] = useState('english');
+  const [currentLanguage, setCurrentLanguage] = useState('sheng');
 
   const { intents, services, isLoadingIntents, isLoadingServices } = useChatData();
   const { logInteraction } = useChatInteractionLogger();
@@ -22,25 +23,25 @@ export const useChatbot = () => {
   const { memory, updateMemory, getContextSummary, clearMemory } = useConversationMemory();
 
   const processMessage = async (userMessage: string, forcedLanguage?: string) => {
-    console.log('Processing message with AI enhancement:', userMessage);
+    console.log('Processing message with trauma-informed AI:', userMessage);
     
     const { userMsg, botMsg } = await processMessageLogic(userMessage, messages, forcedLanguage);
     
-    // Update conversation memory
+    // Update conversation memory with trauma-informed context
     updateMemory(userMsg);
     updateMemory(botMsg, {
       urgency: botMsg.confidence && botMsg.confidence > 0.8 ? 'high' : 'medium',
-      emotional_state: 'neutral', // This would be enhanced with sentiment analysis
+      emotional_state: 'caring', // Always maintain caring tone
       language_detected: userMsg.language,
       services_needed: botMsg.matchedService ? [botMsg.matchedService] : []
     });
 
     setMessages(prev => [...prev, userMsg, botMsg]);
 
-    // Log interaction with enhanced metadata
+    // Log interaction with trauma-informed metadata
     logInteraction({
       original_message: userMessage,
-      detected_language: userMsg.language || 'english',
+      detected_language: userMsg.language || 'sheng',
       translated_message: undefined,
       matched_intent: botMsg.intent,
       matched_service: botMsg.matchedService,
@@ -55,10 +56,17 @@ export const useChatbot = () => {
   const switchLanguage = (language: string) => {
     setCurrentLanguage(language);
     
-    // Add a language switch message
+    // Add a trauma-informed language switch message
+    const switchMessages = {
+      sheng: "Poa mresh! Sasa tutaongea kwa Sheng. Ni nini unaweza nisaidie?",
+      swahili: "Sawa rafiki! Sasa tutaongea kwa Kiswahili. Unaweza niambie unavyohitaji msaada?",
+      english: "That's fine! Now we'll speak in English. How can I help you today?",
+      arabic: "حسناً! الآن سنتحدث بالعربية. كيف يمكنني مساعدتك اليوم؟"
+    };
+    
     const switchMessage: ChatMessage = {
       id: messages.length + 1,
-      text: `Language switched to ${language}. How can I help you?`,
+      text: switchMessages[language as keyof typeof switchMessages] || switchMessages.sheng,
       isBot: true,
       language,
     };
@@ -71,8 +79,9 @@ export const useChatbot = () => {
     setMessages([
       {
         id: 1,
-        text: "Hi! I'm Glo's AI assistant. I'm here to help you navigate our services and find the support you need. How can I assist you today?",
+        text: "Supa mresh! Mimi ni GLO, rafiki yako wa kweli. Niko hapa kukusaidia na vitu zote - makazi, afya, legal aid, na vitu zingine. Unaweza niongelesha polepole, sina haraka. Unataka msaada gani leo? 🙏🏽💜",
         isBot: true,
+        language: 'sheng',
       },
     ]);
     clearMemory();

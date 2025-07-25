@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    const { message, conversationHistory, language = 'english', knowledgeContext = '' } = await req.json();
+    const { message, conversationHistory, language = 'sheng', knowledgeContext = '' } = await req.json();
     
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -38,13 +38,17 @@ serve(async (req) => {
 
     // Build enhanced context for OpenAI
     const serviceContext = services?.map(s => `${s.title}: ${s.description}`).join('\n') || '';
-    const intentContext = intents?.map(i => `${i.intent_key}: ${i.response_template.english || i.response_template[Object.keys(i.response_template)[0]]}`).join('\n') || '';
+    const intentContext = intents?.map(i => `${i.intent_key}: ${i.response_template.sheng || i.response_template.swahili || i.response_template.english}`).join('\n') || '';
     
     const conversationContext = conversationHistory?.slice(-5).map((msg: any) => 
-      `${msg.isBot ? 'Assistant' : 'User'}: ${msg.text}`
+      `${msg.isBot ? 'GLO' : 'Mresh'}: ${msg.text}`
     ).join('\n') || '';
 
-    const enhancedSystemPrompt = `You are Glo's AI assistant, helping women and children access support services. You are compassionate, professional, and culturally sensitive.
+    const enhancedSystemPrompt = `You are GLO, a trauma-informed, caring AI assistant who speaks in Sheng, Swahili, and English. You support homeless women and children in Kenya by helping them find shelter, mental health support, legal aid, and job opportunities.
+
+You must always speak calmly, respectfully, and never rush the user. Let them speak in their own words — especially in Sheng or Swahili — and never judge them. Always offer choices before collecting sensitive information.
+
+Respond in Sheng by default, unless the user asks for English or Swahili. Keep your tone warm and gentle — like a big sister who understands street life and is here to help.
 
 AVAILABLE SERVICES:
 ${serviceContext}
@@ -55,18 +59,41 @@ ${knowledgeContext}
 CONVERSATION HISTORY:
 ${conversationContext}
 
-RESPONSE GUIDELINES:
-1. Be empathetic and supportive
-2. Respond in ${language === 'english' ? 'English' : language === 'swahili' ? 'Swahili' : language === 'sheng' ? 'Sheng (Kenyan street language)' : 'Arabic'}
-3. If someone needs emergency help, prioritize safety and immediate resources
-4. Match services to user needs accurately using both service database and knowledge base
-5. Use the knowledge base context to provide more detailed and accurate information
-6. Ask clarifying questions when needed
-7. Keep responses concise but helpful
-8. Use cultural context appropriately for the language
-9. If knowledge base has relevant information, incorporate it naturally into your response
+TRAUMA-INFORMED RESPONSE GUIDELINES:
+1. Always speak calmly and respectfully - like a caring big sister
+2. Never rush the user or pressure them for information
+3. Always offer choices: "Unataka niongelesha nini? Shelter, mental health, legal aid, ama job opportunities?"
+4. Validate their feelings: "Pole sana mresh" when they share difficulties
+5. Use authentic Sheng that respects street culture
+6. Never judge or blame - always show understanding
+7. Prioritize safety and well-being in all responses
+8. Let them know they can pause or stop anytime
+9. Be sensitive to trauma indicators and respond appropriately
+10. Always offer multiple options rather than directing single actions
 
-CRITICAL: Always analyze the user's emotional state and respond appropriately. For distressed users, be extra supportive and consider scheduling follow-ups.`;
+RESPONSE LANGUAGE:
+- Default: Sheng (unless user requests English/Swahili)
+- Tone: Warm, caring, trauma-informed
+- Style: Like a "rafiki wa kweli, wa mtaa, mwenye roho safi"
+- Speed: Never rush - "polepole" approach always
+
+EXAMPLE RESPONSES:
+If user says "Niko na shida ya makao":
+"Pole sana mresh. Unaweza nipatia area uko? Nitakusaidia kupata place safe haraka."
+
+If user says "Nimepigwa na nataka lawyer":
+"Pole sana kwa hayo mambaya. Kuna advocates wa GBV tunaeza kuwasiliana nao. Unataka nikupe nambari ama nikuwekee?"
+
+You can assist with:
+- Finding verified safe shelters
+- Booking mental health sessions with certified therapists  
+- Connecting users with legal aid (especially for GBV)
+- Showing job leads from inclusive employers
+- Sharing safety tips, hygiene info, and emergency numbers
+
+CRITICAL: Always prioritize user safety and well-being. If someone is in immediate danger, provide emergency resources immediately while being trauma-informed.
+
+You are not just an AI — you are a rafiki wa kweli, wa mtaa, mwenye roho safi anataka kusaidia 🙏🏽💜`;
 
     // Call OpenAI for intelligent response generation with enhanced context
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -94,7 +121,7 @@ CRITICAL: Always analyze the user's emotional state and respond appropriately. F
 
     const aiResponse = aiResult.choices[0].message.content;
 
-    // Use OpenAI to classify intent and extract key information with enhanced analysis
+    // Use OpenAI to classify intent and extract key information with trauma-informed analysis
     const classificationResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -106,25 +133,28 @@ CRITICAL: Always analyze the user's emotional state and respond appropriately. F
         messages: [
           {
             role: 'system',
-            content: `Analyze this message in context of Glo's support services and return JSON with:
+            content: `Analyze this message from a homeless woman or child in Kenya and return JSON with trauma-informed analysis:
 {
-  "intent": "emergency|shelter|food|healthcare|mental_health|legal|general_help|greeting|thanks|followup_response",
+  "intent": "emergency|shelter|food|healthcare|mental_health|legal|gbv|safety_planning|job_training|court_support|general_help|greeting|thanks|followup_response",
   "urgency": "low|medium|high|critical",
-  "emotional_state": "neutral|distressed|grateful|angry|scared|hopeful",
+  "emotional_state": "neutral|distressed|traumatized|grateful|angry|scared|hopeful|overwhelmed",
   "services_needed": ["array of relevant service types"],
   "confidence": 0.0-1.0,
   "requires_human": boolean,
-  "language_detected": "english|swahili|sheng|arabic",
+  "trauma_indicators": boolean,
+  "safety_concerns": boolean,
+  "language_detected": "sheng|swahili|english|arabic",
   "follow_up_recommended": boolean,
-  "knowledge_base_relevance": 0.0-1.0
+  "knowledge_base_relevance": 0.0-1.0,
+  "cultural_context": "street_life|domestic_violence|homelessness|vulnerability|empowerment"
 }
 
 Consider:
-- Urgency level based on safety concerns
-- Emotional indicators in the message
-- Whether the user needs immediate human intervention
-- If proactive follow-up would be beneficial
-- How relevant the knowledge base context was to answering the query`
+- Trauma indicators and safety concerns
+- Need for immediate human intervention
+- Cultural context of street life and homelessness
+- Emotional state requiring extra care
+- Whether proactive follow-up would be beneficial`
           },
           { role: 'user', content: `Message: "${message}"\nKnowledge Context: "${knowledgeContext}"` }
         ],
@@ -145,13 +175,16 @@ Consider:
         services_needed: [],
         confidence: 0.5,
         requires_human: false,
+        trauma_indicators: false,
+        safety_concerns: false,
         language_detected: language,
         follow_up_recommended: false,
-        knowledge_base_relevance: 0.0
+        knowledge_base_relevance: 0.0,
+        cultural_context: 'general'
       };
     }
 
-    // Find matching services based on AI analysis with enhanced matching
+    // Find matching services based on AI analysis with trauma-informed matching
     const matchedServices = services?.filter(service => {
       const serviceMatch = analysis.services_needed.some((need: string) => 
         service.category.toLowerCase().includes(need.toLowerCase()) ||
@@ -165,9 +198,10 @@ Consider:
       return serviceMatch || knowledgeMatch;
     }).slice(0, 3) || [];
 
-    console.log('Enhanced AI Analysis:', analysis);
+    console.log('Trauma-informed AI Analysis:', analysis);
     console.log('Matched Services:', matchedServices.length);
-    console.log('Knowledge Base Relevance:', analysis.knowledge_base_relevance);
+    console.log('Trauma Indicators:', analysis.trauma_indicators);
+    console.log('Safety Concerns:', analysis.safety_concerns);
 
     return new Response(JSON.stringify({
       response: aiResponse,
@@ -179,15 +213,18 @@ Consider:
         urgency: analysis.urgency,
         emotional_state: analysis.emotional_state,
         requires_human: analysis.requires_human,
+        trauma_indicators: analysis.trauma_indicators,
+        safety_concerns: analysis.safety_concerns,
         follow_up_recommended: analysis.follow_up_recommended,
-        knowledge_base_used: analysis.knowledge_base_relevance > 0.5
+        knowledge_base_used: analysis.knowledge_base_relevance > 0.5,
+        cultural_context: analysis.cultural_context
       }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('Error in enhanced AI chat processor:', error);
+    console.error('Error in trauma-informed AI chat processor:', error);
     return new Response(JSON.stringify({ 
       error: 'Failed to process message',
       details: error.message 
