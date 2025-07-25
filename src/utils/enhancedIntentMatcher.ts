@@ -10,7 +10,7 @@ interface Intent {
   response_template: Record<string, string>;
 }
 
-// Enhanced intent matcher that combines original logic with Sheng expressions
+// Enhanced intent matcher that combines original logic with comprehensive Sheng expressions
 export const enhancedMatchIntent = (
   message: string, 
   intents: Intent[], 
@@ -22,13 +22,13 @@ export const enhancedMatchIntent = (
   urgency?: string;
   category?: string;
 } => {
-  console.log('Enhanced intent matching for:', message);
+  console.log('Enhanced intent matching with comprehensive Sheng vocabulary:', message);
   
-  // First, try Sheng intent matching
+  // First, try comprehensive Sheng intent matching
   const shengResult = matchShengIntent(message);
   
   if (shengResult.intent && shengResult.confidence > 0.6) {
-    console.log('Sheng intent matched:', shengResult.intent);
+    console.log('Comprehensive Sheng intent matched:', shengResult.intent);
     
     // Create a synthetic intent based on Sheng match
     const syntheticIntent: Intent = {
