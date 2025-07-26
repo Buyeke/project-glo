@@ -1,17 +1,17 @@
 
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, X, ChevronDown, User, LogOut, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Menu, X, Heart, Shield } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
-import LanguageToggle from './LanguageToggle';
+import QuickExitButton from './QuickExitButton';
 
 const Navigation = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const { user, signOut } = useAuth();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
 
   const handleSignOut = async () => {
     await signOut();
@@ -23,147 +23,159 @@ const Navigation = () => {
     { name: 'About', path: '/about' },
     { name: 'Services', path: '/services' },
     { name: 'Resources', path: '/resources' },
-    { name: 'Shop', path: '/shop' },
     { name: 'Blog', path: '/blog' },
-    { name: 'Careers', path: '/careers' },
     { name: 'Contact', path: '/contact' },
   ];
 
+  const isActivePath = (path: string) => {
+    if (path === '/' && location.pathname === '/') return true;
+    if (path !== '/' && location.pathname.startsWith(path)) return true;
+    return false;
+  };
+
   return (
-    <TooltipProvider>
-      <nav className="bg-background shadow-sm border-b border-border sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-14">
-            {/* Logo */}
-            <Link to="/" className="flex items-center space-x-2">
-              <Heart className="h-7 w-7 text-secondary" />
-              <span className="text-xl font-bold text-primary">Glo</span>
+    <nav className="bg-white shadow-lg sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex items-center">
+            <Link to="/" className="flex-shrink-0 flex items-center">
+              <span className="text-2xl font-bold text-glo-blue">GLO</span>
+            </Link>
+          </div>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-8">
+            {navItems.map((item) => (
+              <Link
+                key={item.name}
+                to={item.path}
+                className={`px-3 py-2 text-sm font-medium transition-colors duration-200 ${
+                  isActivePath(item.path)
+                    ? 'text-glo-blue border-b-2 border-glo-blue'
+                    : 'text-gray-700 hover:text-glo-blue hover:border-b-2 hover:border-glo-blue'
+                }`}
+              >
+                {item.name}
+              </Link>
+            ))}
+            
+            {/* Employer Portal Link */}
+            <Link
+              to="/employer-dashboard"
+              className="flex items-center px-3 py-2 text-sm font-medium text-purple-700 hover:text-purple-900 transition-colors duration-200"
+            >
+              <Briefcase className="w-4 h-4 mr-1" />
+              Employers
             </Link>
 
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-6">
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center space-x-2">
+                    <User className="w-4 h-4" />
+                    <ChevronDown className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                    Dashboard
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button 
+                onClick={() => navigate('/auth')}
+                className="bg-glo-blue hover:bg-glo-blue/90"
+              >
+                Sign In
+              </Button>
+            )}
+
+            <QuickExitButton />
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden flex items-center space-x-2">
+            <QuickExitButton />
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-gray-700 hover:text-glo-blue focus:outline-none focus:text-glo-blue"
+            >
+              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Navigation */}
+        {isMenuOpen && (
+          <div className="md:hidden">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
               {navItems.map((item) => (
                 <Link
                   key={item.name}
                   to={item.path}
-                  className="text-sm text-foreground hover:text-primary transition-colors duration-200 font-medium nav-link"
+                  className={`block px-3 py-2 text-base font-medium transition-colors duration-200 ${
+                    isActivePath(item.path)
+                      ? 'text-glo-blue bg-glo-blue/10'
+                      : 'text-gray-700 hover:text-glo-blue hover:bg-glo-blue/10'
+                  }`}
+                  onClick={() => setIsMenuOpen(false)}
                 >
                   {item.name}
                 </Link>
               ))}
-              {user && (
-                <Link
-                  to="/dashboard"
-                  className="text-sm text-foreground hover:text-primary transition-colors duration-200 font-medium nav-link"
-                >
-                  Dashboard
-                </Link>
-              )}
-            </div>
-
-            {/* Desktop Actions */}
-            <div className="hidden md:flex items-center space-x-3">
-              <LanguageToggle />
-              {user ? (
-                <div className="flex items-center space-x-3">
-                  <span className="text-xs text-muted-foreground">
-                    Welcome, {user.email}
-                  </span>
-                  <Button variant="outline" size="sm" onClick={handleSignOut} className="text-xs border-border hover:bg-muted">
-                    Sign Out
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  <Button variant="outline" size="sm" className="text-xs border-border hover:bg-muted" asChild>
-                    <Link to="/auth">Sign In</Link>
-                  </Button>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="sm" className="text-xs p-2" asChild>
-                        <Link to="/admin-login">
-                          <Shield className="h-4 w-4" />
-                        </Link>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Admin Access</p>
-                    </TooltipContent>
-                  </Tooltip>
-                  <Button size="sm" className="bg-secondary hover:bg-secondary/90 text-secondary-foreground font-semibold text-xs btn-donate" asChild>
-                    <Link to="/donate">Donate</Link>
-                  </Button>
-                </>
-              )}
-            </div>
-
-            {/* Mobile menu button */}
-            <div className="md:hidden">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsOpen(!isOpen)}
-                className="text-foreground hover:bg-muted"
+              
+              <Link
+                to="/employer-dashboard"
+                className="flex items-center px-3 py-2 text-base font-medium text-purple-700 hover:text-purple-900 hover:bg-purple-50 transition-colors duration-200"
+                onClick={() => setIsMenuOpen(false)}
               >
-                {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </Button>
-            </div>
-          </div>
+                <Briefcase className="w-4 h-4 mr-2" />
+                Employers
+              </Link>
 
-          {/* Mobile Navigation */}
-          {isOpen && (
-            <div className="md:hidden">
-              <div className="px-2 pt-2 pb-3 space-y-1 bg-background border-t border-border">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.name}
-                    to={item.path}
-                    className="block px-3 py-2 text-sm text-foreground hover:text-primary hover:bg-muted/50 transition-colors rounded-md nav-link"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    {item.name}
-                  </Link>
-                ))}
-                {user && (
+              {user ? (
+                <div className="border-t pt-2 mt-2">
                   <Link
                     to="/dashboard"
-                    className="block px-3 py-2 text-sm text-foreground hover:text-primary hover:bg-muted/50 transition-colors rounded-md nav-link"
-                    onClick={() => setIsOpen(false)}
+                    className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-glo-blue hover:bg-glo-blue/10"
+                    onClick={() => setIsMenuOpen(false)}
                   >
                     Dashboard
                   </Link>
-                )}
-                <div className="px-3 py-2 space-y-2">
-                  <div className="flex justify-center">
-                    <LanguageToggle />
-                  </div>
-                  {user ? (
-                    <Button variant="outline" onClick={handleSignOut} className="w-full text-xs border-border hover:bg-muted" size="sm">
-                      Sign Out
-                    </Button>
-                  ) : (
-                    <>
-                      <Button variant="outline" asChild className="w-full text-xs border-border hover:bg-muted" size="sm">
-                        <Link to="/auth">Sign In</Link>
-                      </Button>
-                      <Button variant="outline" asChild className="w-full text-xs border-border hover:bg-muted" size="sm">
-                        <Link to="/admin-login">
-                          <Shield className="mr-2 h-4 w-4" />
-                          Admin Access
-                        </Link>
-                      </Button>
-                      <Button asChild className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground font-semibold text-xs btn-donate" size="sm">
-                        <Link to="/donate">Donate</Link>
-                      </Button>
-                    </>
-                  )}
+                  <button
+                    onClick={() => {
+                      handleSignOut();
+                      setIsMenuOpen(false);
+                    }}
+                    className="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:text-glo-blue hover:bg-glo-blue/10"
+                  >
+                    <LogOut className="w-4 h-4 mr-2 inline" />
+                    Sign Out
+                  </button>
                 </div>
-              </div>
+              ) : (
+                <div className="border-t pt-2 mt-2">
+                  <Button 
+                    onClick={() => {
+                      navigate('/auth');
+                      setIsMenuOpen(false);
+                    }}
+                    className="w-full bg-glo-blue hover:bg-glo-blue/90"
+                  >
+                    Sign In
+                  </Button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </nav>
-    </TooltipProvider>
+          </div>
+        )}
+      </div>
+    </nav>
   );
 };
 

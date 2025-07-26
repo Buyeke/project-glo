@@ -426,6 +426,253 @@ export type Database = {
         }
         Relationships: []
       }
+      employer_profiles: {
+        Row: {
+          company_name: string | null
+          contact_person: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          phone_number: string | null
+          updated_at: string | null
+          user_id: string | null
+          verification_method: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          company_name?: string | null
+          contact_person?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          phone_number?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          verification_method?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          company_name?: string | null
+          contact_person?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          phone_number?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          verification_method?: string | null
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
+      job_applicants: {
+        Row: {
+          applicant_email: string | null
+          applicant_name: string
+          applicant_phone: string | null
+          applicant_user_id: string | null
+          applied_at: string | null
+          cover_message: string | null
+          id: string
+          job_posting_id: string | null
+        }
+        Insert: {
+          applicant_email?: string | null
+          applicant_name: string
+          applicant_phone?: string | null
+          applicant_user_id?: string | null
+          applied_at?: string | null
+          cover_message?: string | null
+          id?: string
+          job_posting_id?: string | null
+        }
+        Update: {
+          applicant_email?: string | null
+          applicant_name?: string
+          applicant_phone?: string | null
+          applicant_user_id?: string | null
+          applied_at?: string | null
+          cover_message?: string | null
+          id?: string
+          job_posting_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_applicants_job_posting_id_fkey"
+            columns: ["job_posting_id"]
+            isOneToOne: false
+            referencedRelation: "job_postings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_payments: {
+        Row: {
+          amount: number
+          created_at: string | null
+          employer_id: string | null
+          id: string
+          is_renewal: boolean | null
+          job_posting_id: string | null
+          mpesa_checkout_id: string | null
+          payment_method: string
+          payment_reference: string | null
+          status: string | null
+          stripe_payment_intent_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          employer_id?: string | null
+          id?: string
+          is_renewal?: boolean | null
+          job_posting_id?: string | null
+          mpesa_checkout_id?: string | null
+          payment_method: string
+          payment_reference?: string | null
+          status?: string | null
+          stripe_payment_intent_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          employer_id?: string | null
+          id?: string
+          is_renewal?: boolean | null
+          job_posting_id?: string | null
+          mpesa_checkout_id?: string | null
+          payment_method?: string
+          payment_reference?: string | null
+          status?: string | null
+          stripe_payment_intent_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_payments_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: false
+            referencedRelation: "employer_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_payments_job_posting_id_fkey"
+            columns: ["job_posting_id"]
+            isOneToOne: false
+            referencedRelation: "job_postings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_postings: {
+        Row: {
+          applicant_count: number | null
+          created_at: string | null
+          description: string
+          employer_id: string | null
+          expires_at: string | null
+          gender_preference: string | null
+          id: string
+          job_date: string | null
+          job_time: string | null
+          job_type: string
+          location: string
+          pay_amount: number
+          payment_reference: string | null
+          payment_status: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          applicant_count?: number | null
+          created_at?: string | null
+          description: string
+          employer_id?: string | null
+          expires_at?: string | null
+          gender_preference?: string | null
+          id?: string
+          job_date?: string | null
+          job_time?: string | null
+          job_type: string
+          location: string
+          pay_amount: number
+          payment_reference?: string | null
+          payment_status?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          applicant_count?: number | null
+          created_at?: string | null
+          description?: string
+          employer_id?: string | null
+          expires_at?: string | null
+          gender_preference?: string | null
+          id?: string
+          job_date?: string | null
+          job_time?: string | null
+          job_type?: string
+          location?: string
+          pay_amount?: number
+          payment_reference?: string | null
+          payment_status?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_postings_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: false
+            referencedRelation: "employer_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_renewals: {
+        Row: {
+          expires_at: string
+          id: string
+          job_posting_id: string | null
+          payment_id: string | null
+          renewed_at: string | null
+        }
+        Insert: {
+          expires_at: string
+          id?: string
+          job_posting_id?: string | null
+          payment_id?: string | null
+          renewed_at?: string | null
+        }
+        Update: {
+          expires_at?: string
+          id?: string
+          job_posting_id?: string | null
+          payment_id?: string | null
+          renewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_renewals_job_posting_id_fkey"
+            columns: ["job_posting_id"]
+            isOneToOne: false
+            referencedRelation: "job_postings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_renewals_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "job_payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       match_logs: {
         Row: {
           assessment_id: string
@@ -1443,6 +1690,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      expire_old_jobs: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       is_admin_user: {
         Args: Record<PropertyKey, never>
         Returns: boolean
