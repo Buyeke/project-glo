@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, CreditCard, Smartphone, CheckCircle } from 'lucide-react';
+import { ArrowLeft, CreditCard, Smartphone, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -15,11 +15,11 @@ interface PaymentScreenProps {
 }
 
 const PaymentScreen: React.FC<PaymentScreenProps> = ({ jobData, employerProfile, onSuccess, onCancel }) => {
-  const [selectedMethod, setSelectedMethod] = useState<'mpesa' | 'stripe'>('mpesa');
+  const [selectedMethod, setSelectedMethod] = useState<'mpesa' | 'paypal'>('paypal');
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 
-  const handlePayment = async () => {
+  const handlePayPalPayment = async () => {
     setIsProcessing(true);
 
     try {
@@ -43,7 +43,7 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({ jobData, employerProfile,
           job_posting_id: jobPosting.id,
           employer_id: employerProfile.id,
           amount: 5000,
-          payment_method: selectedMethod,
+          payment_method: 'paypal',
           status: 'pending'
         })
         .select()
@@ -51,43 +51,68 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({ jobData, employerProfile,
 
       if (paymentError) throw paymentError;
 
-      // Simulate payment processing
-      setTimeout(async () => {
-        try {
-          // Update payment status to completed
-          const { error: updatePaymentError } = await supabase
-            .from('job_payments')
-            .update({ status: 'completed', payment_reference: `PAY-${Date.now()}` })
-            .eq('id', payment.id);
-
-          if (updatePaymentError) throw updatePaymentError;
-
-          // Update job posting to active
-          const { error: updateJobError } = await supabase
-            .from('job_postings')
-            .update({ status: 'active', payment_status: 'completed' })
-            .eq('id', jobPosting.id);
-
-          if (updateJobError) throw updateJobError;
-
-          setPaymentSuccess(true);
-          setIsProcessing(false);
-          
-          setTimeout(() => {
-            onSuccess();
-          }, 2000);
-          
-        } catch (error) {
-          console.error('Payment processing error:', error);
-          toast.error('Payment processing failed');
-          setIsProcessing(false);
+      // Call PayPal payment processing edge function
+      const { data, error } = await supabase.functions.invoke('process-paypal-payment', {
+        body: {
+          amount: 5000,
+          currency: 'KES',
+          description: `Job Listing: ${jobData.title}`,
+          payment_id: payment.id,
+          job_posting_id: jobPosting.id,
+          return_url: `${window.location.origin}/employer-dashboard?payment=success`,
+          cancel_url: `${window.location.origin}/employer-dashboard?payment=cancelled`
         }
-      }, 3000);
+      });
+
+      if (error) throw error;
+
+      if (data?.approval_url) {
+        // Redirect to PayPal for payment
+        window.location.href = data.approval_url;
+      } else {
+        throw new Error('Failed to create PayPal payment');
+      }
 
     } catch (error: any) {
       console.error('Payment initiation error:', error);
       toast.error(error.message || 'Failed to initiate payment');
       setIsProcessing(false);
+    }
+  };
+
+  const handleMpesaPayment = async () => {
+    setIsProcessing(true);
+    
+    try {
+      // Create the job posting first
+      const { data: jobPosting, error: jobError } = await supabase
+        .from('job_postings')
+        .insert({
+          ...jobData,
+          status: 'pending_payment',
+          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+        })
+        .select()
+        .single();
+
+      if (jobError) throw jobError;
+
+      // For now, show a message that M-Pesa is coming soon
+      toast.error('M-Pesa integration is coming soon. Please use PayPal for now.');
+      setIsProcessing(false);
+      
+    } catch (error: any) {
+      console.error('M-Pesa payment error:', error);
+      toast.error('M-Pesa is not available yet');
+      setIsProcessing(false);
+    }
+  };
+
+  const handlePayment = () => {
+    if (selectedMethod === 'paypal') {
+      handlePayPalPayment();
+    } else {
+      handleMpesaPayment();
     }
   };
 
@@ -169,40 +194,43 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({ jobData, employerProfile,
                 <CardDescription>Select how you'd like to pay</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* M-Pesa Option */}
+                {/* PayPal Option */}
                 <div 
                   className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                    selectedMethod === 'mpesa' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                    selectedMethod === 'paypal' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                  }`}
+                  onClick={() => setSelectedMethod('paypal')}
+                >
+                  <div className="flex items-center space-x-3">
+                    <CreditCard className="w-6 h-6 text-blue-600" />
+                    <div className="flex-1">
+                      <h4 className="font-semibold">PayPal</h4>
+                      <p className="text-sm text-gray-600">Pay securely with PayPal</p>
+                    </div>
+                    <div className={`w-4 h-4 rounded-full border-2 ${
+                      selectedMethod === 'paypal' ? 'bg-blue-500 border-blue-500' : 'border-gray-300'
+                    }`} />
+                  </div>
+                </div>
+
+                {/* M-Pesa Option - Coming Soon */}
+                <div 
+                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all opacity-50 ${
+                    selectedMethod === 'mpesa' ? 'border-green-500 bg-green-50' : 'border-gray-200'
                   }`}
                   onClick={() => setSelectedMethod('mpesa')}
                 >
                   <div className="flex items-center space-x-3">
                     <Smartphone className="w-6 h-6 text-green-600" />
                     <div className="flex-1">
-                      <h4 className="font-semibold">M-Pesa</h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-semibold">M-Pesa</h4>
+                        <Badge variant="outline" className="text-xs">Coming Soon</Badge>
+                      </div>
                       <p className="text-sm text-gray-600">Pay with your mobile money</p>
                     </div>
                     <div className={`w-4 h-4 rounded-full border-2 ${
-                      selectedMethod === 'mpesa' ? 'bg-blue-500 border-blue-500' : 'border-gray-300'
-                    }`} />
-                  </div>
-                </div>
-
-                {/* Stripe Option */}
-                <div 
-                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                    selectedMethod === 'stripe' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-                  }`}
-                  onClick={() => setSelectedMethod('stripe')}
-                >
-                  <div className="flex items-center space-x-3">
-                    <CreditCard className="w-6 h-6 text-blue-600" />
-                    <div className="flex-1">
-                      <h4 className="font-semibold">Credit/Debit Card</h4>
-                      <p className="text-sm text-gray-600">Pay with Visa, MasterCard, or other cards</p>
-                    </div>
-                    <div className={`w-4 h-4 rounded-full border-2 ${
-                      selectedMethod === 'stripe' ? 'bg-blue-500 border-blue-500' : 'border-gray-300'
+                      selectedMethod === 'mpesa' ? 'bg-green-500 border-green-500' : 'border-gray-300'
                     }`} />
                   </div>
                 </div>
@@ -234,15 +262,20 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({ jobData, employerProfile,
             <Button 
               onClick={handlePayment}
               className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-6"
-              disabled={isProcessing}
+              disabled={isProcessing || (selectedMethod === 'mpesa')}
             >
               {isProcessing ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   Processing Payment...
                 </>
+              ) : selectedMethod === 'mpesa' ? (
+                <>
+                  <AlertCircle className="w-4 h-4 mr-2" />
+                  M-Pesa Coming Soon
+                </>
               ) : (
-                `Pay KES 5,000 with ${selectedMethod === 'mpesa' ? 'M-Pesa' : 'Card'}`
+                `Pay KES 5,000 with PayPal`
               )}
             </Button>
 

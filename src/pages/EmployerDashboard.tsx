@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -37,6 +36,7 @@ interface EmployerProfile {
 const EmployerDashboard: React.FC = () => {
   const { user, session } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [employerProfile, setEmployerProfile] = useState<EmployerProfile | null>(null);
   const [jobPostings, setJobPostings] = useState<JobPosting[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,6 +53,17 @@ const EmployerDashboard: React.FC = () => {
       setLoading(false);
     }
   }, [user]);
+
+  useEffect(() => {
+    const paymentStatus = searchParams.get('payment');
+    if (paymentStatus === 'success') {
+      toast.success('✅ Your job listing is now live! It will stay active for 30 days.');
+      navigate('/employer-dashboard', { replace: true });
+    } else if (paymentStatus === 'cancelled') {
+      toast.error('Payment was cancelled. Your job listing was not published.');
+      navigate('/employer-dashboard', { replace: true });
+    }
+  }, [searchParams, navigate]);
 
   const fetchEmployerProfile = async () => {
     try {
