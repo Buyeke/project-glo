@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Mail, Phone, MapPin, Users } from "lucide-react";
 
@@ -12,20 +11,6 @@ const Footer = () => {
             <p className="text-gray-300 mb-4">
               Empowering communities through AI-driven support and resource matching.
             </p>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4" />
-                <span className="text-sm">info@projectglo.org</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4" />
-                <span className="text-sm">+1 (555) 123-4567</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                <span className="text-sm">123 Community Street, Support City, SC 12345</span>
-              </div>
-            </div>
           </div>
           
           <div>
