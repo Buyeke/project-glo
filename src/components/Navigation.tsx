@@ -39,7 +39,7 @@ const Navigation = () => {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <span className="text-2xl font-bold text-glo-blue">GLO</span>
+              <span className="text-2xl font-bold text-accent">GLO</span>
             </Link>
           </div>
 
@@ -51,8 +51,8 @@ const Navigation = () => {
                 to={item.path}
                 className={`px-3 py-2 text-sm font-medium transition-colors duration-200 ${
                   isActivePath(item.path)
-                    ? 'text-glo-blue border-b-2 border-glo-blue'
-                    : 'text-gray-700 hover:text-glo-blue hover:border-b-2 hover:border-glo-blue'
+                    ? 'text-accent border-b-2 border-accent'
+                    : 'text-gray-700 hover:text-accent hover:border-b-2 hover:border-accent'
                 }`}
               >
                 {item.name}
@@ -89,7 +89,7 @@ const Navigation = () => {
             ) : (
               <Button 
                 onClick={() => navigate('/auth')}
-                className="bg-glo-blue hover:bg-glo-blue/90"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 Sign In
               </Button>
@@ -103,7 +103,7 @@ const Navigation = () => {
             <QuickExitButton />
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-700 hover:text-glo-blue focus:outline-none focus:text-glo-blue"
+              className="text-gray-700 hover:text-accent focus:outline-none focus:text-accent"
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -120,8 +120,8 @@ const Navigation = () => {
                   to={item.path}
                   className={`block px-3 py-2 text-base font-medium transition-colors duration-200 ${
                     isActivePath(item.path)
-                      ? 'text-glo-blue bg-glo-blue/10'
-                      : 'text-gray-700 hover:text-glo-blue hover:bg-glo-blue/10'
+                      ? 'text-accent bg-accent/10'
+                      : 'text-gray-700 hover:text-accent hover:bg-accent/10'
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -142,7 +142,7 @@ const Navigation = () => {
                 <div className="border-t pt-2 mt-2">
                   <Link
                     to="/dashboard"
-                    className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-glo-blue hover:bg-glo-blue/10"
+                    className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-accent hover:bg-accent/10"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Dashboard
@@ -152,7 +152,7 @@ const Navigation = () => {
                       handleSignOut();
                       setIsMenuOpen(false);
                     }}
-                    className="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:text-glo-blue hover:bg-glo-blue/10"
+                    className="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:text-accent hover:bg-accent/10"
                   >
                     <LogOut className="w-4 h-4 mr-2 inline" />
                     Sign Out
@@ -165,7 +165,7 @@ const Navigation = () => {
                       navigate('/auth');
                       setIsMenuOpen(false);
                     }}
-                    className="w-full bg-glo-blue hover:bg-glo-blue/90"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                   >
                     Sign In
                   </Button>
