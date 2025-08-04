@@ -1368,6 +1368,48 @@ export type Database = {
         }
         Relationships: []
       }
+      site_content: {
+        Row: {
+          content_key: string
+          content_type: string
+          content_value: Json
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          published: boolean
+          section: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          content_key: string
+          content_type?: string
+          content_value?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          published?: boolean
+          section: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          content_key?: string
+          content_type?: string
+          content_value?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          published?: boolean
+          section?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       support_requests: {
         Row: {
           created_at: string | null

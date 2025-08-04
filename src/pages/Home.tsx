@@ -7,9 +7,26 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Heart, Users, Home as HomeIcon, Search, Shield, MapPin, Sun, Moon } from 'lucide-react';
 import TeamSection from '@/components/TeamSection';
 import TextToSpeech from '@/components/TextToSpeech';
+import { useContentValue } from '@/hooks/useSiteContent';
 
 const Home = () => {
   const [calmMode, setCalmMode] = useState(false);
+
+  // Dynamic content values
+  const heroTitle = useContentValue('hero_title', { text: 'Empowering Women & Children' });
+  const heroSubtitle = useContentValue('hero_subtitle', { text: 'GLO is an AI-powered safety net for women and children—offering multilingual support, dignity, and hope.' });
+  const heroLocationInfo = useContentValue('hero_location_info', { text: 'Serving Mombasa County (In-person & Virtual Services Available)' });
+  const heroMeetingInfo = useContentValue('hero_meeting_info', { text: 'Once your registration is confirmed, we will send you a personalized virtual meeting link via email or WhatsApp within 24 hours.' });
+  
+  const aboutTitle = useContentValue('about_title', { text: 'About GLO' });
+  const aboutDescription = useContentValue('about_description', { text: 'GLO is a project using AI to deliver trauma-informed care, housing, and support to women and children in need. We connect vulnerable individuals with trusted local organizations through intelligent matching and multilingual support.' });
+  
+  const partnerCount = useContentValue('partner_count', { text: 'Trusted by 12+ local shelters' });
+  const serviceArea = useContentValue('service_area', { text: 'Serving Mombasa County and surrounding areas' });
+  
+  const ctaPrimaryTitle = useContentValue('cta_primary_title', { text: 'Ready to Get Started?' });
+  const ctaPrimarySubtitle = useContentValue('cta_primary_subtitle', { text: 'Whether you need support or want to help others, we\'re here for you.' });
+  const ctaNetworkTitle = useContentValue('cta_network_title', { text: 'Are you a therapist, legal expert, or NGO who wants to help?' });
 
   const toggleCalmMode = () => {
     setCalmMode(!calmMode);
@@ -17,31 +34,47 @@ const Home = () => {
   };
 
   const stats = [
-    { number: '50+', label: 'Women Supported', icon: Users },
-    { number: '100+', label: 'Children Helped', icon: Heart },
-    { number: '12+', label: 'Trusted Partners', icon: HomeIcon },
-    { number: '24/7', label: 'AI Support', icon: Search },
+    { 
+      number: useContentValue('stats_users_supported', { number: '50+', label: 'Women Supported' }).number,
+      label: useContentValue('stats_users_supported', { number: '50+', label: 'Women Supported' }).label,
+      icon: Users 
+    },
+    { 
+      number: useContentValue('stats_children_helped', { number: '100+', label: 'Children Helped' }).number,
+      label: useContentValue('stats_children_helped', { number: '100+', label: 'Children Helped' }).label,
+      icon: Heart 
+    },
+    { 
+      number: useContentValue('stats_trusted_partners', { number: '12+', label: 'Trusted Partners' }).number,
+      label: useContentValue('stats_trusted_partners', { number: '12+', label: 'Trusted Partners' }).label,
+      icon: HomeIcon 
+    },
+    { 
+      number: useContentValue('stats_ai_support', { number: '24/7', label: 'AI Support' }).number,
+      label: useContentValue('stats_ai_support', { number: '24/7', label: 'AI Support' }).label,
+      icon: Search 
+    },
   ];
 
   const services = [
     {
-      title: 'Emergency Shelter',
-      description: 'Immediate safe housing and emergency accommodation',
+      title: useContentValue('service_emergency_title', { text: 'Emergency Shelter' }).text,
+      description: useContentValue('service_emergency_desc', { text: 'Immediate safe housing and emergency accommodation' }).text,
       icon: HomeIcon,
     },
     {
-      title: 'Job Placement',
-      description: 'Employment opportunities and career development',
+      title: useContentValue('service_job_title', { text: 'Job Placement' }).text,
+      description: useContentValue('service_job_desc', { text: 'Employment opportunities and career development' }).text,
       icon: Search,
     },
     {
-      title: 'Mental Health Support',
-      description: 'Counseling, therapy, and emotional wellbeing services',
+      title: useContentValue('service_mental_title', { text: 'Mental Health Support' }).text,
+      description: useContentValue('service_mental_desc', { text: 'Counseling, therapy, and emotional wellbeing services' }).text,
       icon: Heart,
     },
     {
-      title: 'AI-Powered Guidance',
-      description: '24/7 intelligent assistance and resource matching',
+      title: useContentValue('service_ai_title', { text: 'AI-Powered Guidance' }).text,
+      description: useContentValue('service_ai_desc', { text: '24/7 intelligent assistance and resource matching' }).text,
       icon: Search,
     },
   ];
@@ -78,15 +111,15 @@ const Home = () => {
                 <div className="space-y-6">
                   <div className="flex items-start gap-2">
                     <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight animate-soft-fade text-foreground flex-1" style={{ color: '#2E2E2E' }}>
-                      Empowering Women & Children
+                      {heroTitle.text}
                     </h1>
-                    <TextToSpeech text="Empowering Women & Children" className="mt-2" />
+                    <TextToSpeech text={heroTitle.text} className="mt-2" />
                   </div>
                   <div className="flex items-start gap-2">
                     <p className="text-lg md:text-xl leading-relaxed animate-soft-fade-delay text-muted-foreground flex-1">
-                      GLO is an AI-powered safety net for women and children—offering multilingual support, dignity, and hope.
+                      {heroSubtitle.text}
                     </p>
-                    <TextToSpeech text="GLO is an AI-powered safety net for women and children—offering multilingual support, dignity, and hope." className="mt-2" />
+                    <TextToSpeech text={heroSubtitle.text} className="mt-2" />
                   </div>
                   <div className="bg-card rounded-lg p-6 border border-border animate-soft-fade-delay">
                     <div className="flex items-start gap-2">
@@ -97,12 +130,12 @@ const Home = () => {
                         <div className="flex items-start gap-3 text-sm">
                           <MapPin className="h-4 w-4 mt-1 flex-shrink-0 text-secondary" />
                           <div className="text-muted-foreground">
-                            <p className="font-medium">Serving Mombasa County (In-person & Virtual Services Available)</p>
-                            <p className="mt-2">Once your registration is confirmed, we will send you a personalized virtual meeting link via email or WhatsApp within 24 hours.</p>
+                            <p className="font-medium">{heroLocationInfo.text}</p>
+                            <p className="mt-2">{heroMeetingInfo.text}</p>
                           </div>
                         </div>
                       </div>
-                      <TextToSpeech text="You're not alone. Glo connects you to real help, fast. Serving Mombasa County. Once your registration is confirmed, we will send you a personalized virtual meeting link within 24 hours." className="mt-2" />
+                      <TextToSpeech text={`You're not alone. Glo connects you to real help, fast. ${heroLocationInfo.text} ${heroMeetingInfo.text}`} className="mt-2" />
                     </div>
                   </div>
                 </div>
@@ -147,17 +180,16 @@ const Home = () => {
             <Card className="bg-card border-border shadow-md">
               <CardHeader>
                 <div className="flex items-center justify-center gap-2">
-                  <CardTitle className="text-2xl text-foreground">About GLO</CardTitle>
-                  <TextToSpeech text="About GLO" />
+                  <CardTitle className="text-2xl text-foreground">{aboutTitle.text}</CardTitle>
+                  <TextToSpeech text={aboutTitle.text} />
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="flex items-start gap-2">
                   <p className="text-base text-muted-foreground leading-relaxed flex-1">
-                    GLO is a project using AI to deliver trauma-informed care, housing, and support to women and children in need. 
-                    We connect vulnerable individuals with trusted local organizations through intelligent matching and multilingual support.
+                    {aboutDescription.text}
                   </p>
-                  <TextToSpeech text="GLO is a project using AI to deliver trauma-informed care, housing, and support to women and children in need. We connect vulnerable individuals with trusted local organizations through intelligent matching and multilingual support." />
+                  <TextToSpeech text={aboutDescription.text} />
                 </div>
               </CardContent>
             </Card>
@@ -256,11 +288,11 @@ const Home = () => {
                 <div className="p-2 bg-green-100 rounded-full">
                   <Shield className="h-6 w-6 text-green-600" />
                 </div>
-                <span className="text-lg font-semibold text-foreground">Trusted by 12+ local shelters</span>
+                <span className="text-lg font-semibold text-foreground">{partnerCount.text}</span>
               </div>
               <p className="text-muted-foreground flex items-center justify-center gap-2">
                 <MapPin className="h-4 w-4 text-secondary" />
-                Serving Mombasa County and surrounding areas
+                {serviceArea.text}
               </p>
             </div>
           </div>
@@ -272,9 +304,9 @@ const Home = () => {
         {/* Call to Action - Professional Purple */}
         <section className="py-16 bg-primary text-primary-foreground">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
+            <h2 className="text-3xl font-bold mb-4">{ctaPrimaryTitle.text}</h2>
             <p className="text-lg mb-8 max-w-2xl mx-auto opacity-90">
-              Whether you need support or want to help others, we're here for you.
+              {ctaPrimarySubtitle.text}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button 
@@ -301,7 +333,7 @@ const Home = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <p className="text-lg font-medium mb-4">
-                Are you a therapist, legal expert, or NGO who wants to help?
+                {ctaNetworkTitle.text}
               </p>
                 <Button 
                   size="lg" 

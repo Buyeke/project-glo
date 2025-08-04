@@ -13,7 +13,8 @@ import {
   Shield,
   Download,
   TrendingUp,
-  AlertTriangle
+  AlertTriangle,
+  Edit3
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -21,6 +22,7 @@ import BlogManagement from './BlogManagement';
 import ContactSubmissionsPanel from './ContactSubmissionsPanel';
 import ChatInteractionsPanel from './ChatInteractionsPanel';
 import SecurityPanel from './SecurityPanel';
+import ContentManagement from './ContentManagement';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -127,8 +129,9 @@ const AdminDashboard = () => {
 
       <div className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="content">Content</TabsTrigger>
             <TabsTrigger value="contacts">Contacts</TabsTrigger>
             <TabsTrigger value="blog">Blog</TabsTrigger>
             <TabsTrigger value="chat">Chat</TabsTrigger>
@@ -175,7 +178,15 @@ const AdminDashboard = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <Button 
+                    variant="outline" 
+                    className="h-20 flex-col"
+                    onClick={() => setActiveTab('content')}
+                  >
+                    <Edit3 className="h-6 w-6 mb-2" />
+                    Edit Content
+                  </Button>
                   <Button 
                     variant="outline" 
                     className="h-20 flex-col"
@@ -233,6 +244,10 @@ const AdminDashboard = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="content">
+            <ContentManagement />
           </TabsContent>
 
           <TabsContent value="contacts">
