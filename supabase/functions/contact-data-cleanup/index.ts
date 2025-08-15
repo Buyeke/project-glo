@@ -1,125 +1,93 @@
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { corsHeaders } from '../_shared/cors.ts'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
-
-    // Calculate date 4 months ago
-    const fourMonthsAgo = new Date()
-    fourMonthsAgo.setMonth(fourMonthsAgo.getMonth() - 4)
-
-    // Get contact submissions older than 4 months
-    const { data: oldSubmissions, error: fetchError } = await supabaseClient
-      .from('contact_submissions')
-      .select('*')
-      .lt('created_at', fourMonthsAgo.toISOString())
-
-    if (fetchError) throw fetchError
-
-    if (oldSubmissions.length === 0) {
-      return new Response(
-        JSON.stringify({
-          success: true,
-          message: 'No contact submissions older than 4 months found',
-          archived_count: 0
-        }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        }
-      )
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      throw new Error('No authorization header')
     }
 
-    // First, export the old data to CSV
-    const csvContent = [
-      ['ID', 'Name', 'Email', 'Message', 'Status', 'Created At', 'Updated At', 'Admin Notes'].join(','),
-      ...oldSubmissions.map(sub => [
-        sub.id,
-        `"${sub.name}"`,
-        `"${sub.email}"`,
-        `"${sub.message.replace(/"/g, '""')}"`,
-        sub.status,
-        new Date(sub.created_at).toISOString(),
-        new Date(sub.updated_at).toISOString(),
-        `"${sub.admin_notes || ''}"`
-      ].join(','))
-    ].join('\n')
+    const token = authHeader.replace('Bearer ', '')
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    if (authError || !user) {
+      throw new Error('Invalid token')
+    }
 
-    // Generate filename with timestamp
-    const timestamp = new Date().toISOString().split('T')[0]
-    const filename = `contact-submissions-archived-${timestamp}.csv`
+    // Verify admin access
+    const { data: adminCheck, error: adminError } = await supabase
+      .from('team_members')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .eq('verified', true)
+      .single()
 
-    // Store the CSV file in Supabase Storage
-    const { error: uploadError } = await supabaseClient
-      .storage
-      .from('exports')
-      .upload(filename, csvContent, {
-        contentType: 'text/csv',
-        upsert: true
-      })
+    if (adminError || !adminCheck) {
+      throw new Error('Unauthorized: Admin access required')
+    }
 
-    if (uploadError) throw uploadError
+    // Log security event
+    await supabase.from('security_logs').insert({
+      event_type: 'data_cleanup',
+      user_id: user.id,
+      ip_address: req.headers.get('x-forwarded-for') || 'unknown',
+      user_agent: req.headers.get('user-agent') || 'unknown',
+      details: { action: 'contact_data_cleanup' }
+    })
 
-    // Delete the old submissions after successful export
-    const { error: deleteError } = await supabaseClient
+    // Clean up old contact submissions (older than 2 years)
+    const twoYearsAgo = new Date()
+    twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2)
+
+    const { data: cleanupResult, error: cleanupError } = await supabase
       .from('contact_submissions')
       .delete()
-      .lt('created_at', fourMonthsAgo.toISOString())
+      .lt('created_at', twoYearsAgo.toISOString())
 
-    if (deleteError) throw deleteError
+    if (cleanupError) throw cleanupError
 
-    // Log the cleanup operation
-    const { error: logError } = await supabaseClient
-      .from('export_logs')
-      .insert({
-        export_type: 'contact_submissions_cleanup',
-        file_name: filename,
-        record_count: oldSubmissions.length,
-        exported_at: new Date().toISOString()
-      })
-
-    if (logError) {
-      console.error('Error logging cleanup:', logError)
+    const securityHeaders = {
+      ...corsHeaders,
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'X-XSS-Protection': '1; mode=block',
+      'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+      'Content-Security-Policy': "default-src 'none'",
     }
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        message: `Successfully archived and cleaned up ${oldSubmissions.length} contact submissions`,
-        filename: filename,
-        archived_count: oldSubmissions.length
-      }),
+      JSON.stringify({ success: true, message: 'Data cleanup completed' }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
+        headers: {
+          ...securityHeaders,
+          'Content-Type': 'application/json',
+        },
       }
     )
 
   } catch (error) {
-    console.error('Error in contact data cleanup:', error)
+    console.error('Data cleanup error:', error)
+    
     return new Response(
-      JSON.stringify({
-        success: false,
-        error: error.message
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
+      JSON.stringify({ error: error.message }),
+      { 
+        status: 401,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        }
       }
     )
   }

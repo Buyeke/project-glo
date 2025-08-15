@@ -1,11 +1,10 @@
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { corsHeaders } from '../_shared/cors.ts'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -14,93 +13,90 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    // Verify JWT token and admin privileges
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      throw new Error('No authorization header')
+    }
 
-    // Get all contact submissions
-    const { data: submissions, error } = await supabaseClient
+    const token = authHeader.replace('Bearer ', '')
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    
+    // Verify the JWT token
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    if (authError || !user) {
+      throw new Error('Invalid token')
+    }
+
+    // Check if user is admin
+    const { data: adminCheck, error: adminError } = await supabase
+      .from('team_members')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .eq('verified', true)
+      .single()
+
+    if (adminError || !adminCheck) {
+      throw new Error('Unauthorized: Admin access required')
+    }
+
+    // Log security event
+    await supabase.from('security_logs').insert({
+      event_type: 'data_export',
+      user_id: user.id,
+      ip_address: req.headers.get('x-forwarded-for') || 'unknown',
+      user_agent: req.headers.get('user-agent') || 'unknown',
+      details: { action: 'contact_data_export' }
+    })
+
+    // Export contact data
+    const { data: contacts, error } = await supabase
       .from('contact_submissions')
-      .select('*')
+      .select(`
+        id,
+        name,
+        email,
+        message,
+        created_at,
+        contacts (
+          phone,
+          preferred_language,
+          last_submission_timestamp
+        )
+      `)
       .order('created_at', { ascending: false })
 
     if (error) throw error
 
-    // Create CSV content
-    const csvContent = [
-      ['ID', 'Name', 'Email', 'Message', 'Status', 'Created At', 'Updated At', 'Admin Notes'].join(','),
-      ...submissions.map(sub => [
-        sub.id,
-        `"${sub.name}"`,
-        `"${sub.email}"`,
-        `"${sub.message.replace(/"/g, '""')}"`,
-        sub.status,
-        new Date(sub.created_at).toISOString(),
-        new Date(sub.updated_at).toISOString(),
-        `"${sub.admin_notes || ''}"`
-      ].join(','))
-    ].join('\n')
-
-    // Generate filename with timestamp
-    const timestamp = new Date().toISOString().split('T')[0]
-    const filename = `contact-submissions-export-${timestamp}.csv`
-
-    // Store the CSV file in Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabaseClient
-      .storage
-      .from('exports')
-      .upload(filename, csvContent, {
-        contentType: 'text/csv',
-        upsert: true
-      })
-
-    if (uploadError) throw uploadError
-
-    // Create a record of the export
-    const { error: logError } = await supabaseClient
-      .from('export_logs')
-      .insert({
-        export_type: 'contact_submissions',
-        file_name: filename,
-        record_count: submissions.length,
-        exported_at: new Date().toISOString()
-      })
-
-    if (logError) {
-      console.error('Error logging export:', logError)
+    const securityHeaders = {
+      ...corsHeaders,
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'X-XSS-Protection': '1; mode=block',
+      'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+      'Content-Security-Policy': "default-src 'none'",
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
     }
 
-    // Get public URL for the exported file
-    const { data: urlData } = supabaseClient
-      .storage
-      .from('exports')
-      .getPublicUrl(filename)
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: `Successfully exported ${submissions.length} contact submissions`,
-        filename: filename,
-        download_url: urlData.publicUrl,
-        record_count: submissions.length
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
-    )
+    return new Response(JSON.stringify(contacts), {
+      headers: {
+        ...securityHeaders,
+        'Content-Type': 'application/json',
+      },
+    })
 
   } catch (error) {
-    console.error('Error in contact data export:', error)
+    console.error('Contact data export error:', error)
+    
     return new Response(
-      JSON.stringify({
-        success: false,
-        error: error.message
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
+      JSON.stringify({ error: error.message }),
+      { 
+        status: 401,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        }
       }
     )
   }
