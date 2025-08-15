@@ -1,14 +1,15 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Shield, AlertTriangle, Activity, Eye, Search, Filter, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import type { Json } from '@/integrations/supabase/types';
+import EnhancedSecurityDashboard from './EnhancedSecurityDashboard';
 
 interface SecurityLog {
   id: string;
@@ -196,10 +197,10 @@ const SecurityPanel = () => {
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <Shield className="h-6 w-6" />
-            Security Panel
+            Security Management
           </h2>
           <p className="text-muted-foreground">
-            Monitor security events and manage rate limits
+            Comprehensive security monitoring and management
           </p>
         </div>
         <Button onClick={exportSecurityLogs}>
@@ -208,167 +209,183 @@ const SecurityPanel = () => {
         </Button>
       </div>
 
-      {/* Security Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {[
-          { 
-            label: 'Total Events', 
-            value: securityLogs.length, 
-            color: 'bg-blue-100 text-blue-800',
-            icon: Activity
-          },
-          { 
-            label: 'Failed Logins', 
-            value: securityLogs.filter(log => log.event_type === 'login_failure').length, 
-            color: 'bg-red-100 text-red-800',
-            icon: AlertTriangle
-          },
-          { 
-            label: 'Rate Limits', 
-            value: rateLimits.filter(limit => limit.blocked_until && new Date(limit.blocked_until) > new Date()).length, 
-            color: 'bg-yellow-100 text-yellow-800',
-            icon: Shield
-          },
-          { 
-            label: 'Suspicious Activity', 
-            value: securityLogs.filter(log => log.event_type === 'suspicious_activity').length, 
-            color: 'bg-orange-100 text-orange-800',
-            icon: Eye
-          }
-        ].map((stat) => (
-          <Card key={stat.label}>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
-                  <p className="text-2xl font-bold">{stat.value}</p>
-                </div>
-                <stat.icon className="h-8 w-8 text-primary" />
+      <Tabs defaultValue="dashboard" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="dashboard">Enhanced Dashboard</TabsTrigger>
+          <TabsTrigger value="logs">Security Logs</TabsTrigger>
+          <TabsTrigger value="limits">Rate Limits</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="dashboard" className="space-y-6">
+          <EnhancedSecurityDashboard />
+        </TabsContent>
+
+        <TabsContent value="logs" className="space-y-6">
+          {/* Security Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {[
+              { 
+                label: 'Total Events', 
+                value: securityLogs.length, 
+                color: 'bg-blue-100 text-blue-800',
+                icon: Activity
+              },
+              { 
+                label: 'Failed Logins', 
+                value: securityLogs.filter(log => log.event_type === 'login_failure').length, 
+                color: 'bg-red-100 text-red-800',
+                icon: AlertTriangle
+              },
+              { 
+                label: 'Rate Limits', 
+                value: rateLimits.filter(limit => limit.blocked_until && new Date(limit.blocked_until) > new Date()).length, 
+                color: 'bg-yellow-100 text-yellow-800',
+                icon: Shield
+              },
+              { 
+                label: 'Suspicious Activity', 
+                value: securityLogs.filter(log => log.event_type === 'suspicious_activity').length, 
+                color: 'bg-orange-100 text-orange-800',
+                icon: Eye
+              }
+            ].map((stat) => (
+              <Card key={stat.label}>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
+                      <p className="text-2xl font-bold">{stat.value}</p>
+                    </div>
+                    <stat.icon className="h-8 w-8 text-primary" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Filters */}
+          <div className="flex gap-4 items-center">
+            <div className="flex items-center gap-2">
+              <Search className="h-4 w-4" />
+              <Input
+                placeholder="Search logs..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-64"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4" />
+              <Select value={eventTypeFilter} onValueChange={setEventTypeFilter}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Event Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Events</SelectItem>
+                  <SelectItem value="login_attempt">Login Attempts</SelectItem>
+                  <SelectItem value="login_failure">Login Failures</SelectItem>
+                  <SelectItem value="contact_submission">Contact Submissions</SelectItem>
+                  <SelectItem value="rate_limit_exceeded">Rate Limits</SelectItem>
+                  <SelectItem value="suspicious_activity">Suspicious Activity</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Select value={timeFilter} onValueChange={setTimeFilter}>
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Time" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1h">Last Hour</SelectItem>
+                <SelectItem value="24h">Last 24h</SelectItem>
+                <SelectItem value="7d">Last 7 days</SelectItem>
+                <SelectItem value="all">All Time</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Security Logs */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Security Logs</CardTitle>
+              <CardDescription>
+                Recent security events and activities
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {filteredLogs.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">No security logs found</p>
+                ) : (
+                  filteredLogs.map((log) => (
+                    <div key={log.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center gap-4">
+                        <Badge className={getEventTypeColor(log.event_type)}>
+                          {log.event_type.replace('_', ' ')}
+                        </Badge>
+                        <div>
+                          <p className="font-medium">
+                            {new Date(log.created_at).toLocaleString()}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            IP: {log.ip_address || 'N/A'} | User: {log.user_id || 'Anonymous'}
+                          </p>
+                          {log.event_data && (
+                            <p className="text-sm text-muted-foreground">
+                              {formatEventData(log.event_data)}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
+        </TabsContent>
 
-      {/* Filters */}
-      <div className="flex gap-4 items-center">
-        <div className="flex items-center gap-2">
-          <Search className="h-4 w-4" />
-          <Input
-            placeholder="Search logs..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-64"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4" />
-          <Select value={eventTypeFilter} onValueChange={setEventTypeFilter}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Event Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Events</SelectItem>
-              <SelectItem value="login_attempt">Login Attempts</SelectItem>
-              <SelectItem value="login_failure">Login Failures</SelectItem>
-              <SelectItem value="contact_submission">Contact Submissions</SelectItem>
-              <SelectItem value="rate_limit_exceeded">Rate Limits</SelectItem>
-              <SelectItem value="suspicious_activity">Suspicious Activity</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <Select value={timeFilter} onValueChange={setTimeFilter}>
-          <SelectTrigger className="w-32">
-            <SelectValue placeholder="Time" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="1h">Last Hour</SelectItem>
-            <SelectItem value="24h">Last 24h</SelectItem>
-            <SelectItem value="7d">Last 7 days</SelectItem>
-            <SelectItem value="all">All Time</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Security Logs */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Security Logs</CardTitle>
-          <CardDescription>
-            Recent security events and activities
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {filteredLogs.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">No security logs found</p>
-            ) : (
-              filteredLogs.map((log) => (
-                <div key={log.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-4">
-                    <Badge className={getEventTypeColor(log.event_type)}>
-                      {log.event_type.replace('_', ' ')}
-                    </Badge>
-                    <div>
-                      <p className="font-medium">
-                        {new Date(log.created_at).toLocaleString()}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        IP: {log.ip_address || 'N/A'} | User: {log.user_id || 'Anonymous'}
-                      </p>
-                      {log.event_data && (
-                        <p className="text-sm text-muted-foreground">
-                          {formatEventData(log.event_data)}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Rate Limits */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Active Rate Limits</CardTitle>
-          <CardDescription>
-            Currently active rate limits and blocked IPs
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {rateLimits.filter(limit => limit.blocked_until && new Date(limit.blocked_until) > new Date()).length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">No active rate limits</p>
-            ) : (
-              rateLimits
-                .filter(limit => limit.blocked_until && new Date(limit.blocked_until) > new Date())
-                .map((limit) => (
-                  <div key={limit.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <p className="font-medium">{limit.identifier}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Action: {limit.action_type} | Attempts: {limit.attempt_count}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Blocked until: {new Date(limit.blocked_until!).toLocaleString()}
-                      </p>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => clearRateLimit(limit.id)}
-                    >
-                      Clear
-                    </Button>
-                  </div>
-                ))
-            )}
-          </div>
-        </CardContent>
-      </Card>
+        <TabsContent value="limits" className="space-y-6">
+          {/* Rate Limits */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Active Rate Limits</CardTitle>
+              <CardDescription>
+                Currently active rate limits and blocked IPs
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {rateLimits.filter(limit => limit.blocked_until && new Date(limit.blocked_until) > new Date()).length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">No active rate limits</p>
+                ) : (
+                  rateLimits
+                    .filter(limit => limit.blocked_until && new Date(limit.blocked_until) > new Date())
+                    .map((limit) => (
+                      <div key={limit.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <p className="font-medium">{limit.identifier}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Action: {limit.action_type} | Attempts: {limit.attempt_count}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Blocked until: {new Date(limit.blocked_until!).toLocaleString()}
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => clearRateLimit(limit.id)}
+                        >
+                          Clear
+                        </Button>
+                      </div>
+                    ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
