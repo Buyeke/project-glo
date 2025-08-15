@@ -470,7 +470,7 @@ export type Database = {
           applicant_email: string | null
           applicant_name: string
           applicant_phone: string | null
-          applicant_user_id: string | null
+          applicant_user_id: string
           applied_at: string | null
           cover_message: string | null
           id: string
@@ -480,7 +480,7 @@ export type Database = {
           applicant_email?: string | null
           applicant_name: string
           applicant_phone?: string | null
-          applicant_user_id?: string | null
+          applicant_user_id: string
           applied_at?: string | null
           cover_message?: string | null
           id?: string
@@ -490,7 +490,7 @@ export type Database = {
           applicant_email?: string | null
           applicant_name?: string
           applicant_phone?: string | null
-          applicant_user_id?: string | null
+          applicant_user_id?: string
           applied_at?: string | null
           cover_message?: string | null
           id?: string
