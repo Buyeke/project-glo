@@ -16,19 +16,17 @@ interface SecurityLog {
   user_id?: string;
   ip_address: string;
   user_agent: string;
-  details: any;
+  event_data: any;
   created_at: string;
-  severity: string;
 }
 
 const SecurityMonitoring = () => {
   const [filterType, setFilterType] = useState<string>('all');
-  const [filterSeverity, setFilterSeverity] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
   const { data: securityLogs = [], isLoading, refetch } = useQuery({
-    queryKey: ['security-logs', filterType, filterSeverity, searchTerm],
-    queryFn: async () => {
+    queryKey: ['security-logs', filterType, searchTerm],
+    queryFn: async (): Promise<SecurityLog[]> => {
       let query = supabase
         .from('security_logs')
         .select('*')
@@ -39,58 +37,78 @@ const SecurityMonitoring = () => {
         query = query.eq('event_type', filterType);
       }
 
-      if (filterSeverity !== 'all') {
-        query = query.eq('severity', filterSeverity);
-      }
-
       if (searchTerm) {
         query = query.or(`ip_address.ilike.%${searchTerm}%,user_agent.ilike.%${searchTerm}%`);
       }
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as SecurityLog[];
+      return data || [];
     },
   });
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'critical': return 'bg-red-100 text-red-800';
-      case 'high': return 'bg-orange-100 text-orange-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const getSeverityColor = (eventType: string) => {
+    switch (eventType) {
+      case 'login_failure':
+      case 'unauthorized_access':
+        return 'bg-red-100 text-red-800';
+      case 'suspicious_activity':
+      case 'rate_limit_exceeded':
+        return 'bg-orange-100 text-orange-800';
+      case 'admin_access':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'login_success':
+      case 'contact_submission':
+        return 'bg-blue-100 text-blue-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getEventIcon = (eventType: string) => {
     switch (eventType) {
-      case 'failed_login':
+      case 'login_failure':
       case 'suspicious_activity':
+      case 'unauthorized_access':
         return <AlertTriangle className="h-4 w-4 text-red-500" />;
-      case 'admin_action':
-      case 'data_export':
-        return <Shield className="h-4 w-4 text-blue-500" />;
+      case 'admin_access':
+      case 'rate_limit_exceeded':
+        return <Shield className="h-4 w-4 text-orange-500" />;
+      case 'login_success':
+        return <Shield className="h-4 w-4 text-green-500" />;
       default:
         return <Eye className="h-4 w-4 text-gray-500" />;
     }
   };
 
+  const getSeverityLabel = (eventType: string) => {
+    switch (eventType) {
+      case 'login_failure':
+      case 'unauthorized_access':
+        return 'High';
+      case 'suspicious_activity':
+      case 'rate_limit_exceeded':
+        return 'Medium';
+      case 'admin_access':
+        return 'Low';
+      case 'login_success':
+      case 'contact_submission':
+        return 'Info';
+      default:
+        return 'Low';
+    }
+  };
+
   const eventTypeOptions = [
     { value: 'all', label: 'All Events' },
-    { value: 'failed_login', label: 'Failed Logins' },
-    { value: 'suspicious_activity', label: 'Suspicious Activity' },
-    { value: 'admin_action', label: 'Admin Actions' },
-    { value: 'data_export', label: 'Data Exports' },
+    { value: 'login_attempt', label: 'Login Attempts' },
+    { value: 'login_success', label: 'Successful Logins' },
+    { value: 'login_failure', label: 'Failed Logins' },
+    { value: 'admin_access', label: 'Admin Access' },
+    { value: 'contact_submission', label: 'Contact Submissions' },
     { value: 'rate_limit_exceeded', label: 'Rate Limit Exceeded' },
-  ];
-
-  const severityOptions = [
-    { value: 'all', label: 'All Severities' },
-    { value: 'critical', label: 'Critical' },
-    { value: 'high', label: 'High' },
-    { value: 'medium', label: 'Medium' },
-    { value: 'low', label: 'Low' },
+    { value: 'suspicious_activity', label: 'Suspicious Activity' },
+    { value: 'unauthorized_access', label: 'Unauthorized Access' },
   ];
 
   return (
@@ -115,7 +133,7 @@ const SecurityMonitoring = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Event Type</label>
               <Select value={filterType} onValueChange={setFilterType}>
@@ -124,22 +142,6 @@ const SecurityMonitoring = () => {
                 </SelectTrigger>
                 <SelectContent>
                   {eventTypeOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Severity</label>
-              <Select value={filterSeverity} onValueChange={setFilterSeverity}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {severityOptions.map(option => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>
@@ -192,25 +194,25 @@ const SecurityMonitoring = () => {
                         </div>
                       </div>
                     </div>
-                    <Badge className={getSeverityColor(log.severity)}>
-                      {log.severity}
+                    <Badge className={getSeverityColor(log.event_type)}>
+                      {getSeverityLabel(log.event_type)}
                     </Badge>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="font-medium">IP Address:</span> {log.ip_address}
+                      <span className="font-medium">IP Address:</span> {log.ip_address || 'Unknown'}
                     </div>
                     <div>
                       <span className="font-medium">User ID:</span> {log.user_id || 'Anonymous'}
                     </div>
                   </div>
 
-                  {log.details && (
+                  {log.event_data && (
                     <div className="bg-muted p-3 rounded-md">
                       <div className="font-medium text-sm mb-2">Event Details:</div>
                       <pre className="text-xs text-muted-foreground overflow-x-auto">
-                        {JSON.stringify(log.details, null, 2)}
+                        {JSON.stringify(log.event_data, null, 2)}
                       </pre>
                     </div>
                   )}
@@ -218,7 +220,7 @@ const SecurityMonitoring = () => {
                   <div className="text-xs text-muted-foreground border-t pt-2">
                     <div className="flex items-center gap-2">
                       <Clock className="h-3 w-3" />
-                      <span>User Agent: {log.user_agent}</span>
+                      <span>User Agent: {log.user_agent || 'Unknown'}</span>
                     </div>
                   </div>
                 </div>
