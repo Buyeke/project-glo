@@ -117,15 +117,17 @@ const Contact = () => {
         sanitizedData.message
       );
 
-      // Check for duplicate submission
-      const { data: existingSubmission } = await supabase
-        .from('contact_submissions')
-        .select('id')
-        .eq('submission_hash', submissionHash)
-        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // Last 24 hours
-        .single();
+      // Check for duplicate submission using secure function
+      const { data: isDuplicate, error: duplicateError } = await supabase
+        .rpc('check_duplicate_submission', { 
+          p_submission_hash: submissionHash 
+        });
 
-      if (existingSubmission) {
+      if (duplicateError) {
+        console.error('Error checking duplicate:', duplicateError);
+      }
+
+      if (isDuplicate) {
         toast({
           title: "Duplicate submission detected",
           description: "You have already submitted this message recently.",

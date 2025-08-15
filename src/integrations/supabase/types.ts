@@ -1732,6 +1732,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_duplicate_submission: {
+        Args: { p_submission_hash: string }
+        Returns: boolean
+      }
       expire_old_jobs: {
         Args: Record<PropertyKey, never>
         Returns: undefined
