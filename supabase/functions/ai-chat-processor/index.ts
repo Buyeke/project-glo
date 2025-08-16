@@ -4,8 +4,9 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://fznhhkxwzqipwfwihwqr.supabase.co',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 serve(async (req) => {
@@ -14,17 +15,73 @@ serve(async (req) => {
   }
 
   try {
+    // Get authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Authorization header required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    
+    // Verify JWT token with service role client
+    const supabaseAuth = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.log('Authentication failed:', authError?.message);
+      return new Response(
+        JSON.stringify({ error: 'Invalid or expired token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check rate limit for authenticated user
+    const clientIP = req.headers.get('cf-connecting-ip') || 
+                    req.headers.get('x-forwarded-for')?.split(',')[0] || 
+                    'unknown';
+
+    const rateLimitResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/rate-limit-check`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
+      },
+      body: JSON.stringify({
+        identifier: user.id,
+        actionType: 'ai_chat',
+        clientIP
+      })
+    });
+
+    const rateLimitResult = await rateLimitResponse.json();
+    if (!rateLimitResult.allowed) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Rate limit exceeded',
+          resetTime: rateLimitResult.resetTime 
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { message, conversationHistory, language = 'sheng', knowledgeContext = '' } = await req.json();
     
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    
     if (!openAIApiKey) {
       throw new Error('OpenAI API key not configured');
     }
 
-    const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
 
     // Get available services and intents for context
     const { data: services } = await supabase
@@ -249,11 +306,24 @@ Consider:
       return serviceMatch || knowledgeMatch;
     }).slice(0, 3) || [];
 
+    // Log interaction for security monitoring
+    await supabase.from('security_logs').insert({
+      event_type: 'ai_chat_interaction',
+      user_id: user.id,
+      event_data: {
+        intent: analysis.intent,
+        urgency: analysis.urgency,
+        emotional_state: analysis.emotional_state,
+        requires_human: analysis.requires_human,
+        trauma_indicators: analysis.trauma_indicators,
+        safety_concerns: analysis.safety_concerns
+      },
+      ip_address: clientIP
+    });
+
     console.log('Enhanced Trauma-informed AI Analysis:', analysis);
     console.log('Matched Services:', matchedServices.length);
-    console.log('Sheng Expressions Detected:', analysis.sheng_expressions_detected);
-    console.log('Urgency Level:', analysis.urgency);
-    console.log('Immediate Intervention Needed:', analysis.immediate_intervention_needed);
+    console.log('User ID:', user.id);
 
     return new Response(JSON.stringify({
       response: aiResponse,

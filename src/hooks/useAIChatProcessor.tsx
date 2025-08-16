@@ -37,8 +37,18 @@ export const useAIChatProcessor = () => {
     mutationFn: async (request: AIProcessorRequest): Promise<AIProcessorResponse> => {
       console.log('Processing message with AI:', request.message);
       
+      // Get current session to include JWT token
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('Authentication required for AI processing');
+      }
+
       const { data, error } = await supabase.functions.invoke('ai-chat-processor', {
-        body: request
+        body: request,
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
       });
 
       if (error) {
@@ -56,7 +66,13 @@ export const useAIChatProcessor = () => {
     },
     onError: (error) => {
       console.error('AI chat processing failed:', error);
-      toast.error('AI processing failed, falling back to basic responses');
+      if (error.message.includes('Authentication')) {
+        toast.error('Please sign in to use AI chat features');
+      } else if (error.message.includes('Rate limit')) {
+        toast.error('Too many requests. Please wait before trying again.');
+      } else {
+        toast.error('AI processing failed, falling back to basic responses');
+      }
     },
   });
 

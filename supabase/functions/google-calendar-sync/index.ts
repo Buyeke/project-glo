@@ -3,8 +3,9 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://fznhhkxwzqipwfwihwqr.supabase.co',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
 interface BookingData {
@@ -20,7 +21,48 @@ serve(async (req) => {
   }
 
   try {
+    // Verify authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Authorization required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const supabaseAuth = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token);
+    
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid or expired token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { action, booking, eventId } = await req.json()
+    
+    // Verify user authorization - user can only manage their own bookings or admins can manage all
+    if (booking && booking.user_id !== user.id) {
+      // Check if user is admin
+      const { data: profile } = await supabaseAuth
+        .from('profiles')
+        .select('user_type')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile || profile.user_type !== 'admin') {
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized to manage this booking' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
     
     // Initialize Google Calendar API (you'll need to set up OAuth2)
     const calendarId = Deno.env.get('GOOGLE_CALENDAR_ID') || 'primary'
@@ -70,6 +112,18 @@ serve(async (req) => {
 
       const createdEvent = await response.json()
       
+      // Log calendar event creation
+      await supabaseAuth.from('security_logs').insert({
+        event_type: 'admin_access',
+        user_id: user.id,
+        event_data: {
+          action: 'calendar_event_created',
+          booking_id: booking.id,
+          event_id: createdEvent.id
+        },
+        ip_address: req.headers.get('cf-connecting-ip') || 'unknown'
+      });
+      
       return new Response(
         JSON.stringify({ eventId: createdEvent.id }),
         { 
@@ -94,6 +148,17 @@ serve(async (req) => {
       if (!response.ok && response.status !== 404) {
         throw new Error(`Google Calendar API error: ${response.statusText}`)
       }
+
+      // Log calendar event cancellation
+      await supabaseAuth.from('security_logs').insert({
+        event_type: 'admin_access',
+        user_id: user.id,
+        event_data: {
+          action: 'calendar_event_cancelled',
+          event_id: eventId
+        },
+        ip_address: req.headers.get('cf-connecting-ip') || 'unknown'
+      });
 
       return new Response(
         JSON.stringify({ success: true }),

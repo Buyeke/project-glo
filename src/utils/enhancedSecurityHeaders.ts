@@ -5,21 +5,21 @@ export const getSecurityHeaders = () => {
     // Content Security Policy - prevents XSS attacks
     'Content-Security-Policy': [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.supabase.co https://unpkg.com",
+      "script-src 'self' https://js.supabase.co",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: https: blob:",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.ipify.org",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.ipify.org https://api.openai.com https://api.elevenlabs.io",
       "media-src 'self' blob:",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
-      "frame-ancestors 'none'",
+      "frame-ancestors 'self'",
       "upgrade-insecure-requests"
     ].join('; '),
     
     // Prevent clickjacking attacks
-    'X-Frame-Options': 'DENY',
+    'X-Frame-Options': 'SAMEORIGIN',
     
     // Prevent MIME type sniffing
     'X-Content-Type-Options': 'nosniff',
@@ -33,9 +33,11 @@ export const getSecurityHeaders = () => {
     // Permissions policy
     'Permissions-Policy': [
       'camera=()',
-      'microphone=(*)',
+      'microphone=(self)',
       'geolocation=()',
-      'interest-cohort=()'
+      'interest-cohort=()',
+      'payment=()',
+      'usb=()'
     ].join(', '),
     
     // Strict transport security (HTTPS only)
@@ -56,6 +58,6 @@ export const applySecurityHeaders = () => {
     }
     
     // Log security headers application
-    console.log('Security headers applied:', Object.keys(headers));
+    console.log('Enhanced security headers applied:', Object.keys(headers));
   }
 };
