@@ -1,158 +1,277 @@
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Heart, Users, Globe, Shield, Mail, Users as UsersIcon } from "lucide-react";
-import TeamSection from "@/components/TeamSection";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Heart, Users, Globe, ArrowRight, BookOpen } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const About = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
-      <div className="container mx-auto px-4 py-12">
-        {/* Hero Section */}
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-            About Project GLO
+    <div className="min-h-screen bg-background">
+      {/* Hero Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
+            About Project Glo
           </h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            We're building a world where AI-powered support connects vulnerable communities 
-            with the resources they need, when they need them most.
+          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+            An AI-powered platform connecting homeless women and children in Kenya 
+            to trauma-informed care and support services through inclusive, ethical technology.
           </p>
         </div>
+      </section>
 
-        {/* Mission Section */}
-        <div className="grid md:grid-cols-2 gap-12 mb-16">
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Heart className="h-6 w-6 text-red-500" />
-                Our Mission
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground leading-relaxed">
-                Project GLO exists to bridge the gap between those who need support and the 
-                organizations that can provide it. Through innovative AI technology and 
-                community-driven solutions, we create pathways to assistance that are 
-                accessible, culturally sensitive, and effective.
-              </p>
-            </CardContent>
-          </Card>
+      {/* Mission & Vision */}
+      <section className="py-16 bg-background">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-2 gap-12">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl text-center">Our Mission</CardTitle>
+              </CardHeader>
+              <CardContent className="text-center">
+                <p className="text-muted-foreground leading-relaxed">
+                  To build inclusive, ethical technologies rooted in care and community that 
+                  connect vulnerable women and children to trauma-informed support services, 
+                  reimagining how systems serve and who they're built for.
+                </p>
+              </CardContent>
+            </Card>
 
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Globe className="h-6 w-6 text-blue-500" />
-                Our Vision
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground leading-relaxed">
-                We envision a future where no one falls through the cracks of support systems. 
-                A world where technology serves humanity by making help more accessible, 
-                efficient, and dignified for everyone, regardless of their circumstances.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Values Section */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-8">Our Core Values</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: <Shield className="h-8 w-8 text-green-500" />,
-                title: "Privacy & Security",
-                description: "We prioritize the protection of user data and maintain the highest standards of privacy and security in all our operations."
-              },
-              {
-                icon: <Users className="h-8 w-8 text-purple-500" />,
-                title: "Community-Centered",
-                description: "Our solutions are designed with and for the communities we serve, ensuring cultural sensitivity and local relevance."
-              },
-              {
-                icon: <Heart className="h-8 w-8 text-red-500" />,
-                title: "Dignity & Respect",
-                description: "Every interaction is built on respect for human dignity, treating each person with the care and consideration they deserve."
-              }
-            ].map((value, index) => (
-              <Card key={index} className="text-center border-0 shadow-lg">
-                <CardHeader>
-                  <div className="flex justify-center mb-4">{value.icon}</div>
-                  <CardTitle>{value.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">{value.description}</p>
-                </CardContent>
-              </Card>
-            ))}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl text-center">Our Vision</CardTitle>
+              </CardHeader>
+              <CardContent className="text-center">
+                <p className="text-muted-foreground leading-relaxed">
+                  A world where AI serves everyone, especially the most vulnerable, 
+                  through community-centered design that advances social justice 
+                  and digital equity for all.
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
+      </section>
 
-        {/* Impact Section */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-8">Our Impact</h2>
-          <div className="grid md:grid-cols-4 gap-6">
-            {[
-              { number: "10,000+", label: "People Connected to Resources" },
-              { number: "500+", label: "Partner Organizations" },
-              { number: "50+", label: "Communities Served" },
-              { number: "15", label: "Languages Supported" }
-            ].map((stat, index) => (
-              <Card key={index} className="text-center border-0 shadow-lg">
-                <CardContent className="p-6">
-                  <div className="text-3xl font-bold text-primary mb-2">{stat.number}</div>
-                  <p className="text-muted-foreground">{stat.label}</p>
-                </CardContent>
-              </Card>
-            ))}
+      {/* Impact Statistics */}
+      <section className="py-16 bg-muted/30">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground mb-4">Our Impact</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Supporting vulnerable communities through technology and care
+            </p>
           </div>
-        </div>
-
-        {/* Contact Information */}
-        <Card className="mb-16 border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Mail className="h-6 w-6 text-blue-500" />
-              Get in Touch
-            </CardTitle>
-            <CardDescription>
-              We're here to help and answer any questions you may have
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-8">
-              <div>
-                <h4 className="font-semibold mb-2 flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
-                  General Inquiries
-                </h4>
-                <p className="text-muted-foreground mb-4">
-                  For general questions, support requests, or information about our services:
-                </p>
-                <Badge variant="outline" className="text-sm">
-                  info@projectglo.org
-                </Badge>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2 flex items-center gap-2">
-                  <UsersIcon className="h-4 w-4" />
-                  Partnerships & Grants
-                </h4>
-                <p className="text-muted-foreground mb-4">
-                  For partnership opportunities, grant applications, or collaboration inquiries:
-                </p>
-                <Badge variant="outline" className="text-sm">
-                  founder@projectglo.org
-                </Badge>
-              </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="text-center">
+              <div className="text-4xl font-bold text-primary mb-2">300</div>
+              <p className="text-lg text-muted-foreground">Women Supported</p>
             </div>
-          </CardContent>
-        </Card>
+            <div className="text-center">
+              <div className="text-4xl font-bold text-primary mb-2">24/7</div>
+              <p className="text-lg text-muted-foreground">AI Support Available</p>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl font-bold text-primary mb-2">100%</div>
+              <p className="text-lg text-muted-foreground">Trauma-Informed</p>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl font-bold text-primary mb-2">2024</div>
+              <p className="text-lg text-muted-foreground">Founded</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-        {/* Team Section */}
-        <TeamSection />
-      </div>
+      {/* Core Values */}
+      <section className="py-16 bg-background">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground mb-4">Our Values</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              The principles that guide our work and shape our technology
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <Card className="text-center">
+              <CardHeader>
+                <Heart className="h-12 w-12 text-primary mx-auto mb-4" />
+                <CardTitle>Trauma-Informed Care</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Every interaction is designed with trauma-informed principles, 
+                  ensuring safety, trustworthiness, and cultural humility in all our services.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center">
+              <CardHeader>
+                <Users className="h-12 w-12 text-primary mx-auto mb-4" />
+                <CardTitle>Community-Centered</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Our technology is built with and for communities, prioritizing 
+                  local knowledge, cultural context, and community ownership.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center">
+              <CardHeader>
+                <Globe className="h-12 w-12 text-primary mx-auto mb-4" />
+                <CardTitle>Digital Equity</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  We work to bridge digital divides and ensure that technology 
+                  serves as a tool for empowerment, not exclusion.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Research Focus */}
+      <section className="py-16 bg-muted/30">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl font-bold text-foreground mb-6">Our Research Focus</h2>
+          <p className="text-lg text-muted-foreground leading-relaxed mb-8">
+            Project Glo's work is grounded in interdisciplinary research that explores 
+            the intersection of technology, social justice, and community empowerment.
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardContent className="p-6 text-center">
+                <h3 className="font-semibold text-foreground mb-2">Gendered Power & Technology</h3>
+                <p className="text-sm text-muted-foreground">
+                  Examining how gender dynamics shape technology access and design
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-6 text-center">
+                <h3 className="font-semibold text-foreground mb-2">Afro-Feminist Urban Design</h3>
+                <p className="text-sm text-muted-foreground">
+                  Reimagining city spaces through an Afro-feminist lens
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-6 text-center">
+                <h3 className="font-semibold text-foreground mb-2">AI & Social Justice</h3>
+                <p className="text-sm text-muted-foreground">
+                  Building ethical AI systems that advance equity and justice
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-6 text-center">
+                <h3 className="font-semibold text-foreground mb-2">Digital Equity</h3>
+                <p className="text-sm text-muted-foreground">
+                  Ensuring technology serves everyone, especially the marginalized
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Founder Information */}
+      <section className="py-16 bg-background">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl font-bold text-foreground mb-6">Leadership & Vision</h2>
+          <p className="text-lg text-muted-foreground leading-relaxed mb-8">
+            Project Glo was founded with a vision to reimagine how technology can serve 
+            vulnerable communities with dignity, care, and cultural understanding.
+          </p>
+          
+          <Card className="bg-muted/30">
+            <CardContent className="p-8">
+              <p className="text-muted-foreground leading-relaxed mb-6">
+                Our founder brings together expertise in technology, poetry, and community organizing 
+                as a 2024 OBREAL & AAU Fellow, committed to building systems that truly serve 
+                those who need them most.
+              </p>
+              
+              <Button variant="outline" asChild>
+                <Link to="/blog" className="inline-flex items-center">
+                  <BookOpen className="mr-2 h-4 w-4" />
+                  Meet Our Founder in the Blog
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Partnership */}
+      <section className="py-16 bg-muted/30">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl font-bold text-foreground mb-6">Our Partners</h2>
+          <p className="text-lg text-muted-foreground mb-8">
+            Working together to advance inclusive technology and community empowerment
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardContent className="p-6 text-center">
+                <h3 className="text-xl font-semibold text-foreground mb-2">
+                  The Co-operative University of Kenya
+                </h3>
+                <p className="text-muted-foreground">
+                  Academic partnership supporting research and community engagement
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-6 text-center">
+                <h3 className="text-xl font-semibold text-foreground mb-2">
+                  OBREAL (Spain)
+                </h3>
+                <p className="text-muted-foreground">
+                  International collaboration advancing educational and research excellence
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Call to Action */}
+      <section className="py-16 bg-background">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Card className="bg-primary text-primary-foreground">
+            <CardContent className="p-8 text-center">
+              <h2 className="text-2xl font-bold mb-4">Join Our Mission</h2>
+              <p className="text-lg mb-6 opacity-90">
+                Whether you need support or want to contribute to our work, 
+                we're here to connect and collaborate.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button variant="secondary" size="lg" asChild>
+                  <Link to="/contact">
+                    Get In Touch <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button variant="outline" size="lg" className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary" asChild>
+                  <Link to="/services">Explore Services</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
     </div>
   );
 };

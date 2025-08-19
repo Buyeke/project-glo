@@ -1,352 +1,180 @@
 
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Heart, Users, Home as HomeIcon, Search, Shield, MapPin, Sun, Moon } from 'lucide-react';
-import TeamSection from '@/components/TeamSection';
-import TextToSpeech from '@/components/TextToSpeech';
-import { useContentValue } from '@/hooks/useSiteContent';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Heart, Users, Shield, Globe, ArrowRight, CheckCircle } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Home = () => {
-  const [calmMode, setCalmMode] = useState(false);
-
-  // Dynamic content values
-  const heroTitle = useContentValue('hero_title', { text: 'Empowering Women & Children' });
-  const heroSubtitle = useContentValue('hero_subtitle', { text: 'GLO is an AI-powered safety net for women and children—offering multilingual support, dignity, and hope.' });
-  const heroLocationInfo = useContentValue('hero_location_info', { text: 'Serving Mombasa County (In-person & Virtual Services Available)' });
-  const heroMeetingInfo = useContentValue('hero_meeting_info', { text: 'Once your registration is confirmed, we will send you a personalized virtual meeting link via email or WhatsApp within 24 hours.' });
-  
-  const aboutTitle = useContentValue('about_title', { text: 'About GLO' });
-  const aboutDescription = useContentValue('about_description', { text: 'GLO is a project using AI to deliver trauma-informed care, housing, and support to women and children in need. We connect vulnerable individuals with trusted local organizations through intelligent matching and multilingual support.' });
-  
-  const partnerCount = useContentValue('partner_count', { text: 'Trusted by 12+ local shelters' });
-  const serviceArea = useContentValue('service_area', { text: 'Serving Mombasa County and surrounding areas' });
-  
-  const ctaPrimaryTitle = useContentValue('cta_primary_title', { text: 'Ready to Get Started?' });
-  const ctaPrimarySubtitle = useContentValue('cta_primary_subtitle', { text: 'Whether you need support or want to help others, we\'re here for you.' });
-  const ctaNetworkTitle = useContentValue('cta_network_title', { text: 'Are you a therapist, legal expert, or NGO who wants to help?' });
-
-  const toggleCalmMode = () => {
-    setCalmMode(!calmMode);
-    document.documentElement.classList.toggle('calm-mode');
-  };
-
-  const stats = [
-    { 
-      number: useContentValue('stats_users_supported', { number: '50+', label: 'Women Supported' }).number,
-      label: useContentValue('stats_users_supported', { number: '50+', label: 'Women Supported' }).label,
-      icon: Users 
-    },
-    { 
-      number: useContentValue('stats_children_helped', { number: '100+', label: 'Children Helped' }).number,
-      label: useContentValue('stats_children_helped', { number: '100+', label: 'Children Helped' }).label,
-      icon: Heart 
-    },
-    { 
-      number: useContentValue('stats_trusted_partners', { number: '12+', label: 'Trusted Partners' }).number,
-      label: useContentValue('stats_trusted_partners', { number: '12+', label: 'Trusted Partners' }).label,
-      icon: HomeIcon 
-    },
-    { 
-      number: useContentValue('stats_ai_support', { number: '24/7', label: 'AI Support' }).number,
-      label: useContentValue('stats_ai_support', { number: '24/7', label: 'AI Support' }).label,
-      icon: Search 
-    },
-  ];
-
-  const services = [
-    {
-      title: useContentValue('service_emergency_title', { text: 'Emergency Shelter' }).text,
-      description: useContentValue('service_emergency_desc', { text: 'Immediate safe housing and emergency accommodation' }).text,
-      icon: HomeIcon,
-    },
-    {
-      title: useContentValue('service_job_title', { text: 'Job Placement' }).text,
-      description: useContentValue('service_job_desc', { text: 'Employment opportunities and career development' }).text,
-      icon: Search,
-    },
-    {
-      title: useContentValue('service_mental_title', { text: 'Mental Health Support' }).text,
-      description: useContentValue('service_mental_desc', { text: 'Counseling, therapy, and emotional wellbeing services' }).text,
-      icon: Heart,
-    },
-    {
-      title: useContentValue('service_ai_title', { text: 'AI-Powered Guidance' }).text,
-      description: useContentValue('service_ai_desc', { text: '24/7 intelligent assistance and resource matching' }).text,
-      icon: Search,
-    },
-  ];
-
   return (
-    <TooltipProvider>
-      <div className="min-h-screen bg-background">
-        {/* Calm Mode Toggle with Improved Tooltip */}
-        <div className="fixed top-20 right-4 z-50">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={toggleCalmMode}
-                className="bg-card border-border text-foreground hover:bg-muted"
-              >
-                {calmMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                <span className="ml-2 text-xs">{calmMode ? 'Normal' : 'Calm'} Mode</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Switch to a calmer visual experience for trauma-sensitive users.</p>
-            </TooltipContent>
-          </Tooltip>
+    <div className="min-h-screen">
+      {/* Hero Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-background">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6">
+            Empowering Communities Through AI-Driven Care
+          </h1>
+          <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+            Project Glo connects homeless women and children in Kenya to trauma-informed care and support services through inclusive, ethical AI technology.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button asChild size="lg" className="bg-primary hover:bg-primary/90">
+              <Link to="/contact">Get Support</Link>
+            </Button>
+            <Button variant="outline" size="lg" asChild>
+              <Link to="/about">Learn More</Link>
+            </Button>
+          </div>
         </div>
+      </section>
 
-        {/* Hero Section */}
-        <section className={calmMode ? "hero-calm py-20 lg:py-28" : "hero-section py-20 lg:py-28"}>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-              {/* Left Column - Content */}
-              <div className="space-y-8">
-                <div className="space-y-6">
-                  <div className="flex items-start gap-2">
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight animate-soft-fade text-foreground flex-1" style={{ color: '#2E2E2E' }}>
-                      {heroTitle.text}
-                    </h1>
-                    <TextToSpeech text={heroTitle.text} className="mt-2" />
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <p className="text-lg md:text-xl leading-relaxed animate-soft-fade-delay text-muted-foreground flex-1">
-                      {heroSubtitle.text}
-                    </p>
-                    <TextToSpeech text={heroSubtitle.text} className="mt-2" />
-                  </div>
-                  <div className="bg-card rounded-lg p-6 border border-border animate-soft-fade-delay">
-                    <div className="flex items-start gap-2">
-                      <div className="flex-1">
-                        <p className="text-base font-medium mb-3 text-foreground" style={{ color: '#2E2E2E' }}>
-                          You're not alone. Glo connects you to real help, fast.
-                        </p>
-                        <div className="flex items-start gap-3 text-sm">
-                          <MapPin className="h-4 w-4 mt-1 flex-shrink-0 text-secondary" />
-                          <div className="text-muted-foreground">
-                            <p className="font-medium">{heroLocationInfo.text}</p>
-                            <p className="mt-2">{heroMeetingInfo.text}</p>
-                          </div>
-                        </div>
-                      </div>
-                      <TextToSpeech text={`You're not alone. Glo connects you to real help, fast. ${heroLocationInfo.text} ${heroMeetingInfo.text}`} className="mt-2" />
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="pt-4 animate-soft-fade-delay-2">
-                  <Button 
-                    size="lg" 
-                    className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-4 text-base rounded-lg font-semibold" 
-                    asChild
-                  >
-                    <Link to="/auth">Request Support</Link>
-                  </Button>
-                </div>
-              </div>
-
-              {/* Right Column - Professional Hero Visual */}
-              <div className="flex justify-center lg:justify-end animate-soft-fade-delay">
-                <div className="relative">
-                  <div className="w-80 h-80 lg:w-96 lg:h-96 rounded-2xl bg-card border border-border flex items-center justify-center">
-                    <div className="text-center space-y-6 p-8">
-                      <div className="w-24 h-24 mx-auto bg-secondary/20 rounded-full flex items-center justify-center">
-                        <Heart className="w-12 h-12 text-secondary" />
-                      </div>
-                      <div className="space-y-3">
-                        <p className="text-xl font-semibold text-foreground" style={{ color: '#2E2E2E' }}>Community Support</p>
-                        <p className="text-base text-muted-foreground">Together we build stronger futures</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+      {/* Impact Statistics */}
+      <section className="py-16 bg-muted/30">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground mb-4">Our Impact</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Building bridges to support and empower vulnerable communities across Kenya
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="text-4xl font-bold text-primary mb-2">300</div>
+              <p className="text-lg text-muted-foreground">Women Supported</p>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl font-bold text-primary mb-2">24/7</div>
+              <p className="text-lg text-muted-foreground">AI Support Available</p>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl font-bold text-primary mb-2">100%</div>
+              <p className="text-lg text-muted-foreground">Trauma-Informed Care</p>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Section Divider */}
-        <div className="section-divider"></div>
-
-        {/* About Us Section */}
-        <section className="py-16 bg-muted/30">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <Card className="bg-card border-border shadow-md">
+      {/* Features */}
+      <section className="py-16 bg-background">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground mb-4">How We Help</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Our AI-powered platform provides comprehensive support through multiple channels
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="text-center hover:shadow-lg transition-shadow">
               <CardHeader>
-                <div className="flex items-center justify-center gap-2">
-                  <CardTitle className="text-2xl text-foreground">{aboutTitle.text}</CardTitle>
-                  <TextToSpeech text={aboutTitle.text} />
-                </div>
+                <Heart className="h-8 w-8 text-primary mx-auto mb-2" />
+                <CardTitle className="text-lg">Trauma-Informed Care</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-start gap-2">
-                  <p className="text-base text-muted-foreground leading-relaxed flex-1">
-                    {aboutDescription.text}
-                  </p>
-                  <TextToSpeech text={aboutDescription.text} />
-                </div>
+                <CardDescription>
+                  Compassionate support designed with trauma-informed principles at its core
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <Users className="h-8 w-8 text-primary mx-auto mb-2" />
+                <CardTitle className="text-lg">Community Connection</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription>
+                  Connecting women and children to local resources and support networks
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <Shield className="h-8 w-8 text-primary mx-auto mb-2" />
+                <CardTitle className="text-lg">Safe & Secure</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription>
+                  Privacy-first approach ensuring confidential and secure interactions
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <Globe className="h-8 w-8 text-primary mx-auto mb-2" />
+                <CardTitle className="text-lg">Always Accessible</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription>
+                  24/7 AI support available whenever and wherever you need help
+                </CardDescription>
               </CardContent>
             </Card>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Section Divider */}
-        <div className="section-divider"></div>
-
-        {/* Stats Section */}
-        <section className="py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-foreground mb-4">Our Impact</h2>
-              <p className="text-lg text-muted-foreground">Making a real difference in our community</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              {stats.map((stat, index) => (
-                <div key={index} className="text-center hover-gentle p-6 rounded-lg bg-card border border-border">
-                  <div className="flex justify-center mb-4">
-                    <div className="p-3 bg-secondary/20 rounded-full">
-                      <stat.icon className="h-8 w-8 text-secondary" />
-                    </div>
-                  </div>
-                  <div className="text-3xl font-bold text-foreground mb-2">{stat.number}</div>
-                  <div className="text-muted-foreground text-sm">{stat.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Section Divider */}
-        <div className="section-divider"></div>
-
-        {/* Explore Support Areas Section */}
-        <section className="py-16 bg-muted/30">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-foreground mb-4">Explore Support Areas</h2>
-              <p className="text-lg text-muted-foreground">Comprehensive support for every need</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {services.map((service, index) => (
-                <Card key={index} className="text-center hover-gentle bg-card border-border shadow-md">
-                  <CardHeader className="pb-3">
-                    <div className="flex justify-center mb-4">
-                      <div className="p-3 bg-secondary/20 rounded-full">
-                        <service.icon className="h-8 w-8 text-secondary" />
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-center gap-2">
-                      <CardTitle className="text-lg text-foreground">{service.title}</CardTitle>
-                      <TextToSpeech text={service.title} />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-start gap-2">
-                      <CardDescription className="text-muted-foreground text-sm flex-1">{service.description}</CardDescription>
-                      <TextToSpeech text={service.description} />
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            <div className="text-center mt-12">
-              <Button 
-                variant="outline" 
-                className="border-border text-foreground hover:bg-muted px-6 py-3 rounded-lg" 
-                asChild
-              >
-                <Link to="/services">View All Services</Link>
-              </Button>
-            </div>
-          </div>
-        </section>
-
-        {/* Section Divider */}
-        <div className="section-divider"></div>
-
-        {/* Team Section */}
-        <TeamSection />
-
-        {/* Section Divider */}
-        <div className="section-divider"></div>
-
-        {/* Partner Organizations */}
-        <section className="py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h3 className="text-2xl font-bold text-foreground mb-4">Partner Organizations</h3>
-              <p className="text-muted-foreground mb-6 text-base">
-                We are currently partnered with two NGOs in Mombasa. More trusted support providers coming soon.
+      {/* Mission Statement */}
+      <section className="py-16 bg-muted/30">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl font-bold text-foreground mb-6">Our Mission</h2>
+          <p className="text-xl text-muted-foreground leading-relaxed mb-8">
+            We believe in building inclusive, ethical technologies rooted in care and community. 
+            Our work focuses on reimagining how systems serve and who they're built for, 
+            with special attention to gendered power, digital equity, and Afro-feminist urban design.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+            <div className="flex flex-col items-center">
+              <CheckCircle className="h-8 w-8 text-primary mb-3" />
+              <h3 className="font-semibold text-foreground mb-2">Inclusive Technology</h3>
+              <p className="text-sm text-muted-foreground">
+                Building AI that serves everyone, especially the most vulnerable
               </p>
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <div className="p-2 bg-green-100 rounded-full">
-                  <Shield className="h-6 w-6 text-green-600" />
-                </div>
-                <span className="text-lg font-semibold text-foreground">{partnerCount.text}</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <CheckCircle className="h-8 w-8 text-primary mb-3" />
+              <h3 className="font-semibold text-foreground mb-2">Community-Centered</h3>
+              <p className="text-sm text-muted-foreground">
+                Rooted in care, community input, and cultural understanding
+              </p>
+            </div>
+            <div className="flex flex-col items-center">
+              <CheckCircle className="h-8 w-8 text-primary mb-3" />
+              <h3 className="font-semibold text-foreground mb-2">Social Justice</h3>
+              <p className="text-sm text-muted-foreground">
+                Advancing equity through ethical AI and thoughtful design
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Call to Action */}
+      <section className="py-16 bg-background">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Card className="bg-primary text-primary-foreground">
+            <CardContent className="p-8 text-center">
+              <h2 className="text-2xl font-bold mb-4">Ready to Get Started?</h2>
+              <p className="text-lg mb-6 opacity-90">
+                Connect with our AI-powered platform to access trauma-informed care and support services
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button variant="secondary" size="lg" asChild>
+                  <Link to="/contact">
+                    Get Support <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button variant="outline" size="lg" className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary" asChild>
+                  <Link to="/resources">Browse Resources</Link>
+                </Button>
               </div>
-              <p className="text-muted-foreground flex items-center justify-center gap-2">
-                <MapPin className="h-4 w-4 text-secondary" />
-                {serviceArea.text}
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Section Divider */}
-        <div className="section-divider"></div>
-
-        {/* Call to Action - Professional Purple */}
-        <section className="py-16 bg-primary text-primary-foreground">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-3xl font-bold mb-4">{ctaPrimaryTitle.text}</h2>
-            <p className="text-lg mb-8 max-w-2xl mx-auto opacity-90">
-              {ctaPrimarySubtitle.text}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button 
-                  size="lg" 
-                  className="bg-card text-foreground hover:bg-muted px-8 py-3 rounded-lg font-semibold border border-border" 
-                  asChild
-                >
-                <Link to="/auth">Join Our Community</Link>
-              </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="bg-transparent border-border text-foreground hover:bg-muted px-8 py-3 rounded-lg font-semibold" 
-                  asChild
-                >
-                <Link to="/resources">Browse Resources</Link>
-              </Button>
-            </div>
-          </div>
-        </section>
-
-        {/* Join Network CTA - Professional Secondary Color */}
-        <section className="py-12 bg-secondary text-secondary-foreground">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <p className="text-lg font-medium mb-4">
-                {ctaNetworkTitle.text}
-              </p>
-                <Button 
-                  size="lg" 
-                  className="bg-secondary text-secondary-foreground hover:bg-secondary/90 px-8 py-3 rounded-lg font-semibold" 
-                  asChild
-                >
-                <Link to="/auth">Join Our Network</Link>
-              </Button>
-            </div>
-          </div>
-        </section>
-      </div>
-    </TooltipProvider>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+    </div>
   );
 };
 

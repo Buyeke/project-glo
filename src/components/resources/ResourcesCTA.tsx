@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Mail, MessageCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const ResourcesCTA = () => {
   return (
@@ -17,9 +18,11 @@ const ResourcesCTA = () => {
             <MessageCircle className="h-4 w-4" />
             Chat with Glo Assistant
           </Button>
-          <Button variant="outline" size="lg" className="flex items-center gap-2 text-primary-foreground border-primary-foreground hover:bg-primary-foreground hover:text-primary">
-            <Mail className="h-4 w-4" />
-            Contact Us: info@projectglo.org
+          <Button variant="outline" size="lg" className="flex items-center gap-2 text-primary-foreground border-primary-foreground hover:bg-primary-foreground hover:text-primary" asChild>
+            <Link to="/contact">
+              <Mail className="h-4 w-4" />
+              Go to Contact Form
+            </Link>
           </Button>
         </div>
       </CardContent>

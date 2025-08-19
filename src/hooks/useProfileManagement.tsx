@@ -1,119 +1,90 @@
+import { useState } from 'react';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
+interface Concern {
+  id: string;
+  category: string;
+  name: string;
+  severity: 'high' | 'medium' | 'low';
+}
 
-export const useProfileManagement = (userId: string) => {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
+interface Profile {
+  name: string;
+  location: string;
+  concerns: Concern[];
+}
 
-  const updateVisitCount = useMutation({
-    mutationFn: async () => {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('visit_count')
-        .eq('id', userId)
-        .single();
+export const useProfileManagement = () => {
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-      const newCount = (profile?.visit_count || 0) + 1;
+  const predefinedConcerns = [
+    { id: '1', category: 'Housing', name: 'Emergency Shelter', severity: 'high' as const },
+    { id: '2', category: 'Housing', name: 'Temporary Accommodation', severity: 'medium' as const },
+    { id: '3', category: 'Healthcare', name: 'Mental Health Support', severity: 'high' as const },
+    { id: '4', category: 'Healthcare', name: 'Medical Care', severity: 'medium' as const },
+    { id: '5', category: 'Safety', name: 'Domestic Violence Support', severity: 'high' as const },
+    { id: '6', category: 'Employment', name: 'Job Training', severity: 'low' as const },
+    { id: '7', category: 'Legal', name: 'Legal Aid', severity: 'medium' as const },
+    { id: '8', category: 'Childcare', name: 'Emergency Childcare', severity: 'high' as const },
+    { id: '9', category: 'Food', name: 'Food Security', severity: 'medium' as const },
+    { id: '10', category: 'Transportation', name: 'Transport Assistance', severity: 'low' as const }
+  ];
 
-      const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          visit_count: newCount,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', userId);
+  const createProfile = async (name: string, location: string, selectedConcerns: string[]) => {
+    setIsLoading(true);
+    setError(null);
 
-      if (error) throw error;
-      return newCount;
-    },
-    onSuccess: (newCount) => {
-      queryClient.invalidateQueries({ queryKey: ['profile', userId] });
-      
-      // Show milestone achievements
-      if (newCount === 3) {
-        toast({
-          title: "🎉 Milestone Achieved!",
-          description: "You've unlocked basic resources after 3 visits!",
-        });
-      } else if (newCount === 5) {
-        toast({
-          title: "🎉 Milestone Achieved!",
-          description: "Advanced support is now available!",
-        });
-      } else if (newCount === 10) {
-        toast({
-          title: "🎉 Milestone Achieved!",
-          description: "Mentor program access unlocked!",
-        });
-      }
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to update visit count.",
-        variant: "destructive",
-      });
-    },
-  });
+    try {
+      // Simulate API call or database interaction
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-  const updateSupportStage = useMutation({
-    mutationFn: async (newStage: string) => {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          support_stage: newStage,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', userId);
+      const concerns = predefinedConcerns.filter(concern => selectedConcerns.includes(concern.id));
 
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['profile', userId] });
-      toast({
-        title: "Support stage updated",
-        description: "The support stage has been updated successfully.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to update support stage.",
-        variant: "destructive",
-      });
-    },
-  });
+      const newProfile: Profile = {
+        name,
+        location,
+        concerns,
+      };
+
+      setProfile(newProfile);
+    } catch (err) {
+      setError('Failed to create profile. Please try again.');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const updateProfile = async (updates: Partial<Profile>) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Simulate API call or database interaction
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const updatedProfile = { ...profile, ...updates };
+      setProfile(updatedProfile as Profile);
+    } catch (err) {
+      setError('Failed to update profile. Please try again.');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const clearProfile = () => {
+    setProfile(null);
+  };
 
   return {
-    updateVisitCount,
-    updateSupportStage,
+    profile,
+    isLoading,
+    error,
+    predefinedConcerns,
+    createProfile,
+    updateProfile,
+    clearProfile
   };
-};
-
-export const useTeamMembers = () => {
-  const { data: teamMembers, isLoading } = useQuery({
-    queryKey: ['team-members'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('team_members')
-        .select(`
-          id,
-          role,
-          verified,
-          department,
-          profiles:user_id (
-            id,
-            full_name
-          )
-        `)
-        .eq('verified', true);
-
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  return { teamMembers, isLoading };
 };
