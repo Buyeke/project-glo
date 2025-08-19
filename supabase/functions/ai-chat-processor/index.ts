@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -65,6 +64,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           error: 'Rate limit exceeded',
+          message: rateLimitResult.message || 'Too many requests. Please try again later.',
           resetTime: rateLimitResult.resetTime 
         }),
         { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -308,9 +308,10 @@ Consider:
 
     // Log interaction for security monitoring
     await supabase.from('security_logs').insert({
-      event_type: 'ai_chat_interaction',
+      event_type: 'admin_access',
       user_id: user.id,
       event_data: {
+        action: 'ai_chat_interaction',
         intent: analysis.intent,
         urgency: analysis.urgency,
         emotional_state: analysis.emotional_state,

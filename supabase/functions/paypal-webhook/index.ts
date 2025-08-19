@@ -1,9 +1,9 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
+// SECURITY FIX: PayPal webhooks should only accept requests from PayPal servers
 const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://api.paypal.com',
+  'Access-Control-Allow-Origin': 'https://api.paypal.com,https://api.sandbox.paypal.com',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, paypal-transmission-id, paypal-transmission-time, paypal-cert-id, paypal-auth-algo, paypal-transmission-sig',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
@@ -19,7 +19,7 @@ serve(async (req) => {
     
     console.log('PayPal webhook received:', webhookData.event_type);
 
-    // Verify PayPal webhook signature
+    // SECURITY: Verify PayPal webhook signature (already implemented)
     const transmissionId = req.headers.get('paypal-transmission-id');
     const transmissionTime = req.headers.get('paypal-transmission-time');
     const certId = req.headers.get('paypal-cert-id');
@@ -29,6 +29,29 @@ serve(async (req) => {
 
     if (!transmissionId || !transmissionTime || !certId || !authAlgo || !transmissionSig || !webhookId) {
       console.error('Missing required PayPal headers for signature verification');
+      
+      // Log security event for missing headers
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      );
+
+      await supabase.from('security_logs').insert({
+        event_type: 'suspicious_activity',
+        event_data: {
+          type: 'paypal_webhook_missing_headers',
+          event_type: webhookData.event_type || 'unknown',
+          headers_present: {
+            transmission_id: !!transmissionId,
+            transmission_time: !!transmissionTime,
+            cert_id: !!certId,
+            auth_algo: !!authAlgo,
+            transmission_sig: !!transmissionSig
+          }
+        },
+        ip_address: req.headers.get('cf-connecting-ip') || 'unknown'
+      });
+
       return new Response(
         JSON.stringify({ error: 'Missing required PayPal headers' }),
         { 
@@ -103,7 +126,8 @@ serve(async (req) => {
           type: 'paypal_webhook_verification_failed',
           event_type: webhookData.event_type,
           transmission_id: transmissionId,
-          cert_id: certId
+          cert_id: certId,
+          verification_status: 'failed'
         },
         ip_address: req.headers.get('cf-connecting-ip') || 'unknown'
       });
@@ -120,6 +144,22 @@ serve(async (req) => {
     const verificationResult = await verificationResponse.json();
     if (verificationResult.verification_status !== 'SUCCESS') {
       console.error('PayPal webhook signature verification failed:', verificationResult);
+      
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      );
+
+      await supabase.from('security_logs').insert({
+        event_type: 'suspicious_activity',
+        event_data: {
+          type: 'paypal_webhook_invalid_signature',
+          event_type: webhookData.event_type,
+          verification_result: verificationResult
+        },
+        ip_address: req.headers.get('cf-connecting-ip') || 'unknown'
+      });
+
       return new Response(
         JSON.stringify({ error: 'Invalid webhook signature' }),
         { 
@@ -177,7 +217,8 @@ serve(async (req) => {
         event_data: {
           action: 'paypal_payment_processed',
           payment_id: paymentId,
-          job_posting_id: customData.job_posting_id
+          job_posting_id: customData.job_posting_id,
+          verification_status: 'success'
         },
         ip_address: req.headers.get('cf-connecting-ip') || 'unknown'
       });
@@ -195,6 +236,26 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('PayPal webhook processing error:', error);
+    
+    // Log error for monitoring
+    try {
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      );
+
+      await supabase.from('security_logs').insert({
+        event_type: 'suspicious_activity',
+        event_data: {
+          type: 'paypal_webhook_processing_error',
+          error: error.message
+        },
+        ip_address: req.headers.get('cf-connecting-ip') || 'unknown'
+      });
+    } catch (logError) {
+      console.error('Failed to log webhook error:', logError);
+    }
+
     return new Response(
       JSON.stringify({ error: error.message }),
       { 

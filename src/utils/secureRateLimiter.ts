@@ -6,6 +6,7 @@ export interface RateLimitResult {
   allowed: boolean;
   resetTime?: Date;
   reason?: string;
+  message?: string;
 }
 
 export const checkRateLimit = async (
@@ -25,12 +26,31 @@ export const checkRateLimit = async (
 
     if (error) {
       console.error('Rate limit check failed:', error);
-      return { allowed: true }; // Allow on error to prevent blocking legitimate users
+      // SECURITY FIX: Deny on error instead of allowing
+      return { 
+        allowed: false, 
+        reason: 'service_error',
+        message: 'Unable to verify request. Please try again later.'
+      };
+    }
+
+    if (data?.error) {
+      console.error('Rate limit check returned error:', data.error);
+      return { 
+        allowed: false, 
+        reason: data.reason || 'service_error',
+        message: data.message || 'Request blocked for security reasons.'
+      };
     }
 
     return data as RateLimitResult;
   } catch (error) {
     console.error('Rate limit check error:', error);
-    return { allowed: true }; // Allow on error to prevent blocking legitimate users
+    // SECURITY FIX: Deny on error instead of allowing
+    return { 
+      allowed: false, 
+      reason: 'network_error',
+      message: 'Network error. Please check your connection and try again.'
+    };
   }
 };

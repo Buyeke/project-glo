@@ -16,17 +16,17 @@ interface RateLimitConfig {
 
 const defaultRateLimits: Record<string, RateLimitConfig> = {
   contact_submission: {
-    maxAttempts: 5,
+    maxAttempts: 3, // Reduced from 5 for better protection
     windowMinutes: 60,
-    blockDurationMinutes: 60
+    blockDurationMinutes: 120 // Increased penalty
   },
   login_attempt: {
-    maxAttempts: 10,
+    maxAttempts: 5, // Reduced from 10
     windowMinutes: 15,
     blockDurationMinutes: 30
   },
   ai_chat: {
-    maxAttempts: 30,
+    maxAttempts: 20, // Reduced from 30
     windowMinutes: 60,
     blockDurationMinutes: 15
   }
@@ -42,7 +42,11 @@ serve(async (req) => {
     
     if (!identifier || !actionType) {
       return new Response(
-        JSON.stringify({ error: 'Missing required parameters' }),
+        JSON.stringify({ 
+          allowed: false, 
+          error: 'Missing required parameters',
+          reason: 'invalid_request'
+        }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -54,8 +58,12 @@ serve(async (req) => {
 
     const config = defaultRateLimits[actionType];
     if (!config) {
+      // Default deny for unknown action types
       return new Response(
-        JSON.stringify({ allowed: true }),
+        JSON.stringify({ 
+          allowed: false,
+          reason: 'unknown_action_type'
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -82,7 +90,8 @@ serve(async (req) => {
             identifier,
             action_type: actionType,
             attempt_count: existingLimit.attempt_count,
-            blocked_until: existingLimit.blocked_until
+            blocked_until: existingLimit.blocked_until,
+            severity: 'high'
           },
           ip_address: clientIP
         });
@@ -91,7 +100,8 @@ serve(async (req) => {
           JSON.stringify({ 
             allowed: false, 
             resetTime: new Date(existingLimit.blocked_until),
-            reason: 'rate_limit_exceeded'
+            reason: 'rate_limit_exceeded',
+            message: 'Too many attempts. Please try again later.'
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
@@ -117,7 +127,8 @@ serve(async (req) => {
             identifier,
             action_type: actionType,
             max_attempts: config.maxAttempts,
-            blocked_until: blockedUntil.toISOString()
+            blocked_until: blockedUntil.toISOString(),
+            severity: 'critical'
           },
           ip_address: clientIP
         });
@@ -126,7 +137,8 @@ serve(async (req) => {
           JSON.stringify({ 
             allowed: false, 
             resetTime: blockedUntil,
-            reason: 'rate_limit_exceeded'
+            reason: 'rate_limit_exceeded',
+            message: 'Rate limit exceeded. Access temporarily blocked.'
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
@@ -159,10 +171,14 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Rate limit check failed:', error);
+    
+    // SECURITY FIX: Deny on error instead of allowing
     return new Response(
       JSON.stringify({ 
-        allowed: true, // Allow on error to prevent blocking legitimate users
-        error: 'Rate limit check failed'
+        allowed: false,
+        error: 'Rate limit check failed',
+        reason: 'service_error',
+        message: 'Unable to verify request. Please try again.'
       }),
       { 
         status: 500,
