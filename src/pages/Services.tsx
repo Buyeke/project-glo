@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Heart, Home, Briefcase, Users, MapPin, Clock, Calendar } from 'lucide-react';
+import { Heart, Home, Briefcase, Users, MapPin, Clock, Calendar, Lock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import ServiceRequestForm from '@/components/services/ServiceRequestForm';
 import ServiceBookingModal from '@/components/services/ServiceBookingModal';
@@ -120,7 +120,7 @@ const Services = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
-    setBookingSuccess(`✅ Your session has been booked for ${formattedDate}. We'll send you a personalized meeting link within 24 hours.`);
+    setBookingSuccess(`Your session has been booked for ${formattedDate}. We'll send you a personalized meeting link within 24 hours.`);
     setTimeout(() => setBookingSuccess(null), 5000);
   };
 
@@ -152,10 +152,13 @@ const Services = () => {
             Discover the support services available to help you on your journey. Book sessions or request assistance directly.
           </p>
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-3xl mx-auto">
-            <p className="text-blue-800 font-medium">
-              📍 Serving Mombasa County with both in-person and virtual consultations
-            </p>
-            <p className="text-blue-700 text-sm mt-2">
+            <div className="flex items-center gap-2 mb-2">
+              <MapPin className="w-5 h-5 text-blue-600" />
+              <p className="text-blue-800 font-medium">
+                Serving Mombasa County with both in-person and virtual consultations
+              </p>
+            </div>
+            <p className="text-blue-700 text-sm">
               Once your registration is confirmed, we will send you a personalized virtual meeting link via email or WhatsApp within 24 hours.
             </p>
           </div>
@@ -281,7 +284,7 @@ const Services = () => {
         {/* Privacy Note */}
         <div className="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <div className="flex items-start gap-3">
-            <div className="text-xl">🔒</div>
+            <Lock className="w-5 h-5 text-blue-600 mt-0.5" />
             <p className="text-sm text-blue-800">
               Your information is confidential and only shared with the organizations providing your support.
             </p>

@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
+import { Clock, Lock } from 'lucide-react';
 import { useDataTracking } from '@/hooks/useDataTracking';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -259,7 +260,7 @@ const ServiceRequestForm = () => {
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="flex items-start gap-3">
-              <div className="text-xl">⏰</div>
+              <Clock className="w-5 h-5 text-blue-600 mt-0.5" />
               <div className="flex-1">
                 <p className="font-medium text-blue-800 mb-1">Status: Awaiting Confirmation</p>
                 <div className="flex items-start gap-2">
@@ -274,7 +275,7 @@ const ServiceRequestForm = () => {
 
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
             <div className="flex items-start gap-3">
-              <div className="text-xl">🔒</div>
+              <Lock className="w-5 h-5 text-green-600 mt-0.5" />
               <div className="flex-1">
                 <div className="flex items-start gap-2">
                   <p className="text-sm text-green-800 flex-1">
