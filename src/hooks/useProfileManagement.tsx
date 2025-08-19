@@ -1,4 +1,6 @@
+
 import { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 
 interface Concern {
   id: string;
@@ -13,7 +15,7 @@ interface Profile {
   concerns: Concern[];
 }
 
-export const useProfileManagement = () => {
+export const useProfileManagement = (profileId?: string) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,6 +76,17 @@ export const useProfileManagement = () => {
     }
   };
 
+  const updateVisitCount = useMutation({
+    mutationFn: async () => {
+      // Simulate API call to update visit count
+      await new Promise(resolve => setTimeout(resolve, 500));
+      console.log('Visit count updated for profile:', profileId);
+    },
+    onError: (error) => {
+      console.error('Failed to update visit count:', error);
+    }
+  });
+
   const clearProfile = () => {
     setProfile(null);
   };
@@ -85,6 +98,7 @@ export const useProfileManagement = () => {
     predefinedConcerns,
     createProfile,
     updateProfile,
+    updateVisitCount,
     clearProfile
   };
 };

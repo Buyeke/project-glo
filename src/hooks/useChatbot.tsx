@@ -1,143 +1,59 @@
-import { useState, useCallback } from 'react';
 
-interface Message {
-  id: string;
-  text: string;
-  isBot: boolean;
-  timestamp: Date;
-  quickReplies?: string[];
-}
+import { useState, useCallback } from 'react';
+import { useChatData } from './useChatData';
+import { useEnhancedChatMessageProcessor } from './useEnhancedChatMessageProcessor';
+import { ChatMessage } from '@/types/chatbot';
 
 export const useChatbot = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [currentLanguage, setCurrentLanguage] = useState('sheng');
   const [isTyping, setIsTyping] = useState(false);
+  
+  const { intents, services, isLoadingIntents } = useChatData();
+  const { processMessage: enhancedProcessMessage, isAIProcessing } = useEnhancedChatMessageProcessor(intents, services);
 
-  const addMessage = useCallback((message: Message) => {
+  const addMessage = useCallback((message: ChatMessage) => {
     setMessages(prevMessages => [...prevMessages, message]);
   }, []);
 
-  const sendMessage = useCallback(async (text: string) => {
-    if (!text.trim()) return;
+  const processMessage = useCallback(async (text: string, language?: string) => {
+    if (!text.trim() || isAIProcessing) return;
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      text: text,
-      isBot: false,
-      timestamp: new Date()
-    };
-
-    addMessage(userMessage);
+    const currentLang = language || currentLanguage;
     setIsTyping(true);
 
-    // Simulate bot response delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    const botResponse = generateBotResponse(text);
-    const quickReplies = generateQuickReply(text);
-
-    const botMessage: Message = {
-      id: Date.now().toString(),
-      text: botResponse,
-      isBot: true,
-      timestamp: new Date(),
-      quickReplies: quickReplies
-    };
-
-    addMessage(botMessage);
-    setIsTyping(false);
-  }, [addMessage]);
-
-  const generateQuickReply = (message: string): string[] => {
-    const lowerMessage = message.toLowerCase();
-    
-    if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('help')) {
-      return [
-        "Tell me about your services",
-        "I need emergency help",
-        "How do I access resources?",
-        "I want to learn more about Glo"
-      ];
+    try {
+      const { userMsg, botMsg } = await enhancedProcessMessage(text, messages, currentLang);
+      
+      addMessage(userMsg);
+      
+      // Simulate typing delay for bot response
+      setTimeout(() => {
+        addMessage(botMsg);
+        setIsTyping(false);
+      }, 500);
+    } catch (error) {
+      console.error('Error processing message:', error);
+      setIsTyping(false);
     }
-    
-    if (lowerMessage.includes('emergency') || lowerMessage.includes('crisis') || lowerMessage.includes('danger')) {
-      return [
-        "Call emergency services: 999",
-        "Contact crisis helpline: +254 722 178 177",
-        "I need immediate safety planning",
-        "Connect me to local support"
-      ];
-    }
-    
-    if (lowerMessage.includes('housing') || lowerMessage.includes('shelter')) {
-      return [
-        "Emergency housing options",
-        "Temporary accommodation",
-        "Long-term housing support",
-        "Housing assistance programs"
-      ];
-    }
-    
-    if (lowerMessage.includes('job') || lowerMessage.includes('work') || lowerMessage.includes('employment')) {
-      return [
-        "Job training programs",
-        "Employment support services",
-        "Skills development",
-        "Career counseling"
-      ];
-    }
-    
-    return [
-      "Tell me more",
-      "How can I access this?",
-      "What are my options?",
-      "I need different help"
-    ];
-  };
+  }, [messages, currentLanguage, enhancedProcessMessage, isAIProcessing, addMessage]);
 
-  const generateBotResponse = (message: string): string => {
-    const lowerMessage = message.toLowerCase();
+  const sendMessage = useCallback(async (text: string) => {
+    await processMessage(text);
+  }, [processMessage]);
 
-    if (lowerMessage.includes('services')) {
-      return "We offer trauma-informed care, community connection, and 24/7 AI support.";
-    }
+  const switchLanguage = useCallback((language: string) => {
+    setCurrentLanguage(language);
+  }, []);
 
-    if (lowerMessage.includes('emergency') || lowerMessage.includes('crisis')) {
-      return "If you're in immediate danger, please call 999 or contact the crisis helpline at +254 722 178 177.";
-    }
-
-    if (lowerMessage.includes('resources')) {
-      return "You can browse our resources on the resources page.";
-    }
-
-    if (lowerMessage.includes('glo')) {
-      return "Project Glo connects homeless women and children in Kenya to trauma-informed care and support services through inclusive, ethical AI technology.";
-    }
-
-    if (lowerMessage.includes('housing') || lowerMessage.includes('shelter')) {
-      return "We can help you find emergency housing options, temporary accommodation, and long-term housing support.";
-    }
-
-    if (lowerMessage.includes('job') || lowerMessage.includes('work') || lowerMessage.includes('employment')) {
-      return "We offer job training programs, employment support services, skills development, and career counseling.";
-    }
-
-    return "I'm here to help. How can I assist you today?";
-  };
-
-  const getWelcomeMessage = () => {
+  const getWelcomeMessage = useCallback((): ChatMessage => {
     return {
-      id: Date.now().toString(),
+      id: 1,
       text: "Hello! I'm Glo, your AI assistant. I'm here to help connect you with trauma-informed care and support services. How can I assist you today?",
       isBot: true,
-      timestamp: new Date(),
-      quickReplies: [
-        "I need help with housing",
-        "I'm looking for job support", 
-        "I need healthcare services",
-        "Tell me about safety resources"
-      ]
+      language: currentLanguage,
     };
-  };
+  }, [currentLanguage]);
 
   const clearChat = useCallback(() => {
     setMessages([]);
@@ -146,9 +62,14 @@ export const useChatbot = () => {
   return {
     messages,
     isTyping,
+    currentLanguage,
+    processMessage,
     sendMessage,
     addMessage,
+    switchLanguage,
     getWelcomeMessage,
-    clearChat
+    clearChat,
+    isLoadingIntents,
+    isAIProcessing
   };
 };
