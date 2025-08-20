@@ -14,6 +14,7 @@ import Blog from "./pages/Blog";
 import Careers from "./pages/Careers";
 import Donate from "./pages/Donate";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import AdminLogin from "./pages/AdminLogin";
 import AdminPanel from "./pages/AdminPanel";
@@ -42,6 +43,7 @@ const App = () => (
               <Route path="careers" element={<Careers />} />
               <Route path="donate" element={<Donate />} />
               <Route path="auth" element={<Auth />} />
+              <Route path="auth/reset" element={<ResetPassword />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="admin-login" element={<AdminLogin />} />
               <Route path="admin" element={<AdminPanel />} />

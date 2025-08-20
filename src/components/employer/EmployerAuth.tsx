@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +13,9 @@ interface EmployerAuthProps {}
 const EmployerAuth: React.FC<EmployerAuthProps> = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [authMethod, setAuthMethod] = useState<'email' | 'phone'>('email');
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [resetEmailSent, setResetEmailSent] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     phone: '',
@@ -28,6 +30,29 @@ const EmployerAuth: React.FC<EmployerAuthProps> = () => {
       ...formData,
       [e.target.name]: e.target.value
     });
+  };
+
+  const handleForgotPassword = async () => {
+    if (!forgotPasswordEmail.trim()) {
+      toast.error('Please enter your email address');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
+        redirectTo: `${window.location.origin}/auth/reset`
+      });
+
+      if (error) throw error;
+
+      setResetEmailSent(true);
+      toast.success('Reset email sent! Check your email for a password reset link.');
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -101,6 +126,75 @@ const EmployerAuth: React.FC<EmployerAuthProps> = () => {
       setIsLoading(false);
     }
   };
+
+  if (showForgotPassword) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
+          <div className="text-center">
+            <Briefcase className="mx-auto h-12 w-12 text-blue-600" />
+            <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+              Reset Employer Password
+            </h2>
+            <p className="mt-2 text-sm text-gray-600">
+              {resetEmailSent ? 
+                'Check your email for a reset link' : 
+                'Enter your email to receive a password reset link'
+              }
+            </p>
+          </div>
+
+          <Card>
+            <CardContent className="pt-6">
+              {resetEmailSent ? (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground text-center">
+                    We've sent a password reset link to {forgotPasswordEmail}. 
+                    Click the link in your email to reset your password.
+                  </p>
+                  <Button 
+                    onClick={() => setShowForgotPassword(false)} 
+                    variant="outline" 
+                    className="w-full"
+                  >
+                    Back to Employer Login
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="resetEmail">Email</Label>
+                    <Input
+                      id="resetEmail"
+                      type="email"
+                      value={forgotPasswordEmail}
+                      onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                      placeholder="employer@company.com"
+                      required
+                    />
+                  </div>
+                  <Button 
+                    onClick={handleForgotPassword} 
+                    className="w-full bg-blue-600 hover:bg-blue-700" 
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Sending...' : 'Send Reset Link'}
+                  </Button>
+                  <Button 
+                    onClick={() => setShowForgotPassword(false)} 
+                    variant="outline" 
+                    className="w-full"
+                  >
+                    Back to Employer Login
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -188,6 +282,17 @@ const EmployerAuth: React.FC<EmployerAuthProps> = () => {
                       value={formData.password}
                       onChange={handleInputChange}
                     />
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <Button 
+                      type="button" 
+                      variant="link" 
+                      className="p-0 h-auto text-sm text-blue-600 hover:underline"
+                      onClick={() => setShowForgotPassword(true)}
+                    >
+                      Forgot password?
+                    </Button>
                   </div>
 
                   <Button
