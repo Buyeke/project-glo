@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Heart, Users, Shield, Globe, ArrowRight, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
+import DonationForm from "@/components/donation/DonationForm";
 
 const Home = () => {
   return (
@@ -151,8 +152,53 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Call to Action */}
+      {/* Support Our Mission Section */}
       <section className="py-16 bg-background">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground mb-4">Support Our Mission</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Your donation directly supports homeless women and children in Kenya
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <div>
+              <DonationForm showImpactItems={false} />
+            </div>
+            <div className="flex flex-col justify-center space-y-6">
+              <Card className="bg-primary text-primary-foreground">
+                <CardContent className="p-6">
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <div className="text-2xl font-bold">50+</div>
+                      <div className="text-sm opacity-90">Women Supported</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold">100+</div>
+                      <div className="text-sm opacity-90">Children Helped</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold">10+</div>
+                      <div className="text-sm opacity-90">Partner Shelters</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <div className="text-center">
+                <Button variant="outline" size="lg" asChild>
+                  <Link to="/donate">
+                    View Full Donation Page <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Call to Action */}
+      <section className="py-16 bg-muted/30">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <Card className="bg-primary text-primary-foreground">
             <CardContent className="p-8 text-center">

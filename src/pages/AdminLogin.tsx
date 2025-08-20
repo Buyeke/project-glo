@@ -1,175 +1,201 @@
 
 import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
-import { Shield, AlertTriangle } from 'lucide-react';
-import { logSecurityEvent, getClientIP } from '@/utils/securityLogger';
-import { checkRateLimit } from '@/utils/rateLimiter';
+import { Link, useNavigate } from 'react-router-dom';
+import { Shield, Eye, EyeOff } from 'lucide-react';
 
 const AdminLogin = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
-  const [resetEmailSent, setResetEmailSent] = useState(false);
-  const { user } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
 
-  React.useEffect(() => {
-    if (user) {
-      navigate('/admin');
+  const logSecurityEvent = async (eventType: string, details: any) => {
+    try {
+      await supabase.functions.invoke('log-security-event', {
+        body: { eventType, details }
+      });
+    } catch (error) {
+      console.error('Failed to log security event:', error);
     }
-  }, [user, navigate]);
+  };
 
-  const handleForgotPassword = async () => {
-    if (!forgotPasswordEmail.trim()) {
-      toast.error('Please enter your email address');
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.email || !formData.password) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter both email and password.",
+        variant: "destructive",
+      });
       return;
     }
 
     setIsLoading(true);
+
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
-        redirectTo: `${window.location.origin}/auth/reset`
+      // Log login attempt
+      await logSecurityEvent('login_attempt', {
+        email: formData.email,
+        userAgent: navigator.userAgent,
+        timestamp: new Date().toISOString(),
+        loginType: 'admin'
       });
 
-      if (error) throw error;
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
 
-      setResetEmailSent(true);
-      toast.success('Reset email sent! Check your email for a password reset link.');
+      if (error) {
+        // Log failed login
+        await logSecurityEvent('login_failure', {
+          email: formData.email,
+          error: error.message,
+          timestamp: new Date().toISOString(),
+          loginType: 'admin'
+        });
+
+        toast({
+          title: "Login Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Log successful login
+      await logSecurityEvent('login_success', {
+        email: formData.email,
+        userId: data.user?.id,
+        timestamp: new Date().toISOString(),
+        loginType: 'admin'
+      });
+
+      // Check if user is admin
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('user_type')
+        .eq('id', data.user.id)
+        .single();
+
+      if (profile?.user_type !== 'admin') {
+        await supabase.auth.signOut();
+        toast({
+          title: "Access Denied",
+          description: "You don't have admin privileges.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Welcome Back!",
+        description: "Successfully logged in as admin.",
+      });
+
+      navigate('/admin');
     } catch (error: any) {
-      toast.error(error.message);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      const ipAddress = await getClientIP();
-      const rateLimitResult = await checkRateLimit(ipAddress, 'admin_login_attempt');
-      
-      if (!rateLimitResult.allowed) {
-        const resetTime = rateLimitResult.resetTime;
-        const resetTimeString = resetTime ? resetTime.toLocaleTimeString() : 'later';
-        
-        toast.error(`Too many login attempts. Please try again after ${resetTimeString}`);
-        
-        await logSecurityEvent({
-          event_type: 'rate_limit_exceeded',
-          event_data: { action: 'admin_login', email },
-          ip_address: ipAddress
-        });
-        
-        setIsLoading(false);
-        return;
-      }
-
-      await logSecurityEvent({
-        event_type: 'admin_login_attempt',
-        event_data: { email },
-        ip_address: ipAddress
+    if (!resetEmail) {
+      toast({
+        title: "Email Required",
+        description: "Please enter your email address.",
+        variant: "destructive",
       });
+      return;
+    }
 
-      const { error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
+    setIsResetting(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/auth/reset`,
       });
 
       if (error) {
-        await logSecurityEvent({
-          event_type: 'admin_login_failure',
-          event_data: { email, error: error.message },
-          ip_address: ipAddress
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
         });
-        throw error;
+      } else {
+        toast({
+          title: "Reset Email Sent",
+          description: "Check your email for a password reset link.",
+        });
+        setShowForgotPassword(false);
+        setResetEmail('');
       }
-
-      await logSecurityEvent({
-        event_type: 'admin_login_success',
-        event_data: { email },
-        ip_address: ipAddress
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to send reset email. Please try again.",
+        variant: "destructive",
       });
-
-      toast.success('Welcome to the admin panel!');
-      navigate('/admin');
-    } catch (error: any) {
-      toast.error(error.message || 'Login failed');
     } finally {
-      setIsLoading(false);
+      setIsResetting(false);
     }
   };
 
   if (showForgotPassword) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-gray-100 p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <Shield className="h-12 w-12 text-blue-600" />
-            </div>
-            <CardTitle className="text-2xl font-bold">Reset Admin Password</CardTitle>
+            <Shield className="h-12 w-12 text-primary mx-auto mb-4" />
+            <CardTitle>Reset Admin Password</CardTitle>
             <CardDescription>
-              {resetEmailSent ? 
-                'Check your email for a reset link' : 
-                'Enter your admin email to receive a password reset link'
-              }
+              Enter your email to receive a password reset link
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {resetEmailSent ? (
-              <div className="space-y-4">
-                <p className="text-sm text-muted-foreground text-center">
-                  We've sent a password reset link to {forgotPasswordEmail}. 
-                  Click the link in your email to reset your password.
-                </p>
-                <Button 
-                  onClick={() => setShowForgotPassword(false)} 
-                  variant="outline" 
-                  className="w-full"
-                >
-                  Back to Admin Login
-                </Button>
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div>
+                <Label htmlFor="resetEmail">Email Address</Label>
+                <Input
+                  id="resetEmail"
+                  type="email"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  placeholder="admin@projectglo.org"
+                  required
+                />
               </div>
-            ) : (
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="resetEmail">Admin Email</Label>
-                  <Input
-                    id="resetEmail"
-                    type="email"
-                    value={forgotPasswordEmail}
-                    onChange={(e) => setForgotPasswordEmail(e.target.value)}
-                    placeholder="Enter your admin email address"
-                    required
-                  />
-                </div>
-                <Button 
-                  onClick={handleForgotPassword} 
-                  className="w-full bg-blue-600 hover:bg-blue-700" 
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Sending...' : 'Send Reset Link'}
-                </Button>
-                <Button 
-                  onClick={() => setShowForgotPassword(false)} 
-                  variant="outline" 
-                  className="w-full"
-                >
-                  Back to Admin Login
-                </Button>
-              </div>
-            )}
+              <Button type="submit" className="w-full" disabled={isResetting}>
+                {isResetting ? 'Sending...' : 'Send Reset Link'}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full"
+                onClick={() => setShowForgotPassword(false)}
+              >
+                Back to Login
+              </Button>
+            </form>
           </CardContent>
         </Card>
       </div>
@@ -177,66 +203,74 @@ const AdminLogin = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-gray-100 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <Shield className="h-12 w-12 text-blue-600" />
-          </div>
-          <CardTitle className="text-2xl font-bold">Admin Login</CardTitle>
+          <Shield className="h-12 w-12 text-primary mx-auto mb-4" />
+          <CardTitle>Admin Login</CardTitle>
           <CardDescription>
             Access the administrative dashboard
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="email">Admin Email</Label>
+              <Label htmlFor="email">Email Address</Label>
               <Input
                 id="email"
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={formData.email}
+                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                 placeholder="admin@projectglo.org"
                 required
               />
             </div>
             <div>
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <div className="flex justify-between items-center">
-              <Button 
-                type="button" 
-                variant="link" 
-                className="p-0 h-auto text-sm text-blue-600 hover:underline"
-                onClick={() => setShowForgotPassword(true)}
-              >
-                Forgot password?
-              </Button>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={formData.password}
+                  onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                  placeholder="Enter your password"
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
             </div>
             <Button 
               type="submit" 
-              className="w-full bg-blue-600 hover:bg-blue-700" 
+              className="w-full" 
               disabled={isLoading}
             >
-              {isLoading ? 'Signing in...' : 'Sign In'}
+              {isLoading ? 'Signing In...' : 'Sign In'}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full text-sm"
+              onClick={() => setShowForgotPassword(true)}
+            >
+              Forgot your password?
             </Button>
           </form>
-          
-          <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <div className="flex items-start gap-2">
-              <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5" />
-              <p className="text-sm text-yellow-800">
-                This is a restricted area. Only authorized administrators can access this panel.
-              </p>
-            </div>
+          <div className="mt-6 text-center">
+            <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
+              ← Back to Home
+            </Link>
           </div>
         </CardContent>
       </Card>

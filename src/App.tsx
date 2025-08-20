@@ -23,6 +23,8 @@ import TermsOfService from "./pages/TermsOfService";
 import DataProtection from "./pages/DataProtection";
 import NotFound from "./pages/NotFound";
 import EmployerDashboard from "./pages/EmployerDashboard";
+import DonationSuccess from "./pages/DonationSuccess";
+import DonationCancelled from "./pages/DonationCancelled";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +44,8 @@ const App = () => (
               <Route path="blog" element={<Blog />} />
               <Route path="careers" element={<Careers />} />
               <Route path="donate" element={<Donate />} />
+              <Route path="donation-success" element={<DonationSuccess />} />
+              <Route path="donation-cancelled" element={<DonationCancelled />} />
               <Route path="auth" element={<Auth />} />
               <Route path="auth/reset" element={<ResetPassword />} />
               <Route path="dashboard" element={<Dashboard />} />
