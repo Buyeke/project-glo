@@ -1,16 +1,20 @@
 
 import { Capacitor } from '@capacitor/core';
-import { StatusBar, Style } from '@capacitor/status-bar';
-import { SplashScreen } from '@capacitor/splash-screen';
 
 export const initializeMobileApp = async () => {
   if (Capacitor.isNativePlatform()) {
-    // Hide splash screen after app loads
-    await SplashScreen.hide();
+    try {
+      // Hide splash screen after app loads
+      const { SplashScreen } = await import('@capacitor/splash-screen');
+      await SplashScreen.hide();
 
-    // Configure status bar
-    if (Capacitor.getPlatform() === 'ios') {
-      await StatusBar.setStyle({ style: Style.Light });
+      // Configure status bar
+      if (Capacitor.getPlatform() === 'ios') {
+        const { StatusBar, Style } = await import('@capacitor/status-bar');
+        await StatusBar.setStyle({ style: Style.Light });
+      }
+    } catch (error) {
+      console.log('Native plugins not available:', error);
     }
 
     // Handle back button on Android
