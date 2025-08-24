@@ -18,7 +18,12 @@ const ResourcesCTA = () => {
             <MessageCircle className="h-4 w-4" />
             Chat with Glo Assistant
           </Button>
-          <Button variant="outline" size="lg" className="flex items-center gap-2 text-primary-foreground border-primary-foreground hover:bg-primary-foreground hover:text-primary" asChild>
+          <Button 
+            variant="outline" 
+            size="lg" 
+            className="flex items-center gap-2 text-primary-foreground border-primary-foreground hover:bg-primary-foreground hover:text-primary" 
+            asChild
+          >
             <Link to="/contact">
               <Mail className="h-4 w-4" />
               Go to Contact Form

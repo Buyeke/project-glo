@@ -39,7 +39,7 @@ const Navigation = () => {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <span className="text-2xl font-bold text-accent">GLO</span>
+              <span className="text-2xl font-bold text-primary">GLO</span>
             </Link>
           </div>
 
@@ -51,8 +51,8 @@ const Navigation = () => {
                 to={item.path}
                 className={`px-3 py-2 text-sm font-medium transition-colors duration-200 ${
                   isActivePath(item.path)
-                    ? 'text-accent border-b-2 border-accent'
-                    : 'text-gray-700 hover:text-accent hover:border-b-2 hover:border-accent'
+                    ? 'text-primary border-b-2 border-primary'
+                    : 'text-gray-700 hover:text-primary hover:border-b-2 hover:border-primary'
                 }`}
               >
                 {item.name}
@@ -62,7 +62,7 @@ const Navigation = () => {
             {/* Employer Portal Link */}
             <Link
               to="/employer-dashboard"
-              className="flex items-center px-3 py-2 text-sm font-medium text-purple-700 hover:text-purple-900 transition-colors duration-200"
+              className="flex items-center px-3 py-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors duration-200"
             >
               <Briefcase className="w-4 h-4 mr-1" />
               Employers
@@ -103,7 +103,7 @@ const Navigation = () => {
             <QuickExitButton />
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-700 hover:text-accent focus:outline-none focus:text-accent"
+              className="text-gray-700 hover:text-primary focus:outline-none focus:text-primary"
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -120,8 +120,8 @@ const Navigation = () => {
                   to={item.path}
                   className={`block px-3 py-2 text-base font-medium transition-colors duration-200 ${
                     isActivePath(item.path)
-                      ? 'text-accent bg-accent/10'
-                      : 'text-gray-700 hover:text-accent hover:bg-accent/10'
+                      ? 'text-primary bg-primary/10'
+                      : 'text-gray-700 hover:text-primary hover:bg-primary/10'
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -131,7 +131,7 @@ const Navigation = () => {
               
               <Link
                 to="/employer-dashboard"
-                className="flex items-center px-3 py-2 text-base font-medium text-purple-700 hover:text-purple-900 hover:bg-purple-50 transition-colors duration-200"
+                className="flex items-center px-3 py-2 text-base font-medium text-primary hover:text-primary/80 hover:bg-primary/10 transition-colors duration-200"
                 onClick={() => setIsMenuOpen(false)}
               >
                 <Briefcase className="w-4 h-4 mr-2" />
@@ -142,7 +142,7 @@ const Navigation = () => {
                 <div className="border-t pt-2 mt-2">
                   <Link
                     to="/dashboard"
-                    className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-accent hover:bg-accent/10"
+                    className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary hover:bg-primary/10"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Dashboard
@@ -152,7 +152,7 @@ const Navigation = () => {
                       handleSignOut();
                       setIsMenuOpen(false);
                     }}
-                    className="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:text-accent hover:bg-accent/10"
+                    className="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:text-primary hover:bg-primary/10"
                   >
                     <LogOut className="w-4 h-4 mr-2 inline" />
                     Sign Out

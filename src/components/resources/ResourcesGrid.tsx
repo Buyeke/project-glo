@@ -47,13 +47,13 @@ const ResourcesGrid = ({ resources, isLoading, onClearFilters }: ResourcesGridPr
         <CardContent>
           <Filter className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">No Resources Found</h3>
-          <p className="text-gray-600">
+          <p className="text-gray-600 mb-4">
             Try adjusting your search criteria or browse all categories to find what you need.
           </p>
           <Button 
-            variant="outline" 
+            variant="default" 
             onClick={onClearFilters}
-            className="mt-4"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             Clear Filters
           </Button>

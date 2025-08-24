@@ -8,7 +8,7 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-xl font-bold mb-4 text-foreground">Project GLO</h3>
+            <h3 className="text-xl font-bold mb-4 text-primary">Project GLO</h3>
             <p className="text-muted-foreground mb-4">
               Empowering communities through AI-driven support and resource matching.
             </p>
@@ -17,21 +17,21 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-semibold mb-4 text-foreground">Quick Links</h4>
             <ul className="space-y-2">
-              <li><Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">Home</Link></li>
-              <li><Link to="/about" className="text-muted-foreground hover:text-foreground transition-colors">About</Link></li>
-              <li><Link to="/services" className="text-muted-foreground hover:text-foreground transition-colors">Services</Link></li>
-              <li><Link to="/resources" className="text-muted-foreground hover:text-foreground transition-colors">Resources</Link></li>
-              <li><Link to="/contact" className="text-muted-foreground hover:text-foreground transition-colors">Contact</Link></li>
+              <li><Link to="/" className="text-muted-foreground hover:text-primary transition-colors">Home</Link></li>
+              <li><Link to="/about" className="text-muted-foreground hover:text-primary transition-colors">About</Link></li>
+              <li><Link to="/services" className="text-muted-foreground hover:text-primary transition-colors">Services</Link></li>
+              <li><Link to="/resources" className="text-muted-foreground hover:text-primary transition-colors">Resources</Link></li>
+              <li><Link to="/contact" className="text-muted-foreground hover:text-primary transition-colors">Contact</Link></li>
             </ul>
           </div>
           
           <div>
             <h4 className="text-lg font-semibold mb-4 text-foreground">Support</h4>
             <ul className="space-y-2">
-              <li><Link to="/help" className="text-muted-foreground hover:text-foreground transition-colors">Help Center</Link></li>
-              <li><Link to="/blog" className="text-muted-foreground hover:text-foreground transition-colors">Blog</Link></li>
-              <li><Link to="/careers" className="text-muted-foreground hover:text-foreground transition-colors">Careers</Link></li>
-              <li><Link to="/donate" className="text-muted-foreground hover:text-foreground transition-colors">Donate</Link></li>
+              <li><Link to="/help" className="text-muted-foreground hover:text-primary transition-colors">Help Center</Link></li>
+              <li><Link to="/blog" className="text-muted-foreground hover:text-primary transition-colors">Blog</Link></li>
+              <li><Link to="/careers" className="text-muted-foreground hover:text-primary transition-colors">Careers</Link></li>
+              <li><Link to="/donate" className="text-muted-foreground hover:text-primary transition-colors">Donate</Link></li>
             </ul>
           </div>
           
@@ -46,7 +46,7 @@ const Footer = () => {
                 </div>
               </div>
               <div className="flex items-start gap-2">
-                <Users className="h-4 w-4 mt-1 text-accent" />
+                <Users className="h-4 w-4 mt-1 text-primary" />
                 <div>
                   <p className="text-sm font-medium text-foreground">Partnerships & Grants</p>
                   <p className="text-muted-foreground text-sm">founder@projectglo.org</p>
@@ -62,13 +62,13 @@ const Footer = () => {
               © 2024 Project GLO. All rights reserved.
             </p>
             <div className="flex space-x-4 mt-4 md:mt-0">
-              <Link to="/privacy-policy" className="text-muted-foreground hover:text-foreground text-sm transition-colors">
+              <Link to="/privacy-policy" className="text-muted-foreground hover:text-primary text-sm transition-colors">
                 Privacy Policy
               </Link>
-              <Link to="/terms-of-service" className="text-muted-foreground hover:text-foreground text-sm transition-colors">
+              <Link to="/terms-of-service" className="text-muted-foreground hover:text-primary text-sm transition-colors">
                 Terms of Service
               </Link>
-              <Link to="/data-protection" className="text-muted-foreground hover:text-foreground text-sm transition-colors">
+              <Link to="/data-protection" className="text-muted-foreground hover:text-primary text-sm transition-colors">
                 Data Protection
               </Link>
             </div>

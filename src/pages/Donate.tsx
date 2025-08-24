@@ -6,7 +6,7 @@ import DonationForm from '@/components/donation/DonationForm';
 
 const Donate = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-4">
+    <div className="min-h-screen bg-purple-50 p-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">

@@ -20,7 +20,7 @@ export const ChatBotHeader = ({
   onClose 
 }: ChatBotHeaderProps) => {
   return (
-    <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground p-4">
+    <div className="bg-primary text-primary-foreground p-4">
       <div className="flex justify-between items-center">
         <CardTitle className="text-sm flex items-center gap-2">
           <Globe className="h-4 w-4" />
