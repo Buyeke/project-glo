@@ -5,7 +5,6 @@ import { Menu, X, ChevronDown, User, LogOut, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
-import QuickExitButton from './QuickExitButton';
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -94,13 +93,10 @@ const Navigation = () => {
                 Sign In
               </Button>
             )}
-
-            <QuickExitButton />
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden flex items-center space-x-2">
-            <QuickExitButton />
+          <div className="md:hidden flex items-center">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="text-gray-700 hover:text-primary focus:outline-none focus:text-primary"

@@ -1,13 +1,31 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, Move } from 'lucide-react';
 
 const QuickExitButton = () => {
-  const [position, setPosition] = useState({ x: 20, y: 20 });
+  const [position, setPosition] = useState({ x: 0, y: 20 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const buttonRef = useRef<HTMLDivElement>(null);
+
+  // Set initial position to top-right on mount
+  useEffect(() => {
+    const setInitialPosition = () => {
+      if (buttonRef.current) {
+        const buttonWidth = buttonRef.current.offsetWidth || 120;
+        const initialX = window.innerWidth - buttonWidth - 20;
+        setPosition({ x: Math.max(0, initialX), y: 20 });
+      }
+    };
+
+    // Set position after component mounts and gets dimensions
+    setTimeout(setInitialPosition, 0);
+    
+    // Update position on window resize
+    window.addEventListener('resize', setInitialPosition);
+    return () => window.removeEventListener('resize', setInitialPosition);
+  }, []);
 
   const handleQuickExit = () => {
     // Replace the current page with Google to avoid back-button issues
@@ -26,10 +44,13 @@ const QuickExitButton = () => {
   };
 
   const handleMouseMove = (e: MouseEvent) => {
-    if (!isDragging) return;
+    if (!isDragging || !buttonRef.current) return;
 
-    const newX = Math.max(0, Math.min(window.innerWidth - 120, e.clientX - dragStart.x));
-    const newY = Math.max(0, Math.min(window.innerHeight - 40, e.clientY - dragStart.y));
+    const buttonWidth = buttonRef.current.offsetWidth || 120;
+    const buttonHeight = buttonRef.current.offsetHeight || 40;
+
+    const newX = Math.max(0, Math.min(window.innerWidth - buttonWidth, e.clientX - dragStart.x));
+    const newY = Math.max(0, Math.min(window.innerHeight - buttonHeight, e.clientY - dragStart.y));
 
     setPosition({ x: newX, y: newY });
   };
