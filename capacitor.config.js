@@ -1,7 +1,5 @@
 
-import { CapacitorConfig } from '@capacitor/cli';
-
-const config: CapacitorConfig = {
+export default {
   appId: 'app.lovable.6f4bde81af4946b29d041ec7163a4a1b',
   appName: 'Glo',
   webDir: 'dist',
@@ -23,5 +21,3 @@ const config: CapacitorConfig = {
     }
   }
 };
-
-export default config;
