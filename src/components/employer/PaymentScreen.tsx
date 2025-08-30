@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, CreditCard, Smartphone, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
 interface PaymentScreenProps {
   jobData: any;
@@ -15,11 +15,17 @@ interface PaymentScreenProps {
 }
 
 const PaymentScreen: React.FC<PaymentScreenProps> = ({ jobData, employerProfile, onSuccess, onCancel }) => {
+  const { session } = useAuth();
   const [selectedMethod, setSelectedMethod] = useState<'mpesa' | 'paypal'>('paypal');
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 
   const handlePayPalPayment = async () => {
+    if (!session) {
+      toast.error('Please log in to complete payment');
+      return;
+    }
+
     setIsProcessing(true);
 
     try {
@@ -51,7 +57,7 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({ jobData, employerProfile,
 
       if (paymentError) throw paymentError;
 
-      // Call PayPal payment processing edge function
+      // Call PayPal payment processing edge function with proper authentication
       const { data, error } = await supabase.functions.invoke('process-paypal-payment', {
         body: {
           amount: 5000,
@@ -109,6 +115,11 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({ jobData, employerProfile,
   };
 
   const handlePayment = () => {
+    if (!session) {
+      toast.error('Please log in to complete payment');
+      return;
+    }
+
     if (selectedMethod === 'paypal') {
       handlePayPalPayment();
     } else {
@@ -262,12 +273,17 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({ jobData, employerProfile,
             <Button 
               onClick={handlePayment}
               className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-6"
-              disabled={isProcessing || (selectedMethod === 'mpesa')}
+              disabled={isProcessing || (selectedMethod === 'mpesa') || !session}
             >
               {isProcessing ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   Processing Payment...
+                </>
+              ) : !session ? (
+                <>
+                  <AlertCircle className="w-4 h-4 mr-2" />
+                  Please Log In First
                 </>
               ) : selectedMethod === 'mpesa' ? (
                 <>

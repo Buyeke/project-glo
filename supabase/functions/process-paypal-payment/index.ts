@@ -1,66 +1,69 @@
 
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://lovable.dev', // Restrict to app origin only
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
 
 serve(async (req) => {
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const { 
-      amount, 
-      currency, 
-      description, 
-      payment_id, 
-      job_posting_id, 
-      return_url, 
-      cancel_url 
-    } = await req.json();
-
-    console.log('Processing PayPal payment request:', { amount, currency, description });
-
-    // Get PayPal credentials from environment
-    const clientId = Deno.env.get('PAYPAL_CLIENT_ID');
-    const clientSecret = Deno.env.get('PAYPAL_CLIENT_SECRET');
-    const environment = Deno.env.get('PAYPAL_ENVIRONMENT') || 'sandbox';
-
-    if (!clientId || !clientSecret) {
-      throw new Error('PayPal credentials not configured');
+    // Verify JWT token is present
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      throw new Error('Missing authorization header')
     }
 
-    const baseURL = environment === 'sandbox' 
-      ? 'https://api.sandbox.paypal.com'
-      : 'https://api.paypal.com';
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: { Authorization: authHeader },
+        },
+      }
+    )
 
-    // Get access token
-    const tokenResponse = await fetch(`${baseURL}/v1/oauth2/token`, {
+    // Verify the user is authenticated
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser()
+    if (userError || !user) {
+      throw new Error('Invalid or expired token')
+    }
+
+    const { amount, currency, description, payment_id, job_posting_id, return_url, cancel_url } = await req.json()
+
+    const paypalClientId = Deno.env.get('PAYPAL_CLIENT_ID')
+    const paypalClientSecret = Deno.env.get('PAYPAL_CLIENT_SECRET')
+    const paypalEnvironment = Deno.env.get('PAYPAL_ENVIRONMENT') || 'sandbox'
+    
+    const paypalBaseUrl = paypalEnvironment === 'live' 
+      ? 'https://api.paypal.com' 
+      : 'https://api.sandbox.paypal.com'
+
+    // Get PayPal access token
+    const tokenResponse = await fetch(`${paypalBaseUrl}/v1/oauth2/token`, {
       method: 'POST',
       headers: {
-        'Accept': 'application/json',
-        'Accept-Language': 'en_US',
-        'Authorization': `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
         'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${btoa(`${paypalClientId}:${paypalClientSecret}`)}`
       },
-      body: 'grant_type=client_credentials',
-    });
+      body: 'grant_type=client_credentials'
+    })
 
     if (!tokenResponse.ok) {
-      throw new Error('Failed to get PayPal access token');
+      throw new Error('Failed to get PayPal access token')
     }
 
-    const tokenData = await tokenResponse.json();
-    const accessToken = tokenData.access_token;
+    const tokenData = await tokenResponse.json()
 
-    // Convert KES to USD for PayPal (approximate rate: 1 USD = 130 KES)
-    const amountInUSD = (amount / 130).toFixed(2);
-
-    // Create payment
+    // Create PayPal payment
     const paymentData = {
       intent: 'sale',
       payer: {
@@ -68,81 +71,80 @@ serve(async (req) => {
       },
       transactions: [{
         amount: {
-          total: amountInUSD,
-          currency: 'USD'
+          total: (amount / 100).toFixed(2),
+          currency: currency
         },
-        description: description,
-        custom: JSON.stringify({ payment_id, job_posting_id })
+        description: description
       }],
       redirect_urls: {
         return_url: return_url,
         cancel_url: cancel_url
       }
-    };
+    }
 
-    const paymentResponse = await fetch(`${baseURL}/v1/payments/payment`, {
+    const paymentResponse = await fetch(`${paypalBaseUrl}/v1/payments/payment`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
+        'Authorization': `Bearer ${tokenData.access_token}`
       },
-      body: JSON.stringify(paymentData),
-    });
+      body: JSON.stringify(paymentData)
+    })
 
     if (!paymentResponse.ok) {
-      const errorData = await paymentResponse.json();
-      console.error('PayPal payment creation failed:', errorData);
-      throw new Error('Failed to create PayPal payment');
+      const errorData = await paymentResponse.json()
+      console.error('PayPal payment creation failed:', errorData)
+      throw new Error('Failed to create PayPal payment')
     }
 
-    const payment = await paymentResponse.json();
-    console.log('PayPal payment created:', payment.id);
-
-    // Find approval URL
-    const approvalUrl = payment.links.find((link: any) => link.rel === 'approval_url')?.href;
+    const payment = await paymentResponse.json()
+    const approvalUrl = payment.links.find((link: any) => link.rel === 'approval_url')?.href
 
     if (!approvalUrl) {
-      throw new Error('No approval URL returned from PayPal');
+      throw new Error('No approval URL found in PayPal response')
     }
 
-    // Initialize Supabase client with service role key
-    const supabase = createClient(
+    // Update payment record with PayPal payment ID using service role key for security
+    const supabaseService = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    )
 
-    // Update payment record with PayPal payment ID
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseService
       .from('job_payments')
-      .update({ 
-        payment_reference: payment.id,
+      .update({
+        paypal_payment_id: payment.id,
         status: 'pending'
       })
-      .eq('id', payment_id);
+      .eq('id', payment_id)
 
     if (updateError) {
-      console.error('Failed to update payment record:', updateError);
+      console.error('Failed to update payment record:', updateError)
+      throw new Error('Failed to update payment record')
     }
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
+        payment_id: payment.id,
         approval_url: approvalUrl,
-        payment_id: payment.id 
+        status: 'created'
       }),
-      { 
+      {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 
-      }
-    );
+        status: 200,
+      },
+    )
 
   } catch (error) {
-    console.error('PayPal payment processing error:', error);
+    console.error('PayPal payment processing error:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { 
+      JSON.stringify({
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      }),
+      {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500 
-      }
-    );
+        status: 400,
+      },
+    )
   }
-});
+})

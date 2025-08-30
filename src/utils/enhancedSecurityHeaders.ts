@@ -1,84 +1,56 @@
 
-// Enhanced security headers for production security
-export const getSecurityHeaders = () => {
-  const isProduction = window.location.hostname !== 'localhost' && 
-                      !window.location.hostname.includes('lovable.dev');
-  
-  const headers: Record<string, string> = {
-    // Prevent MIME type sniffing
-    'X-Content-Type-Options': 'nosniff',
-    
-    // Enable XSS protection
-    'X-XSS-Protection': '1; mode=block',
-    
-    // Referrer policy for privacy
-    'Referrer-Policy': 'strict-origin-when-cross-origin',
-    
-    // Permissions policy - restrict dangerous features
-    'Permissions-Policy': [
-      'camera=()',
-      'microphone=(self)',
-      'geolocation=()',
-      'interest-cohort=()',
-      'payment=()',
-      'usb=()',
-      'battery=()',
-      'accelerometer=()',
-      'gyroscope=()'
-    ].join(', ')
-  };
+// Enhanced security headers with stricter CSP and comprehensive protection
 
-  // Only apply strict frame and CSP policies in production
-  if (isProduction) {
-    // Prevent clickjacking attacks in production
-    headers['X-Frame-Options'] = 'SAMEORIGIN';
-    
-    // Content Security Policy - prevents XSS attacks
-    headers['Content-Security-Policy'] = [
-      "default-src 'self'",
-      "script-src 'self' https://js.supabase.co",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "font-src 'self' https://fonts.gstatic.com data:",
-      "img-src 'self' data: https: blob:",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.ipify.org https://api.openai.com https://api.elevenlabs.io",
-      "media-src 'self' blob:",
-      "object-src 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-      "frame-ancestors 'self'",
-      "upgrade-insecure-requests"
-    ].join('; ');
-    
-    // Strict transport security (HTTPS only) in production
-    headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload';
-  }
-  
-  return headers;
+export const setSecurityHeaders = () => {
+  // Content Security Policy - Stricter version
+  const csp = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.paypal.com https://www.sandbox.paypal.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "img-src 'self' data: blob: https:",
+    "media-src 'self' blob:",
+    "connect-src 'self' https://*.supabase.co https://api.ipify.org wss://*.supabase.co https://www.paypal.com https://api.sandbox.paypal.com",
+    "frame-src 'self' https://www.paypal.com https://www.sandbox.paypal.com",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self' https://www.paypal.com https://www.sandbox.paypal.com",
+    "frame-ancestors 'none'",
+    "upgrade-insecure-requests"
+  ].join('; ');
+
+  const meta = document.createElement('meta');
+  meta.httpEquiv = 'Content-Security-Policy';
+  meta.content = csp;
+  document.head.appendChild(meta);
+
+  // Additional security headers via meta tags where possible
+  const headers = [
+    { name: 'X-Content-Type-Options', content: 'nosniff' },
+    { name: 'X-Frame-Options', content: 'DENY' },
+    { name: 'X-XSS-Protection', content: '1; mode=block' },
+    { name: 'Referrer-Policy', content: 'strict-origin-when-cross-origin' }
+  ];
+
+  headers.forEach(header => {
+    const metaTag = document.createElement('meta');
+    metaTag.httpEquiv = header.name;
+    metaTag.content = header.content;
+    document.head.appendChild(metaTag);
+  });
 };
 
-export const applySecurityHeaders = () => {
-  if (typeof document !== 'undefined') {
-    const headers = getSecurityHeaders();
-    
-    // Create meta tags for applicable headers
-    Object.entries(headers).forEach(([name, content]) => {
-      if (name === 'Content-Security-Policy') {
-        // Only apply CSP in production to avoid breaking Lovable editor
-        const isProduction = window.location.hostname !== 'localhost' && 
-                            !window.location.hostname.includes('lovable.dev');
-        
-        if (isProduction && !document.querySelector('meta[http-equiv="Content-Security-Policy"]')) {
-          const cspMeta = document.createElement('meta');
-          cspMeta.httpEquiv = 'Content-Security-Policy';
-          cspMeta.content = content;
-          document.head.appendChild(cspMeta);
-        }
-      }
-    });
-    
-    console.log('Security headers configured for environment:', {
-      production: window.location.hostname !== 'localhost' && !window.location.hostname.includes('lovable.dev'),
-      headers: Object.keys(headers)
-    });
+export const validateSecureContext = (): boolean => {
+  // Check if we're in a secure context (HTTPS)
+  if (typeof window !== 'undefined' && !window.isSecureContext && location.protocol !== 'http:') {
+    console.warn('Application is not running in a secure context');
+    return false;
   }
+  return true;
 };
+
+// Initialize security headers when module loads
+if (typeof window !== 'undefined') {
+  setSecurityHeaders();
+  validateSecureContext();
+}

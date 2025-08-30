@@ -1,54 +1,51 @@
 
-import { applySecurityHeaders } from './enhancedSecurityHeaders';
-import { sessionManager } from './enhancedSessionManager';
-import { securityMonitor } from './enhancedSecurityMonitoring';
+import { setSecurityHeaders, validateSecureContext } from './enhancedSecurityHeaders';
+import { logSecurityEvent } from './securityLogger';
 
-export const initializeSecurity = () => {
-  // Apply security headers
-  applySecurityHeaders();
+export const initializeSecurity = async () => {
+  try {
+    console.log('Initializing enhanced security measures...');
 
-  // Initialize session manager with admin-specific config
-  sessionManager.initialize({
-    maxIdleTime: 30 * 60 * 1000, // 30 minutes for admin users
-    maxSessionTime: 4 * 60 * 60 * 1000, // 4 hours for admin sessions
-    requireReauth: true
-  });
+    // Set security headers
+    setSecurityHeaders();
 
-  // Set up global error handling for security events
-  window.addEventListener('error', (event) => {
-    securityMonitor.logEnhancedSecurityEvent({
-      eventType: 'suspicious_activity',
-      severity: 'low',
-      details: {
-        type: 'javascript_error',
-        message: event.message,
-        filename: event.filename,
-        lineno: event.lineno
+    // Validate secure context
+    const isSecure = validateSecureContext();
+    if (!isSecure) {
+      await logSecurityEvent({
+        event_type: 'suspicious_activity',
+        event_data: {
+          reason: 'Insecure context detected',
+          protocol: window.location.protocol,
+          host: window.location.host
+        }
+      });
+    }
+
+    // Log security initialization
+    await logSecurityEvent({
+      event_type: 'admin_access',
+      event_data: {
+        action: 'security_initialized',
+        timestamp: new Date().toISOString()
       }
     });
-  });
 
-  // Set up unhandled promise rejection handling
-  window.addEventListener('unhandledrejection', (event) => {
-    securityMonitor.logEnhancedSecurityEvent({
-      eventType: 'suspicious_activity',
-      severity: 'medium',
-      details: {
-        type: 'unhandled_promise_rejection',
-        reason: event.reason?.toString()
+    console.log('Security measures initialized successfully');
+  } catch (error) {
+    console.error('Security initialization failed:', error);
+    
+    await logSecurityEvent({
+      event_type: 'suspicious_activity',
+      event_data: {
+        reason: 'Security initialization failed',
+        error: error instanceof Error ? error.message : 'Unknown error'
       }
     });
-  });
-
-  console.log('Security system initialized successfully');
+  }
 };
 
-// Auto-initialize when imported
+// Initialize security when module loads
 if (typeof window !== 'undefined') {
-  // Wait for DOM to be ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeSecurity);
-  } else {
-    initializeSecurity();
-  }
+  initializeSecurity();
 }

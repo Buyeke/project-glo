@@ -41,17 +41,16 @@ export const logSecurityEvent = async (event: SecurityEvent) => {
 
 export const getClientIP = async (): Promise<string> => {
   try {
-    // Try to get IP from our edge function first
+    // Only try to get IP from our secure edge function
     const { data, error } = await supabase.functions.invoke('get-client-ip');
     
     if (!error && data?.ip && data.ip !== 'unknown') {
       return data.ip;
     }
 
-    // Fallback to external service
-    const response = await fetch('https://api.ipify.org?format=json');
-    const ipData = await response.json();
-    return ipData.ip || 'unknown';
+    // No fallback to external services for privacy
+    console.log('Client IP not available from edge function');
+    return 'unknown';
   } catch (error) {
     console.error('Failed to get client IP:', error);
     return 'unknown';
