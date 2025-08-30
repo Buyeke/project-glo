@@ -77,6 +77,7 @@ const ServiceRequestForm = () => {
       const { error } = await supabase
         .from('support_requests')
         .insert({
+          user_id: isAnonymous ? null : user?.id || null,
           user_email: isAnonymous ? tempId : userEmail,
           service_type: serviceType,
           language: language,
