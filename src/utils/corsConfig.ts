@@ -5,8 +5,8 @@ export const getAllowedOrigins = () => {
     'https://fznhhkxwzqipwfwihwqr.supabase.co',
     'http://localhost:3000',
     'https://lovable.dev',
-    // Add production domain when deployed
-    // 'https://yourproductiondomain.com'
+    'https://projectglo.org',
+    'https://www.projectglo.org'
   ];
 };
 

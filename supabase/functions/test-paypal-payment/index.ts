@@ -58,8 +58,8 @@ serve(async (req) => {
         description: description || 'Test payment'
       }],
       redirect_urls: {
-        return_url: 'https://lovable.dev/test-success',
-        cancel_url: 'https://lovable.dev/test-cancel'
+        return_url: 'https://projectglo.org/test-success',
+        cancel_url: 'https://projectglo.org/test-cancel'
       }
     }
 

@@ -11,8 +11,8 @@ max_rows = 1000
 [auth]
 enabled = true
 port = 54320
-site_url = "http://localhost:3000"
-additional_redirect_urls = ["https://lovable.dev"]
+site_url = "https://projectglo.org"
+additional_redirect_urls = ["https://lovable.dev", "http://localhost:3000", "https://www.projectglo.org"]
 jwt_expiry = 3600
 enable_anonymous_sign_ins = false
 enable_manual_linking = false
