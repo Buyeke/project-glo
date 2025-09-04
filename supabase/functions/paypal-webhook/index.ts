@@ -179,9 +179,88 @@ serve(async (req) => {
 
     if (webhookData.event_type === 'PAYMENT.SALE.COMPLETED') {
       const paymentId = webhookData.resource.parent_payment;
-      const customData = JSON.parse(webhookData.resource.custom || '{}');
+      const saleId = webhookData.resource.id;
       
       console.log('Processing completed payment:', paymentId);
+
+      // Get payment details to check if it's a donation or job payment
+      const paymentDetailsResponse = await fetch(`${paypalBaseUrl}/v1/payments/payment/${paymentId}`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!paymentDetailsResponse.ok) {
+        console.error('Failed to get payment details');
+        return new Response('Payment details retrieval failed', { 
+          status: 500, 
+          headers: corsHeaders 
+        });
+      }
+      
+      const paymentDetails = await paymentDetailsResponse.json();
+      const customField = paymentDetails.transactions?.[0]?.custom;
+      
+      console.log('Payment custom field:', customField);
+
+      // Check if this is a donation (custom field contains donation UUID)
+      if (customField && customField.length === 36 && customField.includes('-')) {
+        // This looks like a donation UUID
+        const { data: donation } = await supabase
+          .from('donations')
+          .select('id')
+          .eq('id', customField)
+          .single();
+
+        if (donation) {
+          console.log('Processing donation completion for:', customField);
+          
+          // Update donation status
+          const { error: donationError } = await supabase
+            .from('donations')
+            .update({ 
+              status: 'completed',
+              payment_id: paymentId
+            })
+            .eq('id', customField);
+          
+          if (donationError) {
+            console.error('Failed to update donation:', donationError);
+            throw donationError;
+          }
+
+          // Log successful donation processing
+          await supabase.from('security_logs').insert({
+            event_type: 'admin_access',
+            event_data: {
+              action: 'paypal_donation_processed',
+              payment_id: paymentId,
+              donation_id: customField,
+              verification_status: 'success'
+            },
+            ip_address: req.headers.get('cf-connecting-ip') || 'unknown'
+          });
+          
+          console.log('Donation completed successfully');
+          return new Response(
+            JSON.stringify({ received: true, type: 'donation' }),
+            { 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              status: 200 
+            }
+          );
+        }
+      }
+      
+      // If not a donation, try to process as job payment
+      let customData;
+      try {
+        customData = JSON.parse(customField || '{}');
+      } catch (e) {
+        console.log('Could not parse custom field as JSON, treating as string');
+        customData = {};
+      }
 
       // Update payment status
       const { error: paymentError } = await supabase

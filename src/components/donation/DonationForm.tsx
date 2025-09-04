@@ -104,13 +104,10 @@ const DonationForm = ({
     setIsProcessing(true);
 
     try {
-      // Convert USD to KES (approximately 130 KES per USD)
-      const amountInKES = Math.round(donationAmount * 130);
-
-      const { data, error } = await supabase.functions.invoke('process-paypal-payment', {
+      const { data, error } = await supabase.functions.invoke('process-donation-payment', {
         body: {
-          amount: amountInKES,
-          currency: 'KES',
+          amount: donationAmount,
+          currency: 'USD',
           description: `Donation to Project GLO - $${donationAmount} USD`,
           return_url: `${window.location.origin}/donation-success`,
           cancel_url: `${window.location.origin}/donation-cancelled`,
@@ -312,10 +309,10 @@ const DonationForm = ({
             )}
           </Button>
 
-          <p className="text-xs text-muted-foreground text-center">
-            All donations are processed securely through PayPal's platform.
-            Amounts are converted to KES for local processing.
-          </p>
+              <p className="text-xs text-muted-foreground text-center">
+                All donations are processed securely through PayPal's platform.
+                Your contribution is in USD and will help us provide essential services.
+              </p>
         </CardContent>
       </Card>
     </div>
