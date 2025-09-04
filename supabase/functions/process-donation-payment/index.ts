@@ -1,16 +1,77 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+// Secure CORS configuration - only allow specific origins
+const getAllowedOrigins = () => [
+  'https://fznhhkxwzqipwfwihwqr.supabase.co',
+  'http://localhost:3000',
+  'https://lovable.dev',
+  'https://projectglo.org',
+  'https://www.projectglo.org'
+];
+
+const getCorsHeaders = (origin?: string) => {
+  const allowedOrigins = getAllowedOrigins();
+  const requestOrigin = origin || '';
+  const isAllowed = allowedOrigins.includes(requestOrigin);
+  
+  return {
+    'Access-Control-Allow-Origin': isAllowed ? requestOrigin : allowedOrigins[3], // Default to projectglo.org
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  };
+};
 
 serve(async (req) => {
+  const origin = req.headers.get('origin');
+  const corsHeaders = getCorsHeaders(origin);
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
+  }
+
+  // Rate limiting check
+  const clientIp = req.headers.get('cf-connecting-ip') || req.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
+  const rateLimitKey = `donation_${clientIp}`;
+  
+  try {
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    // Check rate limit - max 3 donation attempts per hour per IP
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const { data: recentAttempts } = await supabase
+      .from('rate_limits')
+      .select('attempt_count')
+      .eq('identifier', rateLimitKey)
+      .eq('action_type', 'donation')
+      .gte('window_start', oneHourAgo.toISOString())
+      .single();
+
+    if (recentAttempts && recentAttempts.attempt_count >= 3) {
+      console.log('Rate limit exceeded for donation attempts');
+      return new Response(JSON.stringify({ error: 'Too many donation attempts. Please try again later.' }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Update rate limit counter
+    await supabase
+      .from('rate_limits')
+      .upsert({
+        identifier: rateLimitKey,
+        action_type: 'donation',
+        attempt_count: (recentAttempts?.attempt_count || 0) + 1,
+        window_start: new Date().toISOString()
+      });
+
+  } catch (rateLimitError) {
+    console.error('Rate limiting check failed:', rateLimitError);
+    // Continue with request if rate limiting fails
   }
 
   if (req.method !== 'POST') {
@@ -33,22 +94,33 @@ serve(async (req) => {
       anonymous = false
     } = await req.json();
 
-    console.log('Processing donation payment:', { amount, currency, donor_email });
+    // Log without PII - only log sanitized data
+    console.log('Processing donation payment:', { 
+      amount, 
+      currency, 
+      donor_email_domain: donor_email ? donor_email.split('@')[1] : 'unknown',
+      has_message: !!message,
+      anonymous 
+    });
 
-    // Validate input
-    if (!amount || amount <= 0) {
-      return new Response(JSON.stringify({ error: 'Invalid amount' }), {
+    // Enhanced input validation
+    if (!amount || amount <= 0 || amount > 100000) {
+      return new Response(JSON.stringify({ error: 'Invalid amount (must be between $1 and $100,000)' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    if (!donor_email) {
-      return new Response(JSON.stringify({ error: 'Donor email is required' }), {
+    if (!donor_email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(donor_email) || donor_email.length > 254) {
+      return new Response(JSON.stringify({ error: 'Valid donor email is required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
+
+    // Sanitize inputs
+    const sanitizedMessage = message ? message.replace(/<[^>]*>/g, '').substring(0, 500) : '';
+    const sanitizedDonorName = donor_name ? donor_name.replace(/<[^>]*>/g, '').substring(0, 100) : '';
 
     // Get PayPal credentials
     const paypalClientId = Deno.env.get('PAYPAL_CLIENT_ID');
@@ -92,20 +164,20 @@ serve(async (req) => {
     const tokenData = await tokenResponse.json();
     const accessToken = tokenData.access_token;
 
-    // Create donation record in database first
-    const supabase = createClient(
+    // Create donation record in database first using sanitized data
+    const supabaseService = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { data: donation, error: donationError } = await supabase
+    const { data: donation, error: donationError } = await supabaseService
       .from('donations')
       .insert({
-        donor_name: anonymous ? null : donor_name,
+        donor_name: anonymous ? null : sanitizedDonorName,
         donor_email,
         amount,
         currency,
-        message,
+        message: sanitizedMessage,
         anonymous,
         payment_method: 'paypal',
         status: 'pending'
@@ -121,7 +193,7 @@ serve(async (req) => {
       });
     }
 
-    console.log('Created donation record:', donation.id);
+    console.log('Created donation record with ID ending in:', donation.id.slice(-4));
 
     // Create PayPal payment
     const paymentData = {
@@ -159,7 +231,7 @@ serve(async (req) => {
       console.error('PayPal payment creation failed:', paymentError);
       
       // Update donation status to failed
-      await supabase
+      await supabaseService
         .from('donations')
         .update({ status: 'failed' })
         .eq('id', donation.id);
@@ -174,10 +246,10 @@ serve(async (req) => {
     }
 
     const payment = await paymentResponse.json();
-    console.log('PayPal payment created successfully:', payment.id);
+    console.log('PayPal payment created successfully with ID ending in:', payment.id.slice(-4));
 
     // Update donation record with PayPal payment ID
-    await supabase
+    await supabaseService
       .from('donations')
       .update({ payment_id: payment.id })
       .eq('id', donation.id);

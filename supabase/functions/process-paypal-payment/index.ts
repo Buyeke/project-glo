@@ -2,13 +2,31 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*', // Allow production and dev domains
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+// Secure CORS configuration - only allow specific origins
+const getAllowedOrigins = () => [
+  'https://fznhhkxwzqipwfwihwqr.supabase.co',
+  'http://localhost:3000',
+  'https://lovable.dev', 
+  'https://projectglo.org',
+  'https://www.projectglo.org'
+];
+
+const getCorsHeaders = (origin?: string) => {
+  const allowedOrigins = getAllowedOrigins();
+  const requestOrigin = origin || '';
+  const isAllowed = allowedOrigins.includes(requestOrigin);
+  
+  return {
+    'Access-Control-Allow-Origin': isAllowed ? requestOrigin : allowedOrigins[3],
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  };
+};
 
 serve(async (req) => {
+  const origin = req.headers.get('origin');
+  const corsHeaders = getCorsHeaders(origin);
+  
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
