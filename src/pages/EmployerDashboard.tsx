@@ -48,11 +48,17 @@ const EmployerDashboard: React.FC = () => {
   useEffect(() => {
     if (user) {
       fetchEmployerProfile();
-      fetchJobPostings();
     } else {
       setLoading(false);
     }
   }, [user]);
+
+  // Fetch job postings only after employer profile is loaded
+  useEffect(() => {
+    if (employerProfile?.id) {
+      fetchJobPostings();
+    }
+  }, [employerProfile?.id]);
 
   useEffect(() => {
     const paymentStatus = searchParams.get('payment');
@@ -84,11 +90,16 @@ const EmployerDashboard: React.FC = () => {
   };
 
   const fetchJobPostings = async () => {
+    if (!employerProfile?.id) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('job_postings')
         .select('*')
-        .eq('employer_id', employerProfile?.id || '')
+        .eq('employer_id', employerProfile.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -168,6 +179,11 @@ const EmployerDashboard: React.FC = () => {
               <h1 className="text-3xl font-bold text-gray-900">Employer Dashboard</h1>
               <p className="text-gray-600">
                 Welcome back, {employerProfile?.contact_person || 'Employer'}
+                {!employerProfile?.company_name && (
+                  <span className="block text-orange-600 text-sm mt-1">
+                    ⚠️ Please complete your profile to post jobs effectively
+                  </span>
+                )}
               </p>
             </div>
             <Button onClick={() => setShowJobForm(true)} className="bg-blue-600 hover:bg-blue-700">

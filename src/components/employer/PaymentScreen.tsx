@@ -60,7 +60,7 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({ jobData, employerProfile,
       // Call PayPal payment processing edge function with proper authentication
       const { data, error } = await supabase.functions.invoke('process-paypal-payment', {
         body: {
-          amount: 5000,
+          amount: 500000, // Amount in cents (KES 5,000.00)
           currency: 'KES',
           description: `Job Listing: ${jobData.title}`,
           payment_id: payment.id,

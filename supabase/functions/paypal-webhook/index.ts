@@ -262,14 +262,13 @@ serve(async (req) => {
         customData = {};
       }
 
-      // Update payment status
+      // Update payment status - look up by payment_reference instead of payment_id
       const { error: paymentError } = await supabase
         .from('job_payments')
         .update({ 
-          status: 'completed',
-          payment_reference: paymentId
+          status: 'completed'
         })
-        .eq('id', customData.payment_id);
+        .eq('payment_reference', paymentId); // Use payment_reference which stores PayPal payment ID
 
       if (paymentError) {
         console.error('Failed to update payment:', paymentError);

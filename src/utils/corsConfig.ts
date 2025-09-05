@@ -5,6 +5,7 @@ export const getAllowedOrigins = () => {
     'https://fznhhkxwzqipwfwihwqr.supabase.co',
     'http://localhost:3000',
     'https://lovable.dev',
+    'https://6f4bde81-af49-46b2-9d04-1ec7163a4a1b.sandbox.lovable.dev', // Current Lovable preview domain
     'https://projectglo.org',
     'https://www.projectglo.org'
   ];

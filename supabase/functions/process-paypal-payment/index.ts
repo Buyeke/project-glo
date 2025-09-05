@@ -6,7 +6,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const getAllowedOrigins = () => [
   'https://fznhhkxwzqipwfwihwqr.supabase.co',
   'http://localhost:3000',
-  'https://lovable.dev', 
+  'https://lovable.dev',
+  'https://6f4bde81-af49-46b2-9d04-1ec7163a4a1b.sandbox.lovable.dev', // Current Lovable preview domain
   'https://projectglo.org',
   'https://www.projectglo.org'
 ];
@@ -92,7 +93,8 @@ serve(async (req) => {
           total: (amount / 100).toFixed(2),
           currency: currency
         },
-        description: description
+        description: description,
+        custom: JSON.stringify({ payment_id, job_posting_id }) // Add custom field for webhook processing
       }],
       redirect_urls: {
         return_url: return_url,
@@ -122,23 +124,38 @@ serve(async (req) => {
       throw new Error('No approval URL found in PayPal response')
     }
 
-    // Update payment record with PayPal payment ID using service role key for security
+    // Update payment record with PayPal payment ID and set job posting expiry using service role key for security
     const supabaseService = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    // Update payment record
     const { error: updateError } = await supabaseService
       .from('job_payments')
       .update({
-        paypal_payment_id: payment.id,
+        payment_reference: payment.id,
         status: 'pending'
       })
       .eq('id', payment_id)
 
+    // Set expires_at on the job posting (30 days from now)
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+    const { error: jobUpdateError } = await supabaseService
+      .from('job_postings')
+      .update({
+        expires_at: expiresAt.toISOString()
+      })
+      .eq('id', job_posting_id)
+
     if (updateError) {
       console.error('Failed to update payment record:', updateError)
       throw new Error('Failed to update payment record')
+    }
+
+    if (jobUpdateError) {
+      console.error('Failed to update job posting:', jobUpdateError)
+      throw new Error('Failed to update job posting')
     }
 
     return new Response(
