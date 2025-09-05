@@ -1217,6 +1217,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "service_requests_ngo_id_fkey"
+            columns: ["ngo_id"]
+            isOneToOne: false
+            referencedRelation: "ngo_public_info"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "service_requests_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -1732,9 +1739,45 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      ngo_public_info: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string | null
+          location: string | null
+          organization_name: string | null
+          services_offered: string[] | null
+          verified: boolean | null
+          website: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          location?: string | null
+          organization_name?: string | null
+          services_offered?: string[] | null
+          verified?: boolean | null
+          website?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          location?: string | null
+          organization_name?: string | null
+          services_offered?: string[] | null
+          verified?: boolean | null
+          website?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      can_access_user_data: {
+        Args: { target_user_id: string }
+        Returns: boolean
+      }
       check_duplicate_submission: {
         Args: { p_submission_hash: string }
         Returns: boolean
