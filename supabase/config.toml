@@ -16,6 +16,7 @@ additional_redirect_urls = ["https://lovable.dev", "http://localhost:3000", "htt
 jwt_expiry = 3600
 enable_anonymous_sign_ins = false
 enable_manual_linking = false
+enable_leaked_password_protection = true
 
 [auth.email]
 enable_signup = true
@@ -61,6 +62,9 @@ verify_jwt = false
 
 [functions.get-client-ip]
 verify_jwt = false
+
+[functions.secure-storage-upload]
+verify_jwt = true
 
 [inbucket]
 enabled = true

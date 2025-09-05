@@ -2,7 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { checkRateLimit } from './secureRateLimiter';
 import { logSecurityEvent } from './securityLogger';
-import { validateEmail, validateName, validateMessage, sanitizeInput } from './secureInputValidation';
+import { validateEmail, validateName, validateMessage, sanitizeInput } from './secureValidation';
 
 interface ContactSubmissionData {
   name: string;

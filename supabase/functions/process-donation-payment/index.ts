@@ -74,6 +74,15 @@ serve(async (req) => {
     // Continue with request if rate limiting fails
   }
 
+  // Security: Validate content type
+  const contentType = req.headers.get('content-type');
+  if (!contentType?.includes('application/json')) {
+    return new Response(JSON.stringify({ error: 'Invalid content type' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+
   if (req.method !== 'POST') {
     return new Response('Method Not Allowed', { 
       status: 405, 

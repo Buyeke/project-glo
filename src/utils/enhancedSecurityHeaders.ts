@@ -10,23 +10,24 @@ export const setSecurityHeaders = () => {
     existingCSP.remove();
   }
 
-  // Create stricter Content Security Policy
+  // Create hardened Content Security Policy - removed unsafe-inline and unsafe-eval
   const cspContent = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.paypal.com https://www.paypal.com https://www.sandbox.paypal.com https://apis.google.com",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "script-src 'self' 'nonce-' https://js.paypal.com https://www.paypal.com https://www.sandbox.paypal.com https://apis.google.com",
+    "style-src 'self' 'nonce-' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com data:",
-    "img-src 'self' data: blob: https: http:",
+    "img-src 'self' data: blob: https://fznhhkxwzqipwfwihwqr.supabase.co",
     "media-src 'self' data: blob:",
     "connect-src 'self' https://fznhhkxwzqipwfwihwqr.supabase.co https://api.paypal.com https://api.sandbox.paypal.com https://www.paypal.com https://www.sandbox.paypal.com wss://fznhhkxwzqipwfwihwqr.supabase.co",
-    "frame-src 'self' https://js.paypal.com https://www.paypal.com https://www.sandbox.paypal.com",
+    "frame-src 'none'",
+    "frame-ancestors 'none'",
     "worker-src 'self' blob:",
-    "child-src 'self' blob:",
+    "child-src 'none'",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self' https://www.paypal.com https://www.sandbox.paypal.com",
-    "frame-ancestors 'none'",
-    "upgrade-insecure-requests"
+    "upgrade-insecure-requests",
+    "block-all-mixed-content"
   ].join('; ');
 
   // Set Content Security Policy
