@@ -1790,6 +1790,18 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      rotate_security_logs: {
+        Args: { retention_days?: number }
+        Returns: number
+      }
+      security_audit: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          audit_item: string
+          details: string
+          status: string
+        }[]
+      }
       setup_admin_user: {
         Args:
           | Record<PropertyKey, never>
