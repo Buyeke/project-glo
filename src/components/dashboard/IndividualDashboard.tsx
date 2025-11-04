@@ -176,7 +176,7 @@ const IndividualDashboard: React.FC<IndividualDashboardProps> = ({ profile }) =>
                 <div className="p-3 bg-green-50 rounded-lg">
                   <h4 className="font-semibold text-sm text-green-900">Multi-Location Services</h4>
                   <p className="text-xs text-green-700 mt-1">
-                    Services are now available in Nairobi and Mombasa, with remote options.
+                    Services are available in multiple locations with both in-person and virtual options.
                   </p>
                 </div>
               </div>

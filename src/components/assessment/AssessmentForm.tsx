@@ -153,7 +153,7 @@ const AssessmentForm = () => {
                       ...prev,
                       location_data: { ...prev.location_data, region: e.target.value }
                     }))}
-                    placeholder="e.g., Nairobi, Mombasa, Kisumu"
+                    placeholder="e.g., Nairobi, Kisumu, Nakuru"
                   />
                 </div>
               </div>

@@ -67,12 +67,10 @@ const Services = () => {
       if (error) throw error;
       
       if (data) {
-        // Transform the data to match our Service interface and update location to Mombasa
+        // Transform the data to match our Service interface
         const transformedServices = data.map(service => ({
           ...service,
-          key_features: Array.isArray(service.key_features) ? service.key_features : [],
-          location: 'Mombasa (In-person & Virtual)',
-          delivery_mode: 'In-Person & Virtual'
+          key_features: Array.isArray(service.key_features) ? service.key_features : []
         })) as Service[];
         
         setServices(transformedServices);
@@ -147,7 +145,7 @@ const Services = () => {
 
         {/* Header */}
         <div className="text-center mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Available Services in Mombasa</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Available Services</h1>
           <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto mb-4">
             Discover the support services available to help you on your journey. Book sessions or request assistance directly.
           </p>
@@ -155,7 +153,7 @@ const Services = () => {
             <div className="flex items-center gap-2 mb-2">
               <MapPin className="w-5 h-5 text-blue-600" />
               <p className="text-blue-800 font-medium">
-                Serving Mombasa County with both in-person and virtual consultations
+                Serving communities with both in-person and virtual consultations
               </p>
             </div>
             <p className="text-blue-700 text-sm">

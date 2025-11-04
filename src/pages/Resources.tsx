@@ -14,7 +14,7 @@ const Resources = () => {
   const { data: resources, isLoading } = useResources();
 
   const categories = [...new Set(resources?.map(r => r.category) || [])];
-  const locations = ['Mombasa', 'Virtual'];
+  const locations = [...new Set(resources?.map(r => r.location).filter(Boolean) || [])];
 
   const filteredResources = resources?.filter(resource => {
     const matchesSearch = resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||

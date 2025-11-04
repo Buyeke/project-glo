@@ -124,9 +124,9 @@ const ServiceRequestForm = () => {
         </div>
         <div className="flex items-start gap-2">
           <CardDescription className="flex-1">
-            Tell us what kind of support you need and we'll connect you with the right resources in Mombasa
+            Tell us what kind of support you need and we'll connect you with the right resources
           </CardDescription>
-          <TextToSpeech text="Tell us what kind of support you need and we'll connect you with the right resources in Mombasa" />
+          <TextToSpeech text="Tell us what kind of support you need and we'll connect you with the right resources" />
         </div>
       </CardHeader>
       <CardContent>

@@ -14,13 +14,7 @@ export const useResources = () => {
       
       if (error) throw error;
       
-      // Transform the data to update locations to Mombasa and Virtual
-      const transformedData = data?.map(resource => ({
-        ...resource,
-        location: resource.location ? (Math.random() > 0.5 ? 'Mombasa' : 'Virtual') : 'Mombasa'
-      }));
-      
-      return transformedData;
+      return data;
     },
     staleTime: 15 * 60 * 1000, // 15 minutes - resources don't change frequently
     gcTime: 30 * 60 * 1000, // 30 minutes

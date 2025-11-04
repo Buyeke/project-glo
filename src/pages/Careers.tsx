@@ -18,7 +18,7 @@ const Careers = () => {
           </div>
           <h1 className="text-4xl font-bold text-primary mb-4">Join Our Mission</h1>
           <p className="text-xl text-foreground/70 max-w-2xl mx-auto">
-            Help us empower women and children in Mombasa by joining our team of dedicated professionals.
+            Help us empower women and children by joining our team of dedicated professionals.
           </p>
         </div>
 
