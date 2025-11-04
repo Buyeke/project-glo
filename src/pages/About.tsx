@@ -217,24 +217,13 @@ const About = () => {
       {/* Partnership */}
       <section className="py-16 bg-muted/30">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-foreground mb-6">Our Partners</h2>
+          <h2 className="text-3xl font-bold text-foreground mb-6">Our Partner</h2>
           <p className="text-lg text-muted-foreground mb-8">
             Working together to advance inclusive technology and community empowerment
           </p>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardContent className="p-6 text-center">
-                <h3 className="text-xl font-semibold text-foreground mb-2">
-                  The Co-operative University of Kenya
-                </h3>
-                <p className="text-muted-foreground">
-                  Academic partnership supporting research and community engagement
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card>
+          <div className="flex justify-center">
+            <Card className="max-w-md">
               <CardContent className="p-6 text-center">
                 <h3 className="text-xl font-semibold text-foreground mb-2">
                   OBREAL (Spain)

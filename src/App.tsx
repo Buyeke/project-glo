@@ -13,6 +13,7 @@ import Services from "./pages/Services";
 import Resources from "./pages/Resources";
 import Contact from "./pages/Contact";
 import Blog from "./pages/Blog";
+import BlogPost from "./components/blog/BlogPost";
 import Careers from "./pages/Careers";
 import Donate from "./pages/Donate";
 import Auth from "./pages/Auth";
@@ -51,6 +52,7 @@ const App = () => {
                 <Route path="resources" element={<Resources />} />
                 <Route path="contact" element={<Contact />} />
                 <Route path="blog" element={<Blog />} />
+                <Route path="blog/:slug" element={<BlogPost />} />
                 <Route path="careers" element={<Careers />} />
                 <Route path="donate" element={<Donate />} />
                 <Route path="donation-success" element={<DonationSuccess />} />
