@@ -145,7 +145,7 @@ const JobPostingForm: React.FC<JobPostingFormProps> = ({ employerProfile, onSubm
                         required
                         value={formData.location}
                         onChange={handleInputChange}
-                        placeholder="e.g., Nairobi, Westlands"
+                        placeholder="e.g., City name or region"
                         className="mt-1 pl-10"
                       />
                     </div>
