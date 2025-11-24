@@ -1743,38 +1743,32 @@ export type Database = {
         Args: { p_submission_hash: string }
         Returns: boolean
       }
-      expire_old_jobs: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      is_admin_user: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      expire_old_jobs: { Args: never; Returns: undefined }
+      is_admin_user: { Args: never; Returns: boolean }
       rotate_security_logs: {
         Args: { retention_days?: number }
         Returns: number
       }
       security_audit: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           audit_item: string
           details: string
           status: string
         }[]
       }
-      setup_admin_user: {
-        Args:
-          | Record<PropertyKey, never>
-          | { user_email: string; user_name: string }
-        Returns: undefined
-      }
+      setup_admin_user:
+        | {
+            Args: { user_email: string; user_name: string }
+            Returns: undefined
+          }
+        | { Args: never; Returns: undefined }
       validate_contact_submission: {
         Args: { p_email: string; p_message: string; p_name: string }
         Returns: boolean
       }
       verify_admin_setup: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           email: string
           email_confirmed: boolean
