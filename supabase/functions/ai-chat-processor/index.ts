@@ -186,7 +186,11 @@ RESPONSE LANGUAGE:
 
 CRITICAL: Always prioritize user safety and well-being. If someone is in immediate danger, provide emergency resources immediately while being trauma-informed.
 
-You are not just an AI — you are a rafiki wa kweli, wa mtaa, mwenye roho safi anataka kusaidia 🙏🏽💜`;
+    You are not just an AI — you are a rafiki wa kweli, wa mtaa, mwenye roho safi anataka kusaidia 🙏🏽💜`;
+
+    // Track performance metrics
+    const startTime = Date.now();
+    let metricId: string | null = null;
 
     // Call OpenAI for intelligent response generation with enhanced context
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -213,6 +217,51 @@ You are not just an AI — you are a rafiki wa kweli, wa mtaa, mwenye roho safi 
     }
 
     const aiResponse = aiResult.choices[0].message.content;
+    const endTime = Date.now();
+    const responseTimeMs = endTime - startTime;
+
+    // Calculate cost (gpt-4o-mini pricing: $0.150 per 1M input tokens, $0.600 per 1M output tokens)
+    const promptTokens = aiResult.usage?.prompt_tokens || 0;
+    const completionTokens = aiResult.usage?.completion_tokens || 0;
+    const totalTokens = aiResult.usage?.total_tokens || 0;
+    const inputCost = (promptTokens / 1_000_000) * 0.150;
+    const outputCost = (completionTokens / 1_000_000) * 0.600;
+    const estimatedCost = inputCost + outputCost;
+
+    // Insert performance metrics using service role
+    const { data: metricData, error: metricError } = await supabase
+      .from('ai_model_metrics')
+      .insert({
+        user_id: user.id,
+        model_name: 'gpt-4o-mini',
+        request_timestamp: new Date(startTime).toISOString(),
+        response_timestamp: new Date(endTime).toISOString(),
+        response_time_ms: responseTimeMs,
+        prompt_tokens: promptTokens,
+        completion_tokens: completionTokens,
+        total_tokens: totalTokens,
+        estimated_cost_usd: estimatedCost,
+        request_success: true,
+        model_parameters: {
+          temperature: 0.7,
+          max_tokens: 600,
+          model: 'gpt-4o-mini'
+        }
+      })
+      .select()
+      .single();
+
+    if (metricError) {
+      console.error('Failed to insert AI metric:', metricError);
+    } else {
+      metricId = metricData?.id;
+      console.log('AI metrics recorded:', {
+        responseTimeMs,
+        totalTokens,
+        estimatedCost: estimatedCost.toFixed(6),
+        metricId
+      });
+    }
 
     // Enhanced classification with Sheng expressions
     const classificationResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -306,6 +355,31 @@ Consider:
       return serviceMatch || knowledgeMatch;
     }).slice(0, 3) || [];
 
+    // Log the interaction with metrics link and AI analysis data
+    const { data: interactionData, error: logError } = await supabase
+      .from('chat_interactions')
+      .insert({
+        user_id: user.id,
+        original_message: message,
+        response: aiResponse,
+        detected_language: analysis.language_detected,
+        matched_intent: analysis.intent,
+        confidence_score: analysis.confidence,
+        matched_service: matchedServices.length > 0 ? matchedServices[0].title : null,
+        ai_model_metric_id: metricId,
+        urgency_level: analysis.urgency,
+        emotional_state: analysis.emotional_state,
+        requires_human_intervention: analysis.requires_human,
+        trauma_indicators_detected: analysis.trauma_indicators || analysis.urgency === 'critical',
+        safety_concerns: analysis.safety_concerns || analysis.immediate_intervention_needed
+      })
+      .select()
+      .single();
+
+    if (logError) {
+      console.error('Failed to log interaction:', logError);
+    }
+
     // Log interaction for security monitoring
     await supabase.from('security_logs').insert({
       event_type: 'admin_access',
@@ -317,7 +391,8 @@ Consider:
         emotional_state: analysis.emotional_state,
         requires_human: analysis.requires_human,
         trauma_indicators: analysis.trauma_indicators,
-        safety_concerns: analysis.safety_concerns
+        safety_concerns: analysis.safety_concerns,
+        chat_interaction_id: interactionData?.id
       },
       ip_address: clientIP
     });
@@ -349,13 +424,51 @@ Consider:
     });
 
   } catch (error) {
-    console.error('Error in enhanced trauma-informed AI chat processor:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Failed to process message',
-      details: error.message 
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    const endTime = Date.now();
+    const responseTimeMs = endTime - startTime;
+    console.error('AI chat processing failed:', error);
+    
+    // Categorize error type
+    const errorType = categorizeError(error);
+    
+    // Log failed request metrics using service role
+    try {
+      await supabase
+        .from('ai_model_metrics')
+        .insert({
+          user_id: user?.id,
+          model_name: 'gpt-4o-mini',
+          request_timestamp: new Date(startTime).toISOString(),
+          response_timestamp: new Date(endTime).toISOString(),
+          response_time_ms: responseTimeMs,
+          request_success: false,
+          error_type: errorType,
+          error_message: error.message
+        });
+    } catch (metricError) {
+      console.error('Failed to log error metric:', metricError);
+    }
+
+    return new Response(
+      JSON.stringify({ 
+        error: 'Failed to process your message. Please try again.',
+        request_id: crypto.randomUUID()
+      }),
+      { 
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    );
   }
 });
+
+// Helper function to categorize errors
+function categorizeError(error: any): string {
+  const message = error.message?.toLowerCase() || '';
+  if (message.includes('rate limit')) return 'rate_limit';
+  if (message.includes('timeout')) return 'timeout';
+  if (message.includes('authentication') || message.includes('unauthorized')) return 'auth_error';
+  if (message.includes('invalid') || message.includes('bad request')) return 'invalid_request';
+  if (message.includes('network')) return 'network_error';
+  return 'unknown_error';
+}
