@@ -23,6 +23,7 @@ import ContactSubmissionsPanel from './ContactSubmissionsPanel';
 import ChatInteractionsPanel from './ChatInteractionsPanel';
 import SecurityPanel from './SecurityPanel';
 import ContentManagement from './ContentManagement';
+import { AIPerformanceDashboard } from './AIPerformanceDashboard';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -129,12 +130,13 @@ const AdminDashboard = () => {
 
       <div className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="content">Content</TabsTrigger>
             <TabsTrigger value="contacts">Contacts</TabsTrigger>
             <TabsTrigger value="blog">Blog</TabsTrigger>
             <TabsTrigger value="chat">Chat</TabsTrigger>
+            <TabsTrigger value="ai-performance">AI Performance</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
           </TabsList>
 
@@ -260,6 +262,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="chat">
             <ChatInteractionsPanel />
+          </TabsContent>
+
+          <TabsContent value="ai-performance">
+            <AIPerformanceDashboard />
           </TabsContent>
 
           <TabsContent value="security">

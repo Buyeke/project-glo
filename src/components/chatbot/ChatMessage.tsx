@@ -1,8 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, Heart } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { AlertTriangle, Heart, ThumbsUp, ThumbsDown, MessageCircle } from 'lucide-react';
 import { ChatMessage as ChatMessageType } from '@/types/chatbot';
+import { ChatbotFeedbackDialog } from './ChatbotFeedbackDialog';
+import { useChatbotFeedback } from '@/hooks/useChatbotFeedback';
 
 interface ChatMessageProps {
   message: ChatMessageType;
@@ -19,8 +22,26 @@ export const ChatMessage = ({
   onProcessMessage, 
   currentLanguage 
 }: ChatMessageProps) => {
+  const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
+  const [feedbackGiven, setFeedbackGiven] = useState(false);
+  const { submitFeedback } = useChatbotFeedback();
+
+  const handleQuickFeedback = (rating: number, type: 'helpful' | 'not_helpful') => {
+    if (feedbackGiven || !message.id) return;
+    
+    submitFeedback({
+      chatInteractionId: String(message.id),
+      rating,
+      feedbackType: type,
+      anonymous: false
+    });
+    
+    setFeedbackGiven(true);
+  };
+
   return (
-    <div key={message.id}>
+    <>
+      <div key={message.id}>
       <div className={`flex ${message.isBot ? 'justify-start' : 'justify-end'}`}>
         <div className="max-w-xs">
           <div
@@ -104,6 +125,58 @@ export const ChatMessage = ({
           </div>
         </div>
       )}
+
+      {/* Feedback Buttons for Bot Messages */}
+      {message.isBot && !isFirstMessage && message.id && (
+        <div className="flex gap-2 mt-3 pt-2 border-t border-gray-100">
+          {!feedbackGiven ? (
+            <>
+              <Button 
+                size="sm" 
+                variant="ghost"
+                onClick={() => handleQuickFeedback(5, 'helpful')}
+                className="text-green-600 hover:text-green-700 hover:bg-green-50 h-8 text-xs"
+              >
+                <ThumbsUp className="h-3 w-3 mr-1" />
+                Helpful
+              </Button>
+              <Button 
+                size="sm" 
+                variant="ghost"
+                onClick={() => handleQuickFeedback(1, 'not_helpful')}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 text-xs"
+              >
+                <ThumbsDown className="h-3 w-3 mr-1" />
+                Not Helpful
+              </Button>
+              <Button 
+                size="sm" 
+                variant="ghost"
+                onClick={() => setShowFeedbackDialog(true)}
+                className="text-primary hover:bg-primary/10 h-8 text-xs"
+              >
+                <MessageCircle className="h-3 w-3 mr-1" />
+                More Feedback
+              </Button>
+            </>
+          ) : (
+            <span className="text-xs text-muted-foreground italic">
+              Thanks for your feedback! 💜
+            </span>
+          )}
+        </div>
+      )}
     </div>
+
+    {/* Feedback Dialog */}
+    {message.id && (
+      <ChatbotFeedbackDialog
+        open={showFeedbackDialog}
+        onOpenChange={setShowFeedbackDialog}
+        chatInteractionId={String(message.id)}
+        messageText={message.text}
+      />
+    )}
+    </>
   );
 };

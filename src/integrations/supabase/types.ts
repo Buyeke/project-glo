@@ -49,6 +49,71 @@ export type Database = {
           },
         ]
       }
+      ai_model_metrics: {
+        Row: {
+          chat_interaction_id: string | null
+          completion_tokens: number
+          created_at: string | null
+          error_message: string | null
+          error_type: string | null
+          estimated_cost_usd: number
+          id: string
+          model_name: string
+          model_parameters: Json | null
+          prompt_tokens: number
+          request_success: boolean
+          request_timestamp: string
+          response_time_ms: number
+          response_timestamp: string
+          total_tokens: number
+          user_id: string | null
+        }
+        Insert: {
+          chat_interaction_id?: string | null
+          completion_tokens?: number
+          created_at?: string | null
+          error_message?: string | null
+          error_type?: string | null
+          estimated_cost_usd?: number
+          id?: string
+          model_name: string
+          model_parameters?: Json | null
+          prompt_tokens?: number
+          request_success?: boolean
+          request_timestamp?: string
+          response_time_ms: number
+          response_timestamp?: string
+          total_tokens?: number
+          user_id?: string | null
+        }
+        Update: {
+          chat_interaction_id?: string | null
+          completion_tokens?: number
+          created_at?: string | null
+          error_message?: string | null
+          error_type?: string | null
+          estimated_cost_usd?: number
+          id?: string
+          model_name?: string
+          model_parameters?: Json | null
+          prompt_tokens?: number
+          request_success?: boolean
+          request_timestamp?: string
+          response_time_ms?: number
+          response_timestamp?: string
+          total_tokens?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_model_metrics_chat_interaction_id_fkey"
+            columns: ["chat_interaction_id"]
+            isOneToOne: false
+            referencedRelation: "chat_interactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       allocated_resources: {
         Row: {
           allocated_at: string | null
@@ -258,50 +323,128 @@ export type Database = {
       }
       chat_interactions: {
         Row: {
+          ai_model_metric_id: string | null
           confidence_score: number | null
           created_at: string | null
           detected_language: string | null
+          emotional_state: string | null
+          follow_up_status: string | null
           id: string
           matched_intent: string | null
           matched_service: string | null
           original_message: string
+          requires_human_intervention: boolean | null
           response: string
+          safety_concerns: boolean | null
           translated_message: string | null
           translated_response: string | null
+          trauma_indicators_detected: boolean | null
+          urgency_level: string | null
           user_id: string | null
         }
         Insert: {
+          ai_model_metric_id?: string | null
           confidence_score?: number | null
           created_at?: string | null
           detected_language?: string | null
+          emotional_state?: string | null
+          follow_up_status?: string | null
           id?: string
           matched_intent?: string | null
           matched_service?: string | null
           original_message: string
+          requires_human_intervention?: boolean | null
           response: string
+          safety_concerns?: boolean | null
           translated_message?: string | null
           translated_response?: string | null
+          trauma_indicators_detected?: boolean | null
+          urgency_level?: string | null
           user_id?: string | null
         }
         Update: {
+          ai_model_metric_id?: string | null
           confidence_score?: number | null
           created_at?: string | null
           detected_language?: string | null
+          emotional_state?: string | null
+          follow_up_status?: string | null
           id?: string
           matched_intent?: string | null
           matched_service?: string | null
           original_message?: string
+          requires_human_intervention?: boolean | null
           response?: string
+          safety_concerns?: boolean | null
           translated_message?: string | null
           translated_response?: string | null
+          trauma_indicators_detected?: boolean | null
+          urgency_level?: string | null
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "chat_interactions_ai_model_metric_id_fkey"
+            columns: ["ai_model_metric_id"]
+            isOneToOne: false
+            referencedRelation: "ai_model_metrics"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "chat_interactions_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chatbot_feedback: {
+        Row: {
+          anonymous: boolean | null
+          chat_interaction_id: string | null
+          comment: string | null
+          created_at: string | null
+          cultural_sensitivity: number | null
+          feedback_type: string
+          id: string
+          language_quality: number | null
+          rating: number
+          response_relevance: number | null
+          user_id: string | null
+        }
+        Insert: {
+          anonymous?: boolean | null
+          chat_interaction_id?: string | null
+          comment?: string | null
+          created_at?: string | null
+          cultural_sensitivity?: number | null
+          feedback_type: string
+          id?: string
+          language_quality?: number | null
+          rating: number
+          response_relevance?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          anonymous?: boolean | null
+          chat_interaction_id?: string | null
+          comment?: string | null
+          created_at?: string | null
+          cultural_sensitivity?: number | null
+          feedback_type?: string
+          id?: string
+          language_quality?: number | null
+          rating?: number
+          response_relevance?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chatbot_feedback_chat_interaction_id_fkey"
+            columns: ["chat_interaction_id"]
+            isOneToOne: false
+            referencedRelation: "chat_interactions"
             referencedColumns: ["id"]
           },
         ]
@@ -1732,7 +1875,22 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      ai_performance_summary: {
+        Row: {
+          avg_response_time_ms: number | null
+          avg_tokens: number | null
+          date: string | null
+          failed_requests: number | null
+          median_response_time_ms: number | null
+          model_name: string | null
+          p95_response_time_ms: number | null
+          successful_requests: number | null
+          total_cost_usd: number | null
+          total_requests: number | null
+          total_tokens_sum: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_access_user_data: {
