@@ -45,7 +45,7 @@ export const ChatWindow = ({
   };
 
   return (
-    <Card className="fixed bottom-6 left-6 w-96 h-[36rem] shadow-2xl z-50 border-primary/20">
+    <Card className="fixed bottom-0 left-0 right-0 sm:bottom-6 sm:left-6 sm:right-auto w-full sm:w-96 h-[100dvh] sm:h-[36rem] shadow-2xl z-50 border-primary/20 rounded-none sm:rounded-lg">
       <ChatBotHeader
         currentLanguage={currentLanguage}
         supportedLanguages={supportedLanguages}
@@ -53,7 +53,7 @@ export const ChatWindow = ({
         onClose={onClose}
       />
       
-      <CardContent className="p-0 flex flex-col h-[32rem]">
+      <CardContent className="p-0 flex flex-col h-[calc(100dvh-4rem)] sm:h-[32rem]">
         {/* Proactive Follow-ups */}
         <ProactiveFollowUps onActionClick={onProcessMessage} />
         

@@ -5,11 +5,12 @@ import Navigation from './Navigation';
 import Footer from './Footer';
 import FloatingHelpButton from './FloatingHelpButton';
 import QuickExitButton from './QuickExitButton';
+import { MobileBottomNav } from './MobileBottomNav';
 import { LazyComponents } from '@/utils/performanceOptimizations';
 
 const Layout = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-16 sm:pb-0">
       <Navigation />
       <QuickExitButton />
       <main>
@@ -23,6 +24,7 @@ const Layout = () => {
       </Suspense>
       
       <FloatingHelpButton />
+      <MobileBottomNav />
     </div>
   );
 };
