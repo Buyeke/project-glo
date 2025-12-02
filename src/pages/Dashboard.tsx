@@ -8,8 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Loader2 } from 'lucide-react';
 
 const DashboardLoader = () => (
-  <div className="min-h-screen flex items-center justify-center">
-    <Card className="w-96">
+  <div className="min-h-screen flex items-center justify-center px-4">
+    <Card className="w-full max-w-96">
       <CardContent className="flex items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin" />
         <span className="ml-2">Loading your dashboard...</span>
@@ -44,8 +44,8 @@ const Dashboard = () => {
 
   if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-96">
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <Card className="w-full max-w-96">
           <CardHeader>
             <CardTitle>Profile Not Found</CardTitle>
             <CardDescription>
@@ -85,8 +85,8 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <Card className="w-96">
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <Card className="w-full max-w-96">
         <CardHeader>
           <CardTitle>Unknown User Type</CardTitle>
           <CardDescription>

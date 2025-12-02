@@ -130,15 +130,17 @@ const AdminDashboard = () => {
 
       <div className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="content">Content</TabsTrigger>
-            <TabsTrigger value="contacts">Contacts</TabsTrigger>
-            <TabsTrigger value="blog">Blog</TabsTrigger>
-            <TabsTrigger value="chat">Chat</TabsTrigger>
-            <TabsTrigger value="ai-performance">AI Performance</TabsTrigger>
-            <TabsTrigger value="security">Security</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-4 px-4 pb-2">
+            <TabsList className="inline-flex w-auto min-w-full sm:w-full sm:grid sm:grid-cols-7">
+              <TabsTrigger value="overview" className="whitespace-nowrap">Overview</TabsTrigger>
+              <TabsTrigger value="content" className="whitespace-nowrap">Content</TabsTrigger>
+              <TabsTrigger value="contacts" className="whitespace-nowrap">Contacts</TabsTrigger>
+              <TabsTrigger value="blog" className="whitespace-nowrap">Blog</TabsTrigger>
+              <TabsTrigger value="chat" className="whitespace-nowrap">Chat</TabsTrigger>
+              <TabsTrigger value="ai-performance" className="whitespace-nowrap">AI</TabsTrigger>
+              <TabsTrigger value="security" className="whitespace-nowrap">Security</TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="overview" className="space-y-6">
             {/* Stats Cards */}

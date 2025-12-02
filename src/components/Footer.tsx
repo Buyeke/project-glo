@@ -6,10 +6,10 @@ const Footer = () => {
   return (
     <footer className="bg-background border-t border-border py-12">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+          <div className="col-span-2 md:col-span-1">
             <h3 className="text-xl font-bold mb-4 text-primary">Project GLO</h3>
-            <p className="text-muted-foreground mb-4">
+            <p className="text-muted-foreground mb-4 text-sm md:text-base">
               Empowering communities through AI-driven support and resource matching.
             </p>
           </div>

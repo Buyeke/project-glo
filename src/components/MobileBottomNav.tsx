@@ -1,13 +1,13 @@
 
 import { Home, User, MessageCircle, Heart, Menu } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import { useMobileDetection } from '@/hooks/useMobileDetection';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export const MobileBottomNav = () => {
   const location = useLocation();
-  const { isNativeApp } = useMobileDetection();
+  const isMobile = useIsMobile();
 
-  if (!isNativeApp) return null;
+  if (!isMobile) return null;
 
   const navItems = [
     { icon: Home, label: 'Home', path: '/' },
