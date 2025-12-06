@@ -140,8 +140,8 @@ const EmployerDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="animate-spin rounded-full h-16 w-16 sm:h-32 sm:w-32 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -171,22 +171,22 @@ const EmployerDashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white shadow-sm">
+    <div className="min-h-screen bg-background">
+      <div className="bg-card shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 py-4 sm:py-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Employer Dashboard</h1>
-              <p className="text-gray-600">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Employer Dashboard</h1>
+              <p className="text-muted-foreground text-sm sm:text-base">
                 Welcome back, {employerProfile?.contact_person || 'Employer'}
                 {!employerProfile?.company_name && (
                   <span className="block text-orange-600 text-sm mt-1">
-                    ⚠️ Please complete your profile to post jobs effectively
+                    Please complete your profile to post jobs effectively
                   </span>
                 )}
               </p>
             </div>
-            <Button onClick={() => setShowJobForm(true)} className="bg-blue-600 hover:bg-blue-700">
+            <Button onClick={() => setShowJobForm(true)} className="w-full sm:w-auto">
               <Plus className="w-4 h-4 mr-2" />
               Post New Job
             </Button>
@@ -194,58 +194,58 @@ const EmployerDashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="jobs">My Jobs</TabsTrigger>
-            <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 h-auto">
+            <TabsTrigger value="dashboard" className="text-xs sm:text-sm py-2">Dashboard</TabsTrigger>
+            <TabsTrigger value="jobs" className="text-xs sm:text-sm py-2">My Jobs</TabsTrigger>
+            <TabsTrigger value="profile" className="text-xs sm:text-sm py-2">Profile</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="dashboard" className="space-y-6">
+          <TabsContent value="dashboard" className="space-y-4 sm:space-y-6">
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Jobs</CardTitle>
-                  <Eye className="h-4 w-4 text-muted-foreground" />
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6 sm:pb-2">
+                  <CardTitle className="text-xs sm:text-sm font-medium">Total Jobs</CardTitle>
+                  <Eye className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{jobPostings.length}</div>
+                <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+                  <div className="text-xl sm:text-2xl font-bold">{jobPostings.length}</div>
                 </CardContent>
               </Card>
               
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Active Jobs</CardTitle>
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6 sm:pb-2">
+                  <CardTitle className="text-xs sm:text-sm font-medium">Active Jobs</CardTitle>
+                  <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
+                <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+                  <div className="text-xl sm:text-2xl font-bold">
                     {jobPostings.filter(job => job.status === 'active').length}
                   </div>
                 </CardContent>
               </Card>
               
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Applicants</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6 sm:pb-2">
+                  <CardTitle className="text-xs sm:text-sm font-medium">Applicants</CardTitle>
+                  <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
+                <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+                  <div className="text-xl sm:text-2xl font-bold">
                     {jobPostings.reduce((sum, job) => sum + job.applicant_count, 0)}
                   </div>
                 </CardContent>
               </Card>
               
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6 sm:pb-2">
+                  <CardTitle className="text-xs sm:text-sm font-medium">Total Spent</CardTitle>
+                  <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">KES 5,000</div>
+                <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+                  <div className="text-xl sm:text-2xl font-bold">KES 5,000</div>
                 </CardContent>
               </Card>
             </div>
@@ -257,21 +257,21 @@ const EmployerDashboard: React.FC = () => {
                 <CardDescription>Your latest job listings</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {jobPostings.slice(0, 5).map((job) => (
-                    <div key={job.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex-1">
-                        <h4 className="font-semibold">{job.title}</h4>
-                        <p className="text-sm text-gray-600">{job.location}</p>
-                        <p className="text-sm text-gray-500">
+                    <div key={job.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 border rounded-lg gap-2 sm:gap-4">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-sm sm:text-base truncate">{job.title}</h4>
+                        <p className="text-xs sm:text-sm text-muted-foreground">{job.location}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">
                           Posted {new Date(job.created_at).toLocaleDateString()}
                         </p>
                       </div>
-                      <div className="text-right space-y-2">
+                      <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 sm:space-y-2">
                         <Badge className={getStatusBadge(job.status)}>
                           {job.status.replace('_', ' ').toUpperCase()}
                         </Badge>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-xs sm:text-sm text-muted-foreground">
                           {job.applicant_count} applicants
                         </p>
                       </div>
@@ -287,41 +287,41 @@ const EmployerDashboard: React.FC = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="jobs" className="space-y-6">
+          <TabsContent value="jobs" className="space-y-4 sm:space-y-6">
             <Card>
-              <CardHeader>
-                <CardTitle>All Job Postings</CardTitle>
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="text-lg sm:text-xl">All Job Postings</CardTitle>
                 <CardDescription>Manage your job listings</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
+              <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
+                <div className="space-y-3 sm:space-y-4">
                   {jobPostings.map((job) => (
-                    <div key={job.id} className="border rounded-lg p-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <h3 className="text-xl font-semibold">{job.title}</h3>
-                          <p className="text-gray-600">{job.job_type} • {job.location}</p>
-                          <p className="text-lg font-bold text-blue-600">KES {job.pay_amount}</p>
+                    <div key={job.id} className="border rounded-lg p-4 sm:p-6">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-4 mb-3 sm:mb-4">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-base sm:text-xl font-semibold truncate">{job.title}</h3>
+                          <p className="text-sm text-muted-foreground">{job.job_type} • {job.location}</p>
+                          <p className="text-base sm:text-lg font-bold text-primary">KES {job.pay_amount.toLocaleString()}</p>
                         </div>
                         <Badge className={getStatusBadge(job.status)}>
                           {job.status.replace('_', ' ').toUpperCase()}
                         </Badge>
                       </div>
                       
-                      <div className="flex justify-between items-center">
-                        <div className="text-sm text-gray-600">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4">
+                        <div className="text-xs sm:text-sm text-muted-foreground">
                           <p>{job.applicant_count} applicants</p>
                           <p>Expires: {new Date(job.expires_at).toLocaleDateString()}</p>
                         </div>
                         
-                        <div className="space-x-2">
+                        <div className="flex gap-2">
                           {job.status === 'active' && (
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" className="flex-1 sm:flex-none text-xs sm:text-sm">
                               View Applicants
                             </Button>
                           )}
                           {job.status === 'expired' && (
-                            <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                            <Button size="sm" className="flex-1 sm:flex-none text-xs sm:text-sm bg-green-600 hover:bg-green-700">
                               Renew (KES 2,000)
                             </Button>
                           )}
@@ -334,33 +334,33 @@ const EmployerDashboard: React.FC = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="profile" className="space-y-6">
+          <TabsContent value="profile" className="space-y-4 sm:space-y-6">
             <Card>
-              <CardHeader>
-                <CardTitle>Company Profile</CardTitle>
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="text-lg sm:text-xl">Company Profile</CardTitle>
                 <CardDescription>Manage your employer information</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <CardContent className="space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Company Name</label>
-                    <p className="mt-1 text-sm text-gray-900">{employerProfile?.company_name || 'Not set'}</p>
+                    <label className="block text-xs sm:text-sm font-medium text-muted-foreground">Company Name</label>
+                    <p className="mt-1 text-sm sm:text-base text-foreground">{employerProfile?.company_name || 'Not set'}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Contact Person</label>
-                    <p className="mt-1 text-sm text-gray-900">{employerProfile?.contact_person || 'Not set'}</p>
+                    <label className="block text-xs sm:text-sm font-medium text-muted-foreground">Contact Person</label>
+                    <p className="mt-1 text-sm sm:text-base text-foreground">{employerProfile?.contact_person || 'Not set'}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Phone Number</label>
-                    <p className="mt-1 text-sm text-gray-900">{employerProfile?.phone_number || 'Not set'}</p>
+                    <label className="block text-xs sm:text-sm font-medium text-muted-foreground">Phone Number</label>
+                    <p className="mt-1 text-sm sm:text-base text-foreground">{employerProfile?.phone_number || 'Not set'}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Email</label>
-                    <p className="mt-1 text-sm text-gray-900">{employerProfile?.email || 'Not set'}</p>
+                    <label className="block text-xs sm:text-sm font-medium text-muted-foreground">Email</label>
+                    <p className="mt-1 text-sm sm:text-base text-foreground">{employerProfile?.email || 'Not set'}</p>
                   </div>
                 </div>
                 <div className="pt-4">
-                  <Button variant="outline">Edit Profile</Button>
+                  <Button variant="outline" className="w-full sm:w-auto">Edit Profile</Button>
                 </div>
               </CardContent>
             </Card>
