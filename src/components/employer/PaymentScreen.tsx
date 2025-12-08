@@ -58,10 +58,11 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({ jobData, employerProfile,
       if (paymentError) throw paymentError;
 
       // Call PayPal payment processing edge function with proper authentication
+      // PayPal doesn't support KES, so we convert to USD (~$38 for KES 5,000)
       const { data, error } = await supabase.functions.invoke('process-paypal-payment', {
         body: {
-          amount: 500000, // Amount in cents (KES 5,000.00)
-          currency: 'KES',
+          amount: 3800, // Amount in cents (USD $38.00 ≈ KES 5,000)
+          currency: 'USD',
           description: `Job Listing: ${jobData.title}`,
           payment_id: payment.id,
           job_posting_id: jobPosting.id,
