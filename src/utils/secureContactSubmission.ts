@@ -84,9 +84,8 @@ export const submitContactForm = async (data: ContactSubmissionData): Promise<Su
         name: sanitizedData.name,
         email: sanitizedData.email,
         message: sanitizedData.message,
-        phone: sanitizedData.phone,
         submission_hash: hashHex,
-        status: 'pending'
+        status: 'new'
       });
 
     if (insertError) {
