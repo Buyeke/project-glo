@@ -268,9 +268,29 @@ const EmployerDashboard: React.FC = () => {
                         </p>
                       </div>
                       <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 sm:space-y-2">
-                        <Badge className={getStatusBadge(job.status)}>
-                          {job.status.replace('_', ' ').toUpperCase()}
-                        </Badge>
+                        {job.status === 'pending_payment' ? (
+                          <Button 
+                            size="sm" 
+                            className="text-xs"
+                            onClick={() => {
+                              setPendingJob({
+                                id: job.id,
+                                title: job.title,
+                                job_type: job.job_type,
+                                pay_amount: job.pay_amount,
+                                location: job.location
+                              });
+                              setShowPayment(true);
+                            }}
+                          >
+                            <DollarSign className="w-3 h-3 mr-1" />
+                            Pay Now
+                          </Button>
+                        ) : (
+                          <Badge className={getStatusBadge(job.status)}>
+                            {job.status.replace('_', ' ').toUpperCase()}
+                          </Badge>
+                        )}
                         <p className="text-xs sm:text-sm text-muted-foreground">
                           {job.applicant_count} applicants
                         </p>
@@ -318,6 +338,25 @@ const EmployerDashboard: React.FC = () => {
                           {job.status === 'active' && (
                             <Button variant="outline" size="sm" className="flex-1 sm:flex-none text-xs sm:text-sm">
                               View Applicants
+                            </Button>
+                          )}
+                          {job.status === 'pending_payment' && (
+                            <Button 
+                              size="sm" 
+                              className="flex-1 sm:flex-none text-xs sm:text-sm"
+                              onClick={() => {
+                                setPendingJob({
+                                  id: job.id,
+                                  title: job.title,
+                                  job_type: job.job_type,
+                                  pay_amount: job.pay_amount,
+                                  location: job.location
+                                });
+                                setShowPayment(true);
+                              }}
+                            >
+                              <DollarSign className="w-3 h-3 mr-1" />
+                              Pay Now
                             </Button>
                           )}
                           {job.status === 'expired' && (

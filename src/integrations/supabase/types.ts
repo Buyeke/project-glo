@@ -1916,11 +1916,11 @@ export type Database = {
         }[]
       }
       setup_admin_user:
+        | { Args: never; Returns: undefined }
         | {
             Args: { user_email: string; user_name: string }
             Returns: undefined
           }
-        | { Args: never; Returns: undefined }
       validate_contact_submission: {
         Args: { p_email: string; p_message: string; p_name: string }
         Returns: boolean
