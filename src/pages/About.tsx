@@ -1,15 +1,18 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heart, Users, Globe, ArrowRight, BookOpen } from "lucide-react";
+import { Heart, Users, Globe, ArrowRight, BookOpen, Award, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const About = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-primary/5 to-background">
         <div className="max-w-4xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium text-primary">Our Story</span>
+          </div>
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
             About Project Glo
           </h1>
@@ -24,7 +27,7 @@ const About = () => {
       <section className="py-16 bg-background">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-12">
-            <Card>
+            <Card className="border-primary/20">
               <CardHeader>
                 <CardTitle className="text-2xl text-center">Our Mission</CardTitle>
               </CardHeader>
@@ -37,7 +40,7 @@ const About = () => {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-primary/20">
               <CardHeader>
                 <CardTitle className="text-2xl text-center">Our Vision</CardTitle>
               </CardHeader>
@@ -63,18 +66,18 @@ const About = () => {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">300</div>
+              <div className="text-4xl font-bold text-primary mb-2">200+</div>
               <p className="text-lg text-muted-foreground">Women Supported</p>
             </div>
             <div className="text-center">
               <div className="text-4xl font-bold text-primary mb-2">24/7</div>
-              <p className="text-lg text-muted-foreground">AI Support Available</p>
+              <p className="text-lg text-muted-foreground">AI Support</p>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">100%</div>
-              <p className="text-lg text-muted-foreground">Trauma-Informed</p>
+              <div className="text-4xl font-bold text-primary mb-2">3</div>
+              <p className="text-lg text-muted-foreground">Languages</p>
             </div>
             <div className="text-center">
               <div className="text-4xl font-bold text-primary mb-2">2024</div>
@@ -95,9 +98,11 @@ const About = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="text-center">
+            <Card className="text-center hover:shadow-lg transition-shadow">
               <CardHeader>
-                <Heart className="h-12 w-12 text-primary mx-auto mb-4" />
+                <div className="mx-auto h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+                  <Heart className="h-7 w-7 text-primary" />
+                </div>
                 <CardTitle>Trauma-Informed Care</CardTitle>
               </CardHeader>
               <CardContent>
@@ -108,9 +113,11 @@ const About = () => {
               </CardContent>
             </Card>
 
-            <Card className="text-center">
+            <Card className="text-center hover:shadow-lg transition-shadow">
               <CardHeader>
-                <Users className="h-12 w-12 text-primary mx-auto mb-4" />
+                <div className="mx-auto h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+                  <Users className="h-7 w-7 text-primary" />
+                </div>
                 <CardTitle>Community-Centered</CardTitle>
               </CardHeader>
               <CardContent>
@@ -121,9 +128,11 @@ const About = () => {
               </CardContent>
             </Card>
 
-            <Card className="text-center">
+            <Card className="text-center hover:shadow-lg transition-shadow">
               <CardHeader>
-                <Globe className="h-12 w-12 text-primary mx-auto mb-4" />
+                <div className="mx-auto h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+                  <Globe className="h-7 w-7 text-primary" />
+                </div>
                 <CardTitle>Digital Equity</CardTitle>
               </CardHeader>
               <CardContent>
@@ -137,8 +146,62 @@ const About = () => {
         </div>
       </section>
 
-      {/* Research Focus */}
+      {/* Founder Section - Expanded */}
       <section className="py-16 bg-muted/30">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground mb-4">Meet Our Founder</h2>
+          </div>
+          
+          <Card className="overflow-hidden">
+            <CardContent className="p-0">
+              <div className="grid md:grid-cols-3 gap-0">
+                {/* Photo Placeholder */}
+                <div className="bg-gradient-to-br from-primary/20 to-primary/5 p-8 flex items-center justify-center">
+                  <div className="h-32 w-32 rounded-full bg-primary/20 flex items-center justify-center">
+                    <Users className="h-16 w-16 text-primary/60" />
+                  </div>
+                </div>
+                
+                {/* Bio */}
+                <div className="md:col-span-2 p-8">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Award className="h-5 w-5 text-primary" />
+                    <span className="text-sm font-medium text-primary">2024 OBREAL & AAU Fellow</span>
+                  </div>
+                  
+                  <h3 className="text-xl font-bold text-foreground mb-3">
+                    Visionary Leader in AI for Social Good
+                  </h3>
+                  
+                  <p className="text-muted-foreground leading-relaxed mb-4">
+                    Our founder brings together expertise in technology, poetry, and community organizing. 
+                    As a 2024 OBREAL & AAU Fellow, she is committed to building systems that truly serve 
+                    those who need them most—reimagining how AI can advance social justice and empower 
+                    vulnerable communities.
+                  </p>
+                  
+                  <p className="text-muted-foreground leading-relaxed mb-6">
+                    With a deep understanding of gendered power dynamics, digital equity, and Afro-feminist 
+                    urban design, she leads Project GLO's mission to create technology rooted in care, 
+                    community, and cultural understanding.
+                  </p>
+                  
+                  <Button variant="outline" asChild>
+                    <Link to="/blog" className="inline-flex items-center">
+                      <BookOpen className="mr-2 h-4 w-4" />
+                      Read More in Our Blog
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Research Focus */}
+      <section className="py-16 bg-background">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-foreground mb-6">Our Research Focus</h2>
           <p className="text-lg text-muted-foreground leading-relaxed mb-8">
@@ -147,7 +210,7 @@ const About = () => {
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
+            <Card className="hover:shadow-md transition-shadow">
               <CardContent className="p-6 text-center">
                 <h3 className="font-semibold text-foreground mb-2">Gendered Power & Technology</h3>
                 <p className="text-sm text-muted-foreground">
@@ -156,7 +219,7 @@ const About = () => {
               </CardContent>
             </Card>
             
-            <Card>
+            <Card className="hover:shadow-md transition-shadow">
               <CardContent className="p-6 text-center">
                 <h3 className="font-semibold text-foreground mb-2">Afro-Feminist Urban Design</h3>
                 <p className="text-sm text-muted-foreground">
@@ -165,7 +228,7 @@ const About = () => {
               </CardContent>
             </Card>
             
-            <Card>
+            <Card className="hover:shadow-md transition-shadow">
               <CardContent className="p-6 text-center">
                 <h3 className="font-semibold text-foreground mb-2">AI & Social Justice</h3>
                 <p className="text-sm text-muted-foreground">
@@ -174,7 +237,7 @@ const About = () => {
               </CardContent>
             </Card>
             
-            <Card>
+            <Card className="hover:shadow-md transition-shadow">
               <CardContent className="p-6 text-center">
                 <h3 className="font-semibold text-foreground mb-2">Digital Equity</h3>
                 <p className="text-sm text-muted-foreground">
@@ -186,54 +249,35 @@ const About = () => {
         </div>
       </section>
 
-      {/* Founder Information */}
-      <section className="py-16 bg-background">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-foreground mb-6">Leadership & Vision</h2>
-          <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-            Project Glo was founded with a vision to reimagine how technology can serve 
-            vulnerable communities with dignity, care, and cultural understanding.
-          </p>
-          
-          <Card className="bg-muted/30">
-            <CardContent className="p-8">
-              <p className="text-muted-foreground leading-relaxed mb-6">
-                Our founder brings together expertise in technology, poetry, and community organizing 
-                as a 2024 OBREAL & AAU Fellow, committed to building systems that truly serve 
-                those who need them most.
-              </p>
-              
-              <Button variant="outline" asChild>
-                <Link to="/blog" className="inline-flex items-center">
-                  <BookOpen className="mr-2 h-4 w-4" />
-                  Meet Our Founder in the Blog
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
       {/* Partnership */}
       <section className="py-16 bg-muted/30">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-foreground mb-6">Our Partner</h2>
+          <h2 className="text-3xl font-bold text-foreground mb-6">Our Partners</h2>
           <p className="text-lg text-muted-foreground mb-8">
             Working together to advance inclusive technology and community empowerment
           </p>
           
-          <div className="flex justify-center">
-            <Card className="max-w-md">
-              <CardContent className="p-6 text-center">
-                <h3 className="text-xl font-semibold text-foreground mb-2">
-                  OBREAL (Spain)
-                </h3>
-                <p className="text-muted-foreground">
-                  International collaboration advancing educational and research excellence
-                </p>
-              </CardContent>
+          <div className="flex flex-wrap justify-center gap-6 mb-8">
+            <Card className="px-8 py-6">
+              <div className="text-center">
+                <h3 className="text-xl font-semibold text-foreground mb-1">OBREAL</h3>
+                <p className="text-muted-foreground">Spain</p>
+              </div>
+            </Card>
+            <Card className="px-8 py-6">
+              <div className="text-center">
+                <h3 className="text-xl font-semibold text-foreground mb-1">AAU Fellowship</h3>
+                <p className="text-muted-foreground">2024 Cohort</p>
+              </div>
             </Card>
           </div>
+          
+          <Button variant="outline" asChild>
+            <Link to="/partners">
+              Become a Partner
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
         </div>
       </section>
 
