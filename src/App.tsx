@@ -28,6 +28,7 @@ import NotFound from "./pages/NotFound";
 import EmployerDashboard from "./pages/EmployerDashboard";
 import DonationSuccess from "./pages/DonationSuccess";
 import DonationCancelled from "./pages/DonationCancelled";
+import Partners from "./pages/Partners";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ const App = () => {
                 <Route path="blog/:slug" element={<BlogPost />} />
                 <Route path="careers" element={<Careers />} />
                 <Route path="donate" element={<Donate />} />
+                <Route path="partners" element={<Partners />} />
                 <Route path="donation-success" element={<DonationSuccess />} />
                 <Route path="donation-cancelled" element={<DonationCancelled />} />
                 <Route path="auth" element={<Auth />} />

@@ -1,219 +1,248 @@
-
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Heart, Users, Shield, Globe, ArrowRight, CheckCircle } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { ArrowRight, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
+import SocialProofBar from "@/components/home/SocialProofBar";
+import FeaturesBenefits from "@/components/home/FeaturesBenefits";
+import ImpactTestimonial from "@/components/home/ImpactTestimonial";
+import SupportQuiz from "@/components/quiz/SupportQuiz";
 import DonationForm from "@/components/donation/DonationForm";
 
 const Home = () => {
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-background">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6">
-            Empowering Communities Through AI-Driven Care
+      {/* Hero Section - Impact-Driven Statement */}
+      <section className="relative py-20 md:py-28 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-primary/5 via-background to-background overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
+        </div>
+        
+        <div className="max-w-5xl mx-auto text-center relative z-10">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium text-primary">AI-Powered Support for Kenya</span>
+          </div>
+          
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
+            Helping Vulnerable Women & Children Access{" "}
+            <span className="text-primary">Care, Legal Support & Safe Jobs</span>
           </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            Project Glo connects homeless women and children in Kenya to trauma-informed care and support services through inclusive, ethical AI technology.
+          
+          <p className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-3xl mx-auto leading-relaxed">
+            Quickly and confidentially. Chat in English, Swahili, or Sheng to find 
+            trauma-informed support—whenever you need it.
           </p>
+          
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" className="bg-primary hover:bg-primary/90">
-              <Link to="/contact">Get Support</Link>
+            <Button asChild size="lg" className="text-lg px-8 py-6">
+              <Link to="/contact">
+                Find Support Now
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
             </Button>
-            <Button variant="outline" size="lg" asChild>
-              <Link to="/about">Learn More</Link>
+            <Button variant="outline" size="lg" className="text-lg px-8 py-6" asChild>
+              <Link to="/partners">Partner With Us</Link>
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Impact Statistics */}
+      {/* Social Proof Bar */}
+      <SocialProofBar />
+
+      {/* Features - Benefit-Focused */}
+      <FeaturesBenefits />
+
+      {/* Interactive Support Quiz Section */}
       <section className="py-16 bg-muted/30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">Our Impact</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Building bridges to support and empower vulnerable communities across Kenya
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">300</div>
-              <p className="text-lg text-muted-foreground">Women Supported</p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">24/7</div>
-              <p className="text-lg text-muted-foreground">AI Support Available</p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">100%</div>
-              <p className="text-lg text-muted-foreground">Trauma-Informed Care</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section className="py-16 bg-background">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">How We Help</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Our AI-powered platform provides comprehensive support through multiple channels
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="text-center hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <Heart className="h-8 w-8 text-primary mx-auto mb-2" />
-                <CardTitle className="text-lg">Trauma-Informed Care</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Compassionate support designed with trauma-informed principles at its core
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <Users className="h-8 w-8 text-primary mx-auto mb-2" />
-                <CardTitle className="text-lg">Community Connection</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Connecting women and children to local resources and support networks
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <Shield className="h-8 w-8 text-primary mx-auto mb-2" />
-                <CardTitle className="text-lg">Safe & Secure</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Privacy-first approach ensuring confidential and secure interactions
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <Globe className="h-8 w-8 text-primary mx-auto mb-2" />
-                <CardTitle className="text-lg">Always Accessible</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  24/7 AI support available whenever and wherever you need help
-                </CardDescription>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Mission Statement */}
-      <section className="py-16 bg-muted/30">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-foreground mb-6">Our Mission</h2>
-          <p className="text-xl text-muted-foreground leading-relaxed mb-8">
-            We believe in building inclusive, ethical technologies rooted in care and community. 
-            Our work focuses on reimagining how systems serve and who they're built for, 
-            with special attention to gendered power, digital equity, and Afro-feminist urban design.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-            <div className="flex flex-col items-center">
-              <CheckCircle className="h-8 w-8 text-primary mb-3" />
-              <h3 className="font-semibold text-foreground mb-2">Inclusive Technology</h3>
-              <p className="text-sm text-muted-foreground">
-                Building AI that serves everyone, especially the most vulnerable
-              </p>
-            </div>
-            <div className="flex flex-col items-center">
-              <CheckCircle className="h-8 w-8 text-primary mb-3" />
-              <h3 className="font-semibold text-foreground mb-2">Community-Centered</h3>
-              <p className="text-sm text-muted-foreground">
-                Rooted in care, community input, and cultural understanding
-              </p>
-            </div>
-            <div className="flex flex-col items-center">
-              <CheckCircle className="h-8 w-8 text-primary mb-3" />
-              <h3 className="font-semibold text-foreground mb-2">Social Justice</h3>
-              <p className="text-sm text-muted-foreground">
-                Advancing equity through ethical AI and thoughtful design
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Support Our Mission Section */}
-      <section className="py-16 bg-background">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">Support Our Mission</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Your donation directly supports homeless women and children in Kenya
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <div className="grid lg:grid-cols-2 gap-12 items-start">
             <div>
-              <DonationForm showImpactItems={false} />
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+                Find Your Nearest Safe Space
+              </h2>
+              <p className="text-lg text-muted-foreground mb-6">
+                Answer a few quick questions and we'll help you find the right support 
+                based on your unique situation. No judgment, just care.
+              </p>
+              
+              <div className="space-y-4 mb-8">
+                <div className="flex items-start gap-3">
+                  <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-xs font-bold text-primary">1</span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground">Tell us what you need</p>
+                    <p className="text-sm text-muted-foreground">Housing, legal help, jobs, or emotional support</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-xs font-bold text-primary">2</span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground">Get matched with services</p>
+                    <p className="text-sm text-muted-foreground">We connect you with verified local resources</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-xs font-bold text-primary">3</span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground">Receive ongoing support</p>
+                    <p className="text-sm text-muted-foreground">Our team follows up to ensure you get help</p>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="flex flex-col justify-center space-y-6">
+            
+            <div>
+              <SupportQuiz />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Dashboard & Job Board Preview */}
+      <section className="py-16 bg-background">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* For Individuals/NGOs */}
+            <Card className="p-8 hover:shadow-lg transition-shadow">
+              <h3 className="text-2xl font-bold text-foreground mb-3">For Support Seekers & NGOs</h3>
+              <p className="text-muted-foreground mb-6">
+                Track cases, measure impact, and manage support efficiently with our 
+                intuitive dashboard designed for both individuals and organizations.
+              </p>
+              <ul className="space-y-2 mb-6">
+                <li className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                  Real-time case tracking
+                </li>
+                <li className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                  Service request management
+                </li>
+                <li className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                  Impact metrics & reporting
+                </li>
+              </ul>
+              <Button variant="outline" asChild>
+                <Link to="/auth">
+                  Access Dashboard
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </Card>
+
+            {/* For Employers */}
+            <Card className="p-8 hover:shadow-lg transition-shadow border-primary/20">
+              <h3 className="text-2xl font-bold text-foreground mb-3">For Employers</h3>
+              <p className="text-muted-foreground mb-6">
+                Post social-impact jobs with secure PayPal payments. Support vulnerable 
+                women seeking dignified employment opportunities.
+              </p>
+              <ul className="space-y-2 mb-6">
+                <li className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                  Post jobs for $15 (30-day listing)
+                </li>
+                <li className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                  Option for anonymous listings
+                </li>
+                <li className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                  Secure PayPal payments
+                </li>
+              </ul>
+              <Button asChild>
+                <Link to="/employer-dashboard">
+                  Create Employer Account
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonial + Donation Section */}
+      <section className="py-16 bg-muted/30">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Support Our Mission
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Every contribution helps vulnerable women and children access care, 
+              shelter, and opportunities for a better future.
+            </p>
+          </div>
+          
+          <div className="grid lg:grid-cols-2 gap-12">
+            <div className="space-y-6">
+              <ImpactTestimonial />
+              
               <Card className="bg-primary text-primary-foreground">
                 <CardContent className="p-6">
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div>
-                      <div className="text-2xl font-bold">50+</div>
+                      <div className="text-2xl font-bold">200+</div>
                       <div className="text-sm opacity-90">Women Supported</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold">100+</div>
+                      <div className="text-2xl font-bold">300+</div>
                       <div className="text-sm opacity-90">Children Helped</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold">10+</div>
+                      <div className="text-2xl font-bold">15+</div>
                       <div className="text-sm opacity-90">Partner Shelters</div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-              <div className="text-center">
-                <Button variant="outline" size="lg" asChild>
-                  <Link to="/donate">
-                    View Full Donation Page <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
+            </div>
+            
+            <div>
+              <DonationForm 
+                showImpactItems={false} 
+                title="Donate Now – Every Contribution Matters"
+                description="Your donation is secure and goes directly to supporting vulnerable communities"
+              />
             </div>
           </div>
         </div>
       </section>
 
-      {/* Call to Action */}
-      <section className="py-16 bg-muted/30">
+      {/* Final CTA */}
+      <section className="py-16 bg-background">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <Card className="bg-primary text-primary-foreground">
-            <CardContent className="p-8 text-center">
-              <h2 className="text-2xl font-bold mb-4">Ready to Get Started?</h2>
-              <p className="text-lg mb-6 opacity-90">
-                Connect with our AI-powered platform to access trauma-informed care and support services
+            <CardContent className="p-8 md:p-12 text-center">
+              <h2 className="text-2xl md:text-3xl font-bold mb-4">Ready to Get Support?</h2>
+              <p className="text-lg mb-8 opacity-90 max-w-2xl mx-auto">
+                Whether you need immediate help or want to explore available resources, 
+                we're here for you—24/7, in your language, with care.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button variant="secondary" size="lg" asChild>
                   <Link to="/contact">
-                    Get Support <ArrowRight className="ml-2 h-4 w-4" />
+                    Get Support Now
+                    <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
-                <Button variant="outline" size="lg" className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary" asChild>
-                  <Link to="/resources">Browse Resources</Link>
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary" 
+                  asChild
+                >
+                  <Link to="/resources">Explore Resources</Link>
                 </Button>
               </div>
             </CardContent>
