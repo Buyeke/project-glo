@@ -59,7 +59,8 @@ const Blog = () => {
         .from('blog_posts')
         .select('*', { count: 'exact' })
         .eq('published', true)
-        .order('published_at', { ascending: false });
+        .order('published_at', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false });
 
       if (searchTerm) {
         query = query.or(`title.ilike.%${searchTerm}%,excerpt.ilike.%${searchTerm}%`);
