@@ -27,7 +27,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ onImageSelect, selectionMod
     queryFn: async () => {
       const { data, error } = await supabase.storage
         .from('blog-images')
-        .list();
+        .list('blog');
       
       if (error) throw error;
       return data as FileObject[];
@@ -38,7 +38,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ onImageSelect, selectionMod
     mutationFn: async (fileName: string) => {
       const { error } = await supabase.storage
         .from('blog-images')
-        .remove([fileName]);
+        .remove([`blog/${fileName}`]);
       
       if (error) throw error;
     },
@@ -55,7 +55,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ onImageSelect, selectionMod
   const getImageUrl = (fileName: string) => {
     return supabase.storage
       .from('blog-images')
-      .getPublicUrl(fileName).data.publicUrl;
+      .getPublicUrl(`blog/${fileName}`).data.publicUrl;
   };
 
   const handleImageClick = (fileName: string) => {
