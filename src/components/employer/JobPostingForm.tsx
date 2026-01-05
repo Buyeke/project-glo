@@ -229,9 +229,9 @@ const JobPostingForm: React.FC<JobPostingFormProps> = ({ employerProfile, onSubm
               <CardContent className="pt-6">
                 <div className="text-center space-y-2">
                   <h3 className="text-lg font-semibold text-blue-900">Job Listing Price</h3>
-                  <p className="text-3xl font-bold text-blue-600">KES 5,000</p>
+                  <p className="text-3xl font-bold text-blue-600">$30 USD</p>
                   <p className="text-sm text-blue-700">
-                    Your job will be live for 30 days. Renewals available for KES 2,000.
+                    Your job will be live for 30 days.
                   </p>
                 </div>
               </CardContent>

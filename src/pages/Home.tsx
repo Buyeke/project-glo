@@ -149,7 +149,7 @@ const Home = () => {
               <ul className="space-y-2 mb-6">
                 <li className="flex items-center gap-2 text-sm text-muted-foreground">
                   <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                  Post social impact jobs for $15 (30-day listing)
+                  Post social impact jobs for $30 (30-day listing)
                 </li>
                 <li className="flex items-center gap-2 text-sm text-muted-foreground">
                   <div className="h-1.5 w-1.5 rounded-full bg-primary" />
