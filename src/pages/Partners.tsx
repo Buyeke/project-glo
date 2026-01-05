@@ -55,17 +55,17 @@ const Partners = () => {
     {
       icon: Building2,
       title: "NGO & Service Providers",
-      description: "Join our network to help vulnerable women access your services.",
+      description: "Join our network to help vulnerable women access your services. Partnerships from $500/month.",
     },
     {
       icon: Heart,
       title: "Corporate Sponsors",
-      description: "Support our mission through funding, resources, or employee engagement programs. Partnerships start from $500.",
+      description: "Support our mission through funding, resources, or employee engagement programs. From $10,000 (one-off or semi-annual).",
     },
     {
       icon: Globe,
       title: "Research & Academic",
-      description: "Collaborate on research exploring AI, social justice, and community empowerment.",
+      description: "Collaborate on research exploring AI, social justice, and community empowerment. From $300 per deliverable.",
     },
   ];
 
