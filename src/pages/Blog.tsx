@@ -282,7 +282,7 @@ const Blog = () => {
             <CardContent className="p-8">
               <h2 className="text-2xl font-bold mb-4">Want to be part of our story?</h2>
               <p className="text-lg mb-6 opacity-90">
-                Join our community and help us support vulnerable women and children
+                Join our community and help us support vulnerable women and their families
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button size="lg" variant="secondary">

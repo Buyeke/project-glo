@@ -18,8 +18,8 @@ const Donate = () => {
             Donate Now – Every Contribution Matters
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Your donation directly impacts the lives of vulnerable women and children, 
-            providing essential support and pathways to independence.
+            Your donation directly supports vulnerable women and their families, 
+            providing pathways to stability, safety, and opportunity.
           </p>
         </div>
       </section>
@@ -90,12 +90,12 @@ const Donate = () => {
                     <div className="text-sm opacity-90">Women Supported</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold">300+</div>
-                    <div className="text-sm opacity-90">Children Helped</div>
+                    <div className="text-2xl font-bold">15+</div>
+                    <div className="text-sm opacity-90">Partner Organizations</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold">15+</div>
-                    <div className="text-sm opacity-90">Partner Shelters</div>
+                    <div className="text-2xl font-bold">24/7</div>
+                    <div className="text-sm opacity-90">AI Guided Support</div>
                   </div>
                 </div>
               </CardContent>

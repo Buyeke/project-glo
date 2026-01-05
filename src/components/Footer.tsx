@@ -9,7 +9,7 @@ const Footer = () => {
           <div className="col-span-2 md:col-span-1">
             <h3 className="text-xl font-bold mb-4 text-primary">Project GLO</h3>
             <p className="text-muted-foreground mb-4 text-sm md:text-base">
-              Helping vulnerable women and children in Kenya access care, legal support, and safe jobs—quickly and confidentially.
+              Connecting vulnerable women in Kenya to housing support, legal aid, mental health services, and dignified work opportunities.
             </p>
             
             {/* Trust Badges */}

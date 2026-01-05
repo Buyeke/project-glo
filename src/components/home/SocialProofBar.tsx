@@ -2,9 +2,9 @@ import { Shield, Clock, Lock, Users } from "lucide-react";
 
 const SocialProofBar = () => {
   const stats = [
-    { value: "200+", label: "Women & Children Served", icon: Users },
-    { value: "24/7", label: "AI Support Available", icon: Clock },
-    { value: "100%", label: "Confidential", icon: Lock },
+    { value: "200+", label: "Vulnerable Women Supported", icon: Users },
+    { value: "24/7", label: "AI Guided Support", icon: Clock },
+    { value: "Strictly", label: "Confidential", icon: Lock },
     { value: "Secure", label: "Encrypted Data", icon: Shield },
   ];
 
@@ -23,15 +23,15 @@ const SocialProofBar = () => {
         
         {/* Partner Logos */}
         <div className="mt-8 pt-6 border-t border-primary/10">
-          <p className="text-center text-sm text-muted-foreground mb-4">Trusted Partners</p>
+          <p className="text-center text-sm text-muted-foreground mb-4">Trusted by global research institutions and incubator programs</p>
           <div className="flex justify-center items-center gap-8 flex-wrap">
             <div className="px-4 py-2 bg-background rounded-lg border">
               <span className="font-semibold text-foreground">OBREAL</span>
               <span className="text-muted-foreground text-sm ml-1">Spain</span>
             </div>
             <div className="px-4 py-2 bg-background rounded-lg border">
-              <span className="font-semibold text-foreground">AAU</span>
-              <span className="text-muted-foreground text-sm ml-1">Fellow 2024</span>
+              <span className="font-semibold text-foreground">OBREAL & AAU</span>
+              <span className="text-muted-foreground text-sm ml-1">Youth Incubator 2024/2025</span>
             </div>
           </div>
         </div>

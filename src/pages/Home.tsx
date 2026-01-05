@@ -22,12 +22,12 @@ const Home = () => {
         <div className="max-w-5xl mx-auto text-center relative z-10">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
             <Sparkles className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">AI-Powered Support for Kenya</span>
+            <span className="text-sm font-medium text-primary">AI-Powered Support for Vulnerable Women in Kenya</span>
           </div>
           
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
-            Helping Vulnerable Women & Children Access{" "}
-            <span className="text-primary">Care, Legal Support & Safe Jobs</span>
+            AI-Powered Support for{" "}
+            <span className="text-primary">Vulnerable Women in Kenya</span>
           </h1>
           
           <p className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-3xl mx-auto leading-relaxed">
@@ -149,7 +149,7 @@ const Home = () => {
               <ul className="space-y-2 mb-6">
                 <li className="flex items-center gap-2 text-sm text-muted-foreground">
                   <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                  Post jobs for $15 (30-day listing)
+                  Post social impact jobs for $15 (30-day listing)
                 </li>
                 <li className="flex items-center gap-2 text-sm text-muted-foreground">
                   <div className="h-1.5 w-1.5 rounded-full bg-primary" />
@@ -179,8 +179,8 @@ const Home = () => {
               Support Our Mission
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Every contribution helps vulnerable women and children access care, 
-              shelter, and opportunities for a better future.
+              Every contribution helps vulnerable women access stability, safety, 
+              and opportunities for a better future.
             </p>
           </div>
           
@@ -196,12 +196,12 @@ const Home = () => {
                       <div className="text-sm opacity-90">Women Supported</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold">300+</div>
-                      <div className="text-sm opacity-90">Children Helped</div>
+                      <div className="text-2xl font-bold">15+</div>
+                      <div className="text-sm opacity-90">Partner Organizations</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold">15+</div>
-                      <div className="text-sm opacity-90">Partner Shelters</div>
+                      <div className="text-2xl font-bold">3</div>
+                      <div className="text-sm opacity-90">Languages Supported</div>
                     </div>
                   </div>
                 </CardContent>
@@ -227,7 +227,7 @@ const Home = () => {
               <h2 className="text-2xl md:text-3xl font-bold mb-4">Ready to Get Support?</h2>
               <p className="text-lg mb-8 opacity-90 max-w-2xl mx-auto">
                 Whether you need immediate help or want to explore available resources, 
-                we're here for you—24/7, in your language, with care.
+                AI support is available anytime, with human follow-up during service hours.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button variant="secondary" size="lg" asChild>
