@@ -55,7 +55,7 @@ const Partners = () => {
     {
       icon: Building2,
       title: "NGO & Service Providers",
-      description: "Join our network to help vulnerable women and children access your services.",
+      description: "Join our network to help vulnerable women access your services.",
     },
     {
       icon: Heart,
@@ -91,7 +91,7 @@ const Partners = () => {
             For Partners & Collaborators
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Join Project GLO in our mission to support vulnerable women and children in Kenya 
+            Join Project GLO in our mission to support vulnerable women in Kenya 
             through technology, care, and community partnerships.
           </p>
         </div>
@@ -142,10 +142,10 @@ const Partners = () => {
             </Card>
             <Card className="px-8 py-6">
               <div className="text-center">
-                <h3 className="text-xl font-semibold text-foreground mb-1">AAU Fellowship</h3>
-                <p className="text-muted-foreground">2024 Cohort</p>
+                <h3 className="text-xl font-semibold text-foreground mb-1">OBREAL & AAU Youth Incubator</h3>
+                <p className="text-muted-foreground">2024/2025 Cohort</p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Academic & research support
+                  Innovation incubator program
                 </p>
               </div>
             </Card>

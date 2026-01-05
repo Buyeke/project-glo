@@ -17,7 +17,7 @@ const About = () => {
             About Project Glo
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            An AI-powered platform connecting homeless women and children in Kenya 
+            An AI-powered platform connecting vulnerable women in Kenya 
             to trauma-informed care and support services through inclusive, ethical technology.
           </p>
         </div>
@@ -34,8 +34,8 @@ const About = () => {
               <CardContent className="text-center">
                 <p className="text-muted-foreground leading-relaxed">
                   To build inclusive, ethical technologies rooted in care and community that 
-                  connect vulnerable women and children to trauma-informed support services, 
-                  reimagining how systems serve and who they're built for.
+                  connect vulnerable women to trauma-informed support services, strengthening 
+                  outcomes for their families and reimagining how systems serve.
                 </p>
               </CardContent>
             </Card>
@@ -73,7 +73,7 @@ const About = () => {
             </div>
             <div className="text-center">
               <div className="text-4xl font-bold text-primary mb-2">24/7</div>
-              <p className="text-lg text-muted-foreground">AI Support</p>
+              <p className="text-lg text-muted-foreground">AI Guided Support</p>
             </div>
             <div className="text-center">
               <div className="text-4xl font-bold text-primary mb-2">3</div>
@@ -167,7 +167,7 @@ const About = () => {
                 <div className="md:col-span-2 p-8">
                   <div className="flex items-center gap-2 mb-4">
                     <Award className="h-5 w-5 text-primary" />
-                    <span className="text-sm font-medium text-primary">2024 OBREAL & AAU Fellow</span>
+                    <span className="text-sm font-medium text-primary">OBREAL & AAU Youth Incubator (2024/2025)</span>
                   </div>
                   
                   <h3 className="text-xl font-bold text-foreground mb-3">
@@ -176,9 +176,9 @@ const About = () => {
                   
                   <p className="text-muted-foreground leading-relaxed mb-4">
                     Our founder brings together expertise in technology, poetry, and community organizing. 
-                    As a 2024 OBREAL & AAU Fellow, she is committed to building systems that truly serve 
-                    those who need them most—reimagining how AI can advance social justice and empower 
-                    vulnerable communities.
+                    As a participant in the OBREAL & AAU Youth Incubator, she is committed to building systems 
+                    that truly serve those who need them most—reimagining how AI can advance social justice 
+                    and empower vulnerable communities.
                   </p>
                   
                   <p className="text-muted-foreground leading-relaxed mb-6">
@@ -266,8 +266,8 @@ const About = () => {
             </Card>
             <Card className="px-8 py-6">
               <div className="text-center">
-                <h3 className="text-xl font-semibold text-foreground mb-1">AAU Fellowship</h3>
-                <p className="text-muted-foreground">2024 Cohort</p>
+                <h3 className="text-xl font-semibold text-foreground mb-1">OBREAL & AAU Youth Incubator</h3>
+                <p className="text-muted-foreground">2024/2025 Cohort</p>
               </div>
             </Card>
           </div>

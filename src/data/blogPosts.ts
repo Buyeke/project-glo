@@ -8,7 +8,7 @@ export const blogPosts = [
     content: `
 # Meet the Founder: Dinah Buyeke Masanda
 
-Dinah Buyeke Masanda is the founder of Glo, an AI-powered platform connecting homeless women and children in Kenya to trauma-informed care and support services. Her work represents a powerful intersection of technology, social justice, and community empowerment.
+Dinah Buyeke Masanda is the founder of Glo, an AI-powered platform connecting vulnerable women in Kenya to trauma-informed care and support services. Her work represents a powerful intersection of technology, social justice, and community empowerment.
 
 ## A Vision Rooted in Care
 
@@ -16,7 +16,7 @@ Dinah's approach to technology is fundamentally different. She believes in build
 
 ## Academic Excellence and Recognition
 
-As a 2024 OBREAL & AAU Fellow, Dinah brings academic rigor to her practical work of reimagining how systems serve vulnerable communities. Her fellowship represents recognition of her innovative approach to combining technology with social justice advocacy.
+As a participant in the OBREAL & AAU Youth Incubator, Dinah brings academic rigor to her practical work of reimagining how systems serve vulnerable communities. Her participation represents recognition of her innovative approach to combining technology with social justice advocacy.
 
 ## The Poet-Technologist
 
@@ -24,7 +24,7 @@ Beyond her work in technology and social justice, Dinah is also a poet. This cre
 
 ## A Mother's Perspective
 
-As a mother, Dinah brings personal understanding to the challenges faced by women and children in vulnerable situations. This lived experience shapes Project Glo's trauma-informed approach and community-centered design philosophy.
+As a mother, Dinah brings personal understanding to the challenges faced by vulnerable women. This lived experience shapes Project Glo's trauma-informed approach and community-centered design philosophy.
 
 ## Research and Advocacy
 
