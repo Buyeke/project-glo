@@ -60,7 +60,7 @@ const Partners = () => {
     {
       icon: Heart,
       title: "Corporate Sponsors",
-      description: "Support our mission through funding, resources, or employee engagement programs.",
+      description: "Support our mission through funding, resources, or employee engagement programs. Partnerships start from $500.",
     },
     {
       icon: Globe,
