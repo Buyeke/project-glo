@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import JobPostingForm from '@/components/employer/JobPostingForm';
 import PaymentScreen from '@/components/employer/PaymentScreen';
 import EmployerAuth from '@/components/employer/EmployerAuth';
+import ApplicantManagement from '@/components/employer/ApplicantManagement';
 
 interface JobPosting {
   id: string;
@@ -44,6 +45,7 @@ const EmployerDashboard: React.FC = () => {
   const [showJobForm, setShowJobForm] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [pendingJob, setPendingJob] = useState<any>(null);
+  const [viewingApplicants, setViewingApplicants] = useState<{ jobId: string; jobTitle: string } | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -166,6 +168,16 @@ const EmployerDashboard: React.FC = () => {
           setShowPayment(false);
           setPendingJob(null);
         }}
+      />
+    );
+  }
+
+  if (viewingApplicants) {
+    return (
+      <ApplicantManagement
+        jobId={viewingApplicants.jobId}
+        jobTitle={viewingApplicants.jobTitle}
+        onBack={() => setViewingApplicants(null)}
       />
     );
   }
@@ -336,8 +348,14 @@ const EmployerDashboard: React.FC = () => {
                         
                         <div className="flex gap-2">
                           {job.status === 'active' && (
-                            <Button variant="outline" size="sm" className="flex-1 sm:flex-none text-xs sm:text-sm">
-                              View Applicants
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="flex-1 sm:flex-none text-xs sm:text-sm"
+                              onClick={() => setViewingApplicants({ jobId: job.id, jobTitle: job.title })}
+                            >
+                              <Users className="w-3 h-3 mr-1" />
+                              View Applicants ({job.applicant_count})
                             </Button>
                           )}
                           {job.status === 'pending_payment' && (
