@@ -43,12 +43,14 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
+  const requestId = crypto.randomUUID();
+
   try {
     // Verify authentication
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
-        JSON.stringify({ error: 'Authorization required' }),
+        JSON.stringify({ error: 'Authorization required', request_id: requestId }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -62,8 +64,9 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token);
     
     if (authError || !user) {
+      console.error('Auth error:', authError?.message);
       return new Response(
-        JSON.stringify({ error: 'Invalid or expired token' }),
+        JSON.stringify({ error: 'Invalid or expired token', request_id: requestId }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -71,12 +74,19 @@ serve(async (req) => {
     const { audio } = await req.json();
     
     if (!audio) {
-      throw new Error('No audio data provided');
+      return new Response(
+        JSON.stringify({ error: 'No audio data provided', request_id: requestId }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openaiApiKey) {
-      throw new Error('OpenAI API key not configured');
+      console.error('OpenAI API key not configured');
+      return new Response(
+        JSON.stringify({ error: 'Voice recognition service not configured', request_id: requestId }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const binaryAudio = processBase64Chunks(audio);
@@ -96,8 +106,11 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`OpenAI API error: ${errorText}`);
+      console.error('OpenAI API error:', response.status);
+      return new Response(
+        JSON.stringify({ error: 'Voice transcription failed', request_id: requestId }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const result = await response.json();
@@ -114,14 +127,14 @@ serve(async (req) => {
     });
 
     return new Response(
-      JSON.stringify({ text: result.text || '' }),
+      JSON.stringify({ text: result.text || '', request_id: requestId }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     console.error('Voice-to-text error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'An error occurred while processing your request', request_id: requestId }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

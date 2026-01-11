@@ -13,6 +13,8 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const requestId = crypto.randomUUID();
+
   try {
     const webhookData = await req.json();
     const rawBody = JSON.stringify(webhookData);
@@ -53,7 +55,7 @@ serve(async (req) => {
       });
 
       return new Response(
-        JSON.stringify({ error: 'Missing required PayPal headers' }),
+        JSON.stringify({ error: 'Invalid webhook request', request_id: requestId }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 400 
@@ -71,7 +73,14 @@ serve(async (req) => {
       : 'https://api.sandbox.paypal.com';
 
     if (!paypalClientId || !paypalClientSecret) {
-      throw new Error('PayPal credentials not configured');
+      console.error('PayPal credentials not configured');
+      return new Response(
+        JSON.stringify({ error: 'Service configuration error', request_id: requestId }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500 
+        }
+      );
     }
 
     // Get access token
@@ -87,7 +96,14 @@ serve(async (req) => {
     });
 
     if (!tokenResponse.ok) {
-      throw new Error('Failed to get PayPal access token');
+      console.error('Failed to get PayPal access token');
+      return new Response(
+        JSON.stringify({ error: 'Payment service unavailable', request_id: requestId }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500 
+        }
+      );
     }
 
     const tokenData = await tokenResponse.json();
@@ -126,14 +142,13 @@ serve(async (req) => {
           type: 'paypal_webhook_verification_failed',
           event_type: webhookData.event_type,
           transmission_id: transmissionId,
-          cert_id: certId,
           verification_status: 'failed'
         },
         ip_address: req.headers.get('cf-connecting-ip') || 'unknown'
       });
 
       return new Response(
-        JSON.stringify({ error: 'Webhook signature verification failed' }),
+        JSON.stringify({ error: 'Webhook verification failed', request_id: requestId }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 401 
@@ -143,7 +158,7 @@ serve(async (req) => {
 
     const verificationResult = await verificationResponse.json();
     if (verificationResult.verification_status !== 'SUCCESS') {
-      console.error('PayPal webhook signature verification failed:', verificationResult);
+      console.error('PayPal webhook signature verification failed');
       
       const supabase = createClient(
         Deno.env.get('SUPABASE_URL') ?? '',
@@ -154,14 +169,13 @@ serve(async (req) => {
         event_type: 'suspicious_activity',
         event_data: {
           type: 'paypal_webhook_invalid_signature',
-          event_type: webhookData.event_type,
-          verification_result: verificationResult
+          event_type: webhookData.event_type
         },
         ip_address: req.headers.get('cf-connecting-ip') || 'unknown'
       });
 
       return new Response(
-        JSON.stringify({ error: 'Invalid webhook signature' }),
+        JSON.stringify({ error: 'Invalid webhook signature', request_id: requestId }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 401 
@@ -193,16 +207,16 @@ serve(async (req) => {
       
       if (!paymentDetailsResponse.ok) {
         console.error('Failed to get payment details');
-        return new Response('Payment details retrieval failed', { 
-          status: 500, 
-          headers: corsHeaders 
-        });
+        return new Response(
+          JSON.stringify({ error: 'Payment processing error', request_id: requestId }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
       
       const paymentDetails = await paymentDetailsResponse.json();
       const customField = paymentDetails.transactions?.[0]?.custom;
       
-      console.log('Payment custom field:', customField);
+      console.log('Payment custom field received');
 
       // Check if this is a donation (custom field contains donation UUID)
       if (customField && customField.length === 36 && customField.includes('-')) {
@@ -214,7 +228,7 @@ serve(async (req) => {
           .single();
 
         if (donation) {
-          console.log('Processing donation completion for:', customField);
+          console.log('Processing donation completion');
           
           // Update donation status
           const { error: donationError } = await supabase
@@ -227,7 +241,10 @@ serve(async (req) => {
           
           if (donationError) {
             console.error('Failed to update donation:', donationError);
-            throw donationError;
+            return new Response(
+              JSON.stringify({ error: 'Donation processing error', request_id: requestId }),
+              { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
           }
 
           // Log successful donation processing
@@ -235,8 +252,6 @@ serve(async (req) => {
             event_type: 'admin_access',
             event_data: {
               action: 'paypal_donation_processed',
-              payment_id: paymentId,
-              donation_id: customField,
               verification_status: 'success'
             },
             ip_address: req.headers.get('cf-connecting-ip') || 'unknown'
@@ -244,7 +259,7 @@ serve(async (req) => {
           
           console.log('Donation completed successfully');
           return new Response(
-            JSON.stringify({ received: true, type: 'donation' }),
+            JSON.stringify({ received: true, type: 'donation', request_id: requestId }),
             { 
               headers: { ...corsHeaders, 'Content-Type': 'application/json' },
               status: 200 
@@ -258,7 +273,7 @@ serve(async (req) => {
       try {
         customData = JSON.parse(customField || '{}');
       } catch (e) {
-        console.log('Could not parse custom field as JSON, treating as string');
+        console.log('Could not parse custom field as JSON');
         customData = {};
       }
 
@@ -272,7 +287,10 @@ serve(async (req) => {
 
       if (paymentError) {
         console.error('Failed to update payment:', paymentError);
-        throw paymentError;
+        return new Response(
+          JSON.stringify({ error: 'Payment processing error', request_id: requestId }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
 
       // Activate job posting
@@ -286,7 +304,10 @@ serve(async (req) => {
 
       if (jobError) {
         console.error('Failed to activate job posting:', jobError);
-        throw jobError;
+        return new Response(
+          JSON.stringify({ error: 'Job activation error', request_id: requestId }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
 
       // Log successful payment processing
@@ -294,8 +315,6 @@ serve(async (req) => {
         event_type: 'admin_access',
         event_data: {
           action: 'paypal_payment_processed',
-          payment_id: paymentId,
-          job_posting_id: customData.job_posting_id,
           verification_status: 'success'
         },
         ip_address: req.headers.get('cf-connecting-ip') || 'unknown'
@@ -305,7 +324,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ received: true }),
+      JSON.stringify({ received: true, request_id: requestId }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200 
@@ -325,17 +344,16 @@ serve(async (req) => {
       await supabase.from('security_logs').insert({
         event_type: 'suspicious_activity',
         event_data: {
-          type: 'paypal_webhook_processing_error',
-          error: error.message
+          type: 'paypal_webhook_processing_error'
         },
         ip_address: req.headers.get('cf-connecting-ip') || 'unknown'
       });
     } catch (logError) {
-      console.error('Failed to log webhook error:', logError);
+      console.error('Failed to log webhook error');
     }
 
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'An error occurred while processing the webhook', request_id: requestId }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500 

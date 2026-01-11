@@ -14,12 +14,14 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const requestId = crypto.randomUUID();
+
   try {
     // Verify authentication
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
-        JSON.stringify({ error: 'Authorization required' }),
+        JSON.stringify({ error: 'Authorization required', request_id: requestId }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -33,8 +35,9 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token);
     
     if (authError || !user) {
+      console.error('Auth error:', authError?.message);
       return new Response(
-        JSON.stringify({ error: 'Invalid or expired token' }),
+        JSON.stringify({ error: 'Invalid or expired token', request_id: requestId }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -42,12 +45,19 @@ serve(async (req) => {
     const { text, voice = 'custom' } = await req.json();
 
     if (!text) {
-      throw new Error('Text is required');
+      return new Response(
+        JSON.stringify({ error: 'Text is required', request_id: requestId }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const elevenLabsApiKey = Deno.env.get('ELEVENLABS_API_KEY');
     if (!elevenLabsApiKey) {
-      throw new Error('ElevenLabs API key not configured');
+      console.error('ElevenLabs API key not configured');
+      return new Response(
+        JSON.stringify({ error: 'Text-to-speech service not configured', request_id: requestId }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // ElevenLabs voice mapping - now includes your custom voice as default
@@ -83,8 +93,11 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`ElevenLabs API error: ${error}`);
+      console.error('ElevenLabs API error:', response.status);
+      return new Response(
+        JSON.stringify({ error: 'Text-to-speech conversion failed', request_id: requestId }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const arrayBuffer = await response.arrayBuffer();
@@ -103,7 +116,7 @@ serve(async (req) => {
     });
 
     return new Response(
-      JSON.stringify({ audioContent: base64Audio }),
+      JSON.stringify({ audioContent: base64Audio, request_id: requestId }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
@@ -111,7 +124,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Text-to-speech error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'An error occurred while processing your request', request_id: requestId }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

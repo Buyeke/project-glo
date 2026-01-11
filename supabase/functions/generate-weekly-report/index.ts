@@ -18,12 +18,14 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  const requestId = crypto.randomUUID();
+
   try {
     // Verify authentication and admin status
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
-        JSON.stringify({ error: 'Authorization required' }),
+        JSON.stringify({ error: 'Authorization required', request_id: requestId }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -37,19 +39,26 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token);
     
     if (authError || !user) {
+      console.error('Auth error:', authError?.message);
       return new Response(
-        JSON.stringify({ error: 'Invalid or expired token' }),
+        JSON.stringify({ error: 'Invalid or expired token', request_id: requestId }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Verify admin status
-    const { data: isAdmin, error: adminError } = await supabaseAuth
-      .rpc('is_admin_user');
+    // Verify admin status using team_members table (consistent with RLS)
+    const { data: adminCheck, error: adminError } = await supabaseAuth
+      .from('team_members')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .eq('verified', true)
+      .single();
 
-    if (adminError || !isAdmin) {
+    if (adminError || !adminCheck) {
+      console.error('Admin check failed:', adminError?.message);
       return new Response(
-        JSON.stringify({ error: 'Admin access required' }),
+        JSON.stringify({ error: 'Admin access required', request_id: requestId }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -145,7 +154,7 @@ serve(async (req) => {
     }
 
     // Store the report
-    const { data: reportData, error: reportError } = await supabaseClient
+    const { error: reportError } = await supabaseClient
       .from('admin_reports')
       .insert({
         report_type: 'weekly',
@@ -155,7 +164,10 @@ serve(async (req) => {
 
     if (reportError) {
       console.error('Error storing report:', reportError)
-      throw reportError
+      return new Response(
+        JSON.stringify({ error: 'Failed to store report', request_id: requestId }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
     // Log report generation
@@ -169,13 +181,14 @@ serve(async (req) => {
       ip_address: req.headers.get('cf-connecting-ip') || 'unknown'
     });
 
-    console.log('Weekly report generated successfully:', reportMetrics)
+    console.log('Weekly report generated successfully')
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         message: 'Weekly report generated successfully',
-        metrics: reportMetrics
+        metrics: reportMetrics,
+        request_id: requestId
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -186,8 +199,8 @@ serve(async (req) => {
     console.error('Error generating weekly report:', error)
     return new Response(
       JSON.stringify({ 
-        error: 'Failed to generate weekly report',
-        details: error.message 
+        error: 'An error occurred while generating the report',
+        request_id: requestId
       }),
       { 
         status: 500,
