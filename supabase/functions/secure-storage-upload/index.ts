@@ -14,12 +14,14 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders })
   }
 
+  const requestId = crypto.randomUUID();
+
   try {
     // Validate authentication
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
       return new Response(
-        JSON.stringify({ error: 'Missing authorization header' }),
+        JSON.stringify({ error: 'Missing authorization header', request_id: requestId }),
         { status: 401, headers: corsHeaders }
       )
     }
@@ -30,22 +32,26 @@ Deno.serve(async (req) => {
     )
 
     if (authError || !user) {
+      console.error('Auth error:', authError?.message);
       return new Response(
-        JSON.stringify({ error: 'Invalid authentication' }),
+        JSON.stringify({ error: 'Invalid authentication', request_id: requestId }),
         { status: 401, headers: corsHeaders }
       )
     }
 
-    // Check if user is admin
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('user_type')
-      .eq('id', user.id)
+    // Check if user is admin using team_members table (consistent with RLS)
+    const { data: adminCheck, error: adminError } = await supabase
+      .from('team_members')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .eq('verified', true)
       .single()
 
-    if (profile?.user_type !== 'admin') {
+    if (adminError || !adminCheck) {
+      console.error('Admin check failed:', adminError?.message);
       return new Response(
-        JSON.stringify({ error: 'Admin access required' }),
+        JSON.stringify({ error: 'Admin access required', request_id: requestId }),
         { status: 403, headers: corsHeaders }
       )
     }
@@ -56,7 +62,7 @@ Deno.serve(async (req) => {
 
     if (!file) {
       return new Response(
-        JSON.stringify({ error: 'No file provided' }),
+        JSON.stringify({ error: 'No file provided', request_id: requestId }),
         { status: 400, headers: corsHeaders }
       )
     }
@@ -65,7 +71,7 @@ Deno.serve(async (req) => {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
     if (!allowedTypes.includes(file.type)) {
       return new Response(
-        JSON.stringify({ error: 'Invalid file type' }),
+        JSON.stringify({ error: 'Invalid file type', request_id: requestId }),
         { status: 400, headers: corsHeaders }
       )
     }
@@ -73,7 +79,7 @@ Deno.serve(async (req) => {
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       return new Response(
-        JSON.stringify({ error: 'File too large' }),
+        JSON.stringify({ error: 'File too large', request_id: requestId }),
         { status: 400, headers: corsHeaders }
       )
     }
@@ -95,7 +101,7 @@ Deno.serve(async (req) => {
     if (error) {
       console.error('Upload error:', error)
       return new Response(
-        JSON.stringify({ error: 'Upload failed' }),
+        JSON.stringify({ error: 'Upload failed', request_id: requestId }),
         { status: 500, headers: corsHeaders }
       )
     }
@@ -122,14 +128,15 @@ Deno.serve(async (req) => {
       JSON.stringify({
         url: publicURL.publicUrl,
         path: data.path,
-        filename: secureFilename
+        filename: secureFilename,
+        request_id: requestId
       }),
       { headers: corsHeaders }
     )
   } catch (error) {
     console.error('Secure upload error:', error)
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'An error occurred while uploading', request_id: requestId }),
       { status: 500, headers: corsHeaders }
     )
   }

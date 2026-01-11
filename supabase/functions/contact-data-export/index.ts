@@ -12,11 +12,19 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  const requestId = crypto.randomUUID();
+
   try {
     // Verify JWT token and admin privileges
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
-      throw new Error('No authorization header')
+      return new Response(
+        JSON.stringify({ error: 'Authorization required', request_id: requestId }),
+        { 
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
     }
 
     const token = authHeader.replace('Bearer ', '')
@@ -25,10 +33,17 @@ serve(async (req) => {
     // Verify the JWT token
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     if (authError || !user) {
-      throw new Error('Invalid token')
+      console.error('Auth error:', authError?.message);
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication', request_id: requestId }),
+        { 
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
     }
 
-    // Check if user is admin
+    // Check if user is admin using team_members table (consistent with RLS)
     const { data: adminCheck, error: adminError } = await supabase
       .from('team_members')
       .select('role')
@@ -38,7 +53,14 @@ serve(async (req) => {
       .single()
 
     if (adminError || !adminCheck) {
-      throw new Error('Unauthorized: Admin access required')
+      console.error('Admin check failed:', adminError?.message);
+      return new Response(
+        JSON.stringify({ error: 'Admin access required', request_id: requestId }),
+        { 
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
     }
 
     // Log security event
@@ -47,7 +69,7 @@ serve(async (req) => {
       user_id: user.id,
       ip_address: req.headers.get('x-forwarded-for') || 'unknown',
       user_agent: req.headers.get('user-agent') || 'unknown',
-      details: { action: 'contact_data_export' }
+      event_data: { action: 'contact_data_export' }
     })
 
     // Export contact data
@@ -67,7 +89,16 @@ serve(async (req) => {
       `)
       .order('created_at', { ascending: false })
 
-    if (error) throw error
+    if (error) {
+      console.error('Data export query error:', error);
+      return new Response(
+        JSON.stringify({ error: 'Failed to export data', request_id: requestId }),
+        { 
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
+    }
 
     const securityHeaders = {
       ...corsHeaders,
@@ -90,9 +121,9 @@ serve(async (req) => {
     console.error('Contact data export error:', error)
     
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'An error occurred while processing your request', request_id: requestId }),
       { 
-        status: 401,
+        status: 500,
         headers: {
           ...corsHeaders,
           'Content-Type': 'application/json',

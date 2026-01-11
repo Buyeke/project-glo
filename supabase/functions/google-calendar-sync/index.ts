@@ -20,12 +20,14 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  const requestId = crypto.randomUUID();
+
   try {
     // Verify authentication
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
-        JSON.stringify({ error: 'Authorization required' }),
+        JSON.stringify({ error: 'Authorization required', request_id: requestId }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -39,8 +41,9 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token);
     
     if (authError || !user) {
+      console.error('Auth error:', authError?.message);
       return new Response(
-        JSON.stringify({ error: 'Invalid or expired token' }),
+        JSON.stringify({ error: 'Invalid or expired token', request_id: requestId }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -49,16 +52,18 @@ serve(async (req) => {
     
     // Verify user authorization - user can only manage their own bookings or admins can manage all
     if (booking && booking.user_id !== user.id) {
-      // Check if user is admin
-      const { data: profile } = await supabaseAuth
-        .from('profiles')
-        .select('user_type')
-        .eq('id', user.id)
+      // Check if user is admin using team_members table (consistent with RLS)
+      const { data: adminCheck } = await supabaseAuth
+        .from('team_members')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .eq('verified', true)
         .single();
 
-      if (!profile || profile.user_type !== 'admin') {
+      if (!adminCheck) {
         return new Response(
-          JSON.stringify({ error: 'Unauthorized to manage this booking' }),
+          JSON.stringify({ error: 'Unauthorized to manage this booking', request_id: requestId }),
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
@@ -69,7 +74,11 @@ serve(async (req) => {
     const accessToken = Deno.env.get('GOOGLE_ACCESS_TOKEN')
     
     if (!accessToken) {
-      throw new Error('Google Calendar access token not configured')
+      console.error('Google Calendar access token not configured');
+      return new Response(
+        JSON.stringify({ error: 'Calendar service not configured', request_id: requestId }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     if (action === 'create' && booking) {
@@ -107,7 +116,11 @@ serve(async (req) => {
       )
 
       if (!response.ok) {
-        throw new Error(`Google Calendar API error: ${response.statusText}`)
+        console.error('Google Calendar API error:', response.status);
+        return new Response(
+          JSON.stringify({ error: 'Failed to create calendar event', request_id: requestId }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
 
       const createdEvent = await response.json()
@@ -125,7 +138,7 @@ serve(async (req) => {
       });
       
       return new Response(
-        JSON.stringify({ eventId: createdEvent.id }),
+        JSON.stringify({ eventId: createdEvent.id, request_id: requestId }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200,
@@ -146,7 +159,11 @@ serve(async (req) => {
       )
 
       if (!response.ok && response.status !== 404) {
-        throw new Error(`Google Calendar API error: ${response.statusText}`)
+        console.error('Google Calendar API error:', response.status);
+        return new Response(
+          JSON.stringify({ error: 'Failed to cancel calendar event', request_id: requestId }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
 
       // Log calendar event cancellation
@@ -161,7 +178,7 @@ serve(async (req) => {
       });
 
       return new Response(
-        JSON.stringify({ success: true }),
+        JSON.stringify({ success: true, request_id: requestId }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200,
@@ -169,12 +186,15 @@ serve(async (req) => {
       )
     }
 
-    throw new Error('Invalid action or missing parameters')
+    return new Response(
+      JSON.stringify({ error: 'Invalid action or missing parameters', request_id: requestId }),
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
 
   } catch (error) {
     console.error('Google Calendar sync error:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'An error occurred while processing your request', request_id: requestId }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500,

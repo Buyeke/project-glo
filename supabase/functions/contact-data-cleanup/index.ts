@@ -11,10 +11,18 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  const requestId = crypto.randomUUID();
+
   try {
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
-      throw new Error('No authorization header')
+      return new Response(
+        JSON.stringify({ error: 'Authorization required', request_id: requestId }),
+        { 
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
     }
 
     const token = authHeader.replace('Bearer ', '')
@@ -22,10 +30,17 @@ serve(async (req) => {
     
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     if (authError || !user) {
-      throw new Error('Invalid token')
+      console.error('Auth error:', authError?.message);
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication', request_id: requestId }),
+        { 
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
     }
 
-    // Verify admin access
+    // Verify admin access using team_members table (consistent with RLS)
     const { data: adminCheck, error: adminError } = await supabase
       .from('team_members')
       .select('role')
@@ -35,7 +50,14 @@ serve(async (req) => {
       .single()
 
     if (adminError || !adminCheck) {
-      throw new Error('Unauthorized: Admin access required')
+      console.error('Admin check failed:', adminError?.message);
+      return new Response(
+        JSON.stringify({ error: 'Admin access required', request_id: requestId }),
+        { 
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
     }
 
     // Log security event
@@ -44,19 +66,28 @@ serve(async (req) => {
       user_id: user.id,
       ip_address: req.headers.get('x-forwarded-for') || 'unknown',
       user_agent: req.headers.get('user-agent') || 'unknown',
-      details: { action: 'contact_data_cleanup' }
+      event_data: { action: 'contact_data_cleanup' }
     })
 
     // Clean up old contact submissions (older than 2 years)
     const twoYearsAgo = new Date()
     twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2)
 
-    const { data: cleanupResult, error: cleanupError } = await supabase
+    const { error: cleanupError } = await supabase
       .from('contact_submissions')
       .delete()
       .lt('created_at', twoYearsAgo.toISOString())
 
-    if (cleanupError) throw cleanupError
+    if (cleanupError) {
+      console.error('Cleanup error:', cleanupError);
+      return new Response(
+        JSON.stringify({ error: 'Cleanup operation failed', request_id: requestId }),
+        { 
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
+    }
 
     const securityHeaders = {
       ...corsHeaders,
@@ -68,7 +99,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, message: 'Data cleanup completed' }),
+      JSON.stringify({ success: true, message: 'Data cleanup completed', request_id: requestId }),
       {
         headers: {
           ...securityHeaders,
@@ -81,9 +112,9 @@ serve(async (req) => {
     console.error('Data cleanup error:', error)
     
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'An error occurred while processing your request', request_id: requestId }),
       { 
-        status: 401,
+        status: 500,
         headers: {
           ...corsHeaders,
           'Content-Type': 'application/json',
