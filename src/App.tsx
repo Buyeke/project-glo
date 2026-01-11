@@ -29,6 +29,7 @@ import EmployerDashboard from "./pages/EmployerDashboard";
 import DonationSuccess from "./pages/DonationSuccess";
 import DonationCancelled from "./pages/DonationCancelled";
 import Partners from "./pages/Partners";
+import DonorDashboard from "./pages/DonorDashboard";
 
 const queryClient = new QueryClient();
 
@@ -65,6 +66,7 @@ const App = () => {
                 <Route path="admin-login" element={<AdminLogin />} />
                 <Route path="admin" element={<AdminPanel />} />
                 <Route path="employer-dashboard" element={<EmployerDashboard />} />
+                <Route path="donor-dashboard" element={<DonorDashboard />} />
                 <Route path="privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="terms-of-service" element={<TermsOfService />} />
                 <Route path="data-protection" element={<DataProtection />} />

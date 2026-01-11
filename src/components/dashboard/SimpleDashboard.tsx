@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import { useProfileManagement } from '@/hooks/useProfileManagement';
 import EnhancedProfileView from '@/components/profile/EnhancedProfileView';
 import ServiceCalendar from '@/components/calendar/ServiceCalendar';
+import JourneyTimeline from '@/components/journey/JourneyTimeline';
 
 interface SimpleDashboardProps {
   profile: {
@@ -114,6 +115,15 @@ const SimpleDashboard = ({ profile }: SimpleDashboardProps) => {
               </Card>
             ))}
           </div>
+        </div>
+
+        {/* Journey Timeline Section */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-semibold mb-4 text-foreground">Your Support Journey</h2>
+          <JourneyTimeline 
+            currentStage={profile.support_stage || 'initial'} 
+            visitCount={profile.visit_count || 0} 
+          />
         </div>
 
         {/* Enhanced Profile Section */}
