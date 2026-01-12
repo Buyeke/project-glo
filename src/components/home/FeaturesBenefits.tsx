@@ -6,60 +6,61 @@ const FeaturesBenefits = () => {
     {
       icon: MessageCircle,
       title: "Multilingual AI Chat",
-      description: "Chat in English, Swahili, or Sheng and get trauma-informed guidance instantly—day or night.",
+      description: "Chat in English, Swahili, or Sheng and get guidance day or night.",
       highlight: "3 Languages",
     },
     {
       icon: Compass,
       title: "Smart Service Matching",
-      description: "We connect you with the right support quickly, based on your unique needs and location.",
+      description: "We connect you with the right support based on your needs and location.",
       highlight: "Personalized",
     },
     {
       icon: Shield,
       title: "Your Data is Protected",
-      description: "Your information is secure, encrypted, and only accessible by approved support staff.",
+      description: "Information is encrypted and only accessible by approved support staff.",
       highlight: "Confidential",
     },
     {
       icon: Clock,
       title: "Always Here for You",
-      description: "24/7 AI support available whenever and wherever you need help—no judgment, just care.",
+      description: "AI support anytime with human follow-up during service hours.",
       highlight: "24/7 Access",
     },
   ];
 
   return (
-    <section className="py-16 bg-background">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+    <section className="mobile-section bg-background">
+      <div className="max-w-6xl mx-auto mobile-container">
+        <div className="text-center mb-8 md:mb-12">
+          <h2 className="text-2xl md:text-4xl font-bold text-foreground mb-3 md:mb-4">
             How We Support You
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
             Support Designed With Your Safety and Dignity in Mind
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Mobile: 1 column, Tablet: 2 columns, Desktop: 4 columns */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {features.map((feature, index) => (
             <Card 
               key={index} 
               className="group hover:shadow-lg hover:border-primary/30 transition-all duration-300 relative overflow-hidden"
             >
               <div className="absolute top-2 right-2">
-                <span className="text-xs font-medium px-2 py-1 bg-primary/10 text-primary rounded-full">
+                <span className="text-xs font-semibold px-2 py-1 bg-primary/10 text-primary rounded-full">
                   {feature.highlight}
                 </span>
               </div>
-              <CardHeader className="pt-8">
-                <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                  <feature.icon className="h-7 w-7 text-primary" />
+              <CardHeader className="pt-10 md:pt-8 pb-2">
+                <div className="h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-3 md:mb-4 group-hover:bg-primary/20 transition-colors">
+                  <feature.icon className="h-6 w-6 md:h-7 md:w-7 text-primary" aria-hidden="true" />
                 </div>
-                <CardTitle className="text-lg">{feature.title}</CardTitle>
+                <CardTitle className="text-lg font-bold">{feature.title}</CardTitle>
               </CardHeader>
-              <CardContent>
-                <CardDescription className="text-sm leading-relaxed">
+              <CardContent className="pt-0">
+                <CardDescription className="text-sm md:text-base leading-relaxed">
                   {feature.description}
                 </CardDescription>
               </CardContent>
