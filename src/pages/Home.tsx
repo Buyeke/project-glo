@@ -7,47 +7,44 @@ import FeaturesBenefits from "@/components/home/FeaturesBenefits";
 import ImpactTestimonial from "@/components/home/ImpactTestimonial";
 import SupportQuiz from "@/components/quiz/SupportQuiz";
 import DonationForm from "@/components/donation/DonationForm";
+import VisitorPathSelector from "@/components/home/VisitorPathSelector";
+import HowItWorksSteps from "@/components/home/HowItWorksSteps";
 
 const Home = () => {
   return (
     <div className="min-h-screen">
-      {/* Hero Section - Impact-Driven Statement */}
-      <section className="relative py-20 md:py-28 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-primary/5 via-background to-background overflow-hidden">
+      {/* Hero Section - Clear Visitor Segmentation */}
+      <section className="relative py-16 md:py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-primary/5 via-background to-background overflow-hidden">
         {/* Background decoration */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
           <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         </div>
         
-        <div className="max-w-5xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
-            <Sparkles className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">AI-Powered Support for Vulnerable Women in Kenya</span>
+        <div className="max-w-5xl mx-auto relative z-10">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
+              <Sparkles className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium text-primary">AI-Powered Support for Vulnerable Women in Kenya</span>
+            </div>
+            
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
+              Find Support,{" "}
+              <span className="text-primary">Safely & Confidentially</span>
+            </h1>
+            
+            <p className="text-xl md:text-2xl text-muted-foreground mb-4 max-w-3xl mx-auto leading-relaxed">
+              Chat in English, Swahili, or Sheng to connect with trauma-informed care—whenever you need it.
+            </p>
           </div>
           
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
-            AI-Powered Support for{" "}
-            <span className="text-primary">Vulnerable Women in Kenya</span>
-          </h1>
-          
-          <p className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-3xl mx-auto leading-relaxed">
-            Quickly and confidentially. Chat in English, Swahili, or Sheng to find 
-            trauma-informed support—whenever you need it.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" className="text-lg px-8 py-6">
-              <Link to="/contact">
-                Find Support Now
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-            <Button variant="outline" size="lg" className="text-lg px-8 py-6" asChild>
-              <Link to="/partners">Partner With Us</Link>
-            </Button>
-          </div>
+          {/* Three-Path Visitor Selector */}
+          <VisitorPathSelector />
         </div>
       </section>
+
+      {/* How It Works - Immediately visible */}
+      <HowItWorksSteps />
 
       {/* Social Proof Bar */}
       <SocialProofBar />
@@ -97,6 +94,11 @@ const Home = () => {
                   </div>
                 </div>
               </div>
+              
+              <p className="text-sm text-muted-foreground flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-green-500" />
+                No login required to explore services
+              </p>
             </div>
             
             <div>
@@ -106,7 +108,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Dashboard & Job Board Preview */}
+      {/* Value Propositions - Updated CTAs */}
       <section className="py-16 bg-background">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-8">
@@ -132,8 +134,8 @@ const Home = () => {
                 </li>
               </ul>
               <Button variant="outline" asChild>
-                <Link to="/auth">
-                  Access Dashboard
+                <Link to="/services">
+                  Browse Available Services
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
@@ -161,8 +163,8 @@ const Home = () => {
                 </li>
               </ul>
               <Button asChild>
-                <Link to="/employer-dashboard">
-                  Create Employer Account
+                <Link to="/careers">
+                  View Job Posting Options
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
@@ -219,20 +221,20 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Final CTA */}
+      {/* Final CTA - Updated language */}
       <section className="py-16 bg-background">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <Card className="bg-primary text-primary-foreground">
             <CardContent className="p-8 md:p-12 text-center">
-              <h2 className="text-2xl md:text-3xl font-bold mb-4">Ready to Get Support?</h2>
+              <h2 className="text-2xl md:text-3xl font-bold mb-4">Ready to Explore Your Options?</h2>
               <p className="text-lg mb-8 opacity-90 max-w-2xl mx-auto">
                 Whether you need immediate help or want to explore available resources, 
                 AI support is available anytime, with human follow-up during service hours.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button variant="secondary" size="lg" asChild>
-                  <Link to="/contact">
-                    Get Support Now
+                  <Link to="/services">
+                    Browse Services
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>

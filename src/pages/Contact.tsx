@@ -4,9 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, Clock, AlertCircle, CheckCircle } from 'lucide-react';
+import { Mail, Clock, AlertCircle, CheckCircle, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { submitContactForm } from '@/utils/secureContactSubmission';
+import TrustBadge from '@/components/ui/TrustBadge';
+import HowItWorksSteps from '@/components/home/HowItWorksSteps';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -55,11 +57,20 @@ const Contact = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-12">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-sm mb-4">
+              <Shield className="h-4 w-4" />
+              No login required
+            </div>
             <h1 className="text-4xl font-bold text-foreground mb-4">Get in Touch</h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               We're here to help. Reach out to us for support, questions, or to learn more about our services.
             </p>
+          </div>
+
+          {/* How It Works - Compact */}
+          <div className="mb-8">
+            <HowItWorksSteps variant="compact" />
           </div>
 
           <div className="grid md:grid-cols-2 gap-8">
@@ -139,22 +150,25 @@ const Contact = () => {
                     </div>
 
                     {submissionStatus === 'success' && (
-                      <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-md">
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                        <p className="text-sm text-green-700">
+                      <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-md">
+                        <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                        <p className="text-sm text-green-700 dark:text-green-300">
                           Thank you for your message! We'll get back to you soon.
                         </p>
                       </div>
                     )}
 
                     {submissionStatus === 'error' && (
-                      <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-md">
-                        <AlertCircle className="h-4 w-4 text-red-600" />
-                        <p className="text-sm text-red-700">
+                      <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-md">
+                        <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                        <p className="text-sm text-red-700 dark:text-red-300">
                           There was an issue submitting your message. Please try again.
                         </p>
                       </div>
                     )}
+
+                    {/* Trust Badge before submit */}
+                    <TrustBadge variant="minimal" className="justify-center" />
 
                     <Button 
                       type="submit" 
@@ -192,6 +206,9 @@ const Contact = () => {
                 </CardContent>
               </Card>
 
+              {/* Privacy Card */}
+              <TrustBadge variant="card" />
+
               <Card>
                 <CardHeader>
                   <CardTitle className="text-center">Crisis Support</CardTitle>
@@ -201,7 +218,7 @@ const Contact = () => {
                     If you're experiencing a crisis or need immediate help, please contact:
                   </p>
                   <div className="space-y-2">
-                    <p className="font-medium text-red-600">Emergency: 999 or 112</p>
+                    <p className="font-medium text-destructive">Emergency: 999 or 112</p>
                     <p className="font-medium">Crisis Helpline: +254 722 178 177</p>
                   </div>
                 </CardContent>
