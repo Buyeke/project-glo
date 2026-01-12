@@ -34,9 +34,9 @@ const DonationForm = ({
 
   const predefinedAmounts = [
     { amount: 25, description: 'Provides a dignity kit for one woman', ksh: 3250 },
-    { amount: 60, description: 'Funds mental health support for one week', ksh: 7800 },
-    { amount: 100, description: 'Offers temporary housing for a mother and child', ksh: 13000 },
-    { amount: 250, description: 'Feeds a family of 4 for a week', ksh: 32500 },
+    { amount: 60, description: 'One week of counseling and therapy sessions', ksh: 7800 },
+    { amount: 100, description: 'Safe shelter for a woman for one week', ksh: 13000 },
+    { amount: 250, description: 'Nutritious meals for a family of 4 for a month', ksh: 32500 },
   ];
 
   const impactItems = [
@@ -57,14 +57,14 @@ const DonationForm = ({
     {
       icon: Home,
       title: 'Temporary Housing',
-      description: 'Safe shelter for a mother and child for one night',
+      description: 'Safe shelter for a woman for one week',
       amount: '$100',
       ksh: 'KSh 13,000',
     },
     {
       icon: Utensils,
       title: 'Family Nutrition',
-      description: 'Nutritious meals for a family of 4 for a week',
+      description: 'Nutritious meals for a family of 4 for a month',
       amount: '$250',
       ksh: 'KSh 32,500',
     },

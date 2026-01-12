@@ -1,10 +1,47 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { GraduationCap, Home, Heart, Sparkles } from 'lucide-react';
+import { Heart, Home, Users, Utensils, Sparkles, Play } from 'lucide-react';
 import DonationForm from '@/components/donation/DonationForm';
 import DonationImpactStory from '@/components/donation/DonationImpactStory';
+import HowGLOWorksModal from '@/components/home/HowGLOWorksModal';
+import { Button } from '@/components/ui/button';
 
 const Donate = () => {
+  const impactTiers = [
+    {
+      icon: Heart,
+      title: 'Dignity Kits',
+      description: 'Essential hygiene and personal care items',
+      amount: '$25',
+      ksh: 'KSh 3,250',
+      color: 'bg-pink-500',
+    },
+    {
+      icon: Users,
+      title: 'Mental Health Support',
+      description: 'One week of counseling and therapy sessions',
+      amount: '$60',
+      ksh: 'KSh 7,800',
+      color: 'bg-purple-500',
+    },
+    {
+      icon: Home,
+      title: 'Temporary Housing',
+      description: 'Safe shelter for a woman for one week',
+      amount: '$100',
+      ksh: 'KSh 13,000',
+      color: 'bg-blue-500',
+    },
+    {
+      icon: Utensils,
+      title: 'Family Nutrition',
+      description: 'Nutritious meals for a family of 4 for a month',
+      amount: '$250',
+      ksh: 'KSh 32,500',
+      color: 'bg-green-500',
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -17,18 +54,81 @@ const Donate = () => {
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
             Donate Now – Every Contribution Matters
           </h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-6">
             Your donation directly supports vulnerable women and their families, 
             providing pathways to stability, safety, and opportunity.
           </p>
+          
+          {/* See How GLO Works button */}
+          <HowGLOWorksModal 
+            trigger={
+              <Button variant="outline" size="lg" className="gap-2">
+                <Play className="h-4 w-4" />
+                See How GLO Works
+              </Button>
+            }
+          />
         </div>
       </section>
 
-      <div className="max-w-6xl mx-auto px-4 pb-16">
+      {/* Impact Tiers - Prominent Display */}
+      <section className="py-12 bg-muted/30">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3">
+              Your Impact at Every Level
+            </h2>
+            <p className="text-muted-foreground">
+              Choose how you want to make a difference
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {impactTiers.map((tier, index) => {
+              const IconComponent = tier.icon;
+              return (
+                <Card 
+                  key={index} 
+                  className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden"
+                >
+                  <CardContent className="p-6 text-center">
+                    <div className="relative mb-4 mx-auto w-fit">
+                      <div className={`absolute inset-0 ${tier.color} rounded-full blur-lg opacity-20 group-hover:opacity-40 transition-opacity`} />
+                      <div className={`relative h-16 w-16 rounded-full ${tier.color} flex items-center justify-center mx-auto`}>
+                        <IconComponent className="h-8 w-8 text-white" />
+                      </div>
+                    </div>
+                    
+                    <h3 className="text-lg font-bold text-foreground mb-2">
+                      {tier.title}
+                    </h3>
+                    
+                    <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">
+                      {tier.description}
+                    </p>
+                    
+                    <div className="space-y-1">
+                      <div className="text-2xl font-bold text-primary">
+                        {tier.amount}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {tier.ksh}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <div className="max-w-6xl mx-auto px-4 py-16">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Donation Form */}
           <div>
             <DonationForm 
+              showImpactItems={false}
               title="Choose Your Donation Amount"
               description="100% of your donation goes directly to supporting vulnerable communities"
             />
@@ -38,48 +138,6 @@ const Donate = () => {
           <div className="space-y-8">
             {/* Impact Story & Trust Signals */}
             <DonationImpactStory />
-
-            {/* How Donations Are Used */}
-            <Card>
-              <CardContent className="p-8">
-                <h2 className="text-2xl font-bold mb-6 text-center text-foreground">How Your Donation Helps</h2>
-                <div className="space-y-6">
-                  <div className="flex items-start space-x-4">
-                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <GraduationCap className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-2 text-foreground">Education & Skills</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Fund workshops on financial literacy, digital skills, and life skills training that empower women for long-term independence.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-4">
-                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Home className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-2 text-foreground">Safe Housing</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Support emergency shelter placement and transitional housing programs through our verified partner network.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-4">
-                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Heart className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-2 text-foreground">Holistic Care</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Enable comprehensive support including mental health services, healthcare access, and community integration programs.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Impact Stats */}
             <Card className="bg-primary text-primary-foreground">

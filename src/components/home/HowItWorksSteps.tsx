@@ -1,10 +1,13 @@
-import { MessageCircle, Users, Phone } from "lucide-react";
+import { MessageCircle, Users, Phone, Play } from "lucide-react";
+import HowGLOWorksModal from "./HowGLOWorksModal";
+import { Button } from "@/components/ui/button";
 
 interface HowItWorksStepsProps {
   variant?: "default" | "compact";
+  showModalTrigger?: boolean;
 }
 
-const HowItWorksSteps = ({ variant = "default" }: HowItWorksStepsProps) => {
+const HowItWorksSteps = ({ variant = "default", showModalTrigger = false }: HowItWorksStepsProps) => {
   const steps = [
     {
       number: 1,
@@ -53,9 +56,19 @@ const HowItWorksSteps = ({ variant = "default" }: HowItWorksStepsProps) => {
           <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
             How It Works
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mb-4">
             Three simple steps to get the support you need
           </p>
+          {showModalTrigger && (
+            <HowGLOWorksModal 
+              trigger={
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Play className="h-4 w-4" />
+                  Watch Explainer
+                </Button>
+              }
+            />
+          )}
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

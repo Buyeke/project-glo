@@ -43,8 +43,8 @@ const Home = () => {
         </div>
       </section>
 
-      {/* How It Works - Immediately visible */}
-      <HowItWorksSteps />
+      {/* How It Works - Immediately visible with modal trigger */}
+      <HowItWorksSteps showModalTrigger={true} />
 
       {/* Social Proof Bar */}
       <SocialProofBar />
