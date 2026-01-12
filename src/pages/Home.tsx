@@ -29,12 +29,12 @@ const Home = () => {
             </div>
             
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
-              Find Support,{" "}
-              <span className="text-primary">Safely & Confidentially</span>
+              Find Support{" "}
+              <span className="text-primary">Safely and Confidentially</span>
             </h1>
             
             <p className="text-xl md:text-2xl text-muted-foreground mb-4 max-w-3xl mx-auto leading-relaxed">
-              Chat in English, Swahili, or Sheng to connect with trauma-informed care—whenever you need it.
+              Chat in English, Swahili, or Sheng to connect with trauma-informed care anytime.
             </p>
           </div>
           
@@ -61,8 +61,9 @@ const Home = () => {
                 Find Your Nearest Safe Space
               </h2>
               <p className="text-lg text-muted-foreground mb-6">
-                Answer a few quick questions and we'll help you find the right support 
-                based on your unique situation. No judgment, just care.
+                Answer a few quick questions and we'll guide you to the right support.
+                <br />
+                <span className="font-medium">No judgment. No login required.</span>
               </p>
               
               <div className="space-y-4 mb-8">
@@ -108,68 +109,35 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Value Propositions - Updated CTAs */}
+      {/* For Employers Section */}
       <section className="py-16 bg-background">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* For Individuals/NGOs */}
-            <Card className="p-8 hover:shadow-lg transition-shadow">
-              <h3 className="text-2xl font-bold text-foreground mb-3">For Support Seekers & NGOs</h3>
-              <p className="text-muted-foreground mb-6">
-                Track cases, measure impact, and manage support efficiently with our 
-                intuitive dashboard designed for both individuals and organizations.
-              </p>
-              <ul className="space-y-2 mb-6">
-                <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                  Real-time case tracking
-                </li>
-                <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                  Service request management
-                </li>
-                <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                  Impact metrics & reporting
-                </li>
-              </ul>
-              <Button variant="outline" asChild>
-                <Link to="/services">
-                  Browse Available Services
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            </Card>
-
-            {/* For Employers */}
-            <Card className="p-8 hover:shadow-lg transition-shadow border-primary/20">
-              <h3 className="text-2xl font-bold text-foreground mb-3">For Employers</h3>
-              <p className="text-muted-foreground mb-6">
-                Post social-impact jobs with secure PayPal payments. Support vulnerable 
-                women seeking dignified employment opportunities.
-              </p>
-              <ul className="space-y-2 mb-6">
-                <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                  Post social impact jobs for $30 (30-day listing)
-                </li>
-                <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                  Option for anonymous listings
-                </li>
-                <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                  Secure PayPal payments
-                </li>
-              </ul>
-              <Button asChild>
-                <Link to="/careers">
-                  View Job Posting Options
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            </Card>
-          </div>
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Card className="p-8 hover:shadow-lg transition-shadow border-primary/20">
+            <h3 className="text-2xl font-bold text-foreground mb-3">For Employers</h3>
+            <p className="text-muted-foreground mb-6">
+              Post social impact jobs that support vulnerable women.
+            </p>
+            <ul className="space-y-2 mb-6">
+              <li className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                $30 listing for 30 days
+              </li>
+              <li className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                Option for anonymous listings
+              </li>
+              <li className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                Secure PayPal payments
+              </li>
+            </ul>
+            <Button asChild>
+              <Link to="/careers">
+                View Job Posting Options
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </Card>
         </div>
       </section>
 
@@ -181,8 +149,7 @@ const Home = () => {
               Support Our Mission
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Every contribution helps vulnerable women access stability, safety, 
-              and opportunities for a better future.
+              Every contribution helps women access safety, stability, and opportunity.
             </p>
           </div>
           

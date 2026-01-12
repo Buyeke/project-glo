@@ -8,7 +8,7 @@ const VisitorPathSelector = () => {
       id: "support",
       title: "I need support",
       description: "Find safe shelter, legal aid, jobs, or counseling",
-      cta: "Start in 60 seconds",
+      cta: "Start in 60 seconds. No login required.",
       icon: Heart,
       link: "/services",
       variant: "primary" as const,
