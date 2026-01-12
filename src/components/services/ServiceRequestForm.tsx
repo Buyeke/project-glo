@@ -7,12 +7,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Lock } from 'lucide-react';
+import { Clock, Lock, Shield } from 'lucide-react';
 import { useDataTracking } from '@/hooks/useDataTracking';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import TextToSpeech from '@/components/TextToSpeech';
+import TrustBadge from '@/components/ui/TrustBadge';
 
 const ServiceRequestForm = () => {
   const [serviceType, setServiceType] = useState('');
@@ -118,6 +119,12 @@ const ServiceRequestForm = () => {
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
+        <div className="flex items-center gap-2 mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-sm">
+            <Shield className="h-4 w-4" />
+            No login required
+          </div>
+        </div>
         <div className="flex items-center gap-2">
           <CardTitle>Request Support</CardTitle>
           <TextToSpeech text="Request Support" />
@@ -274,19 +281,7 @@ const ServiceRequestForm = () => {
             </div>
           </div>
 
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <Lock className="w-5 h-5 text-green-600 mt-0.5" />
-              <div className="flex-1">
-                <div className="flex items-start gap-2">
-                  <p className="text-sm text-green-800 flex-1">
-                    Your information is confidential and only shared with the organizations providing your support.
-                  </p>
-                  <TextToSpeech text="Your information is confidential and only shared with the organizations providing your support." />
-                </div>
-              </div>
-            </div>
-          </div>
+          <TrustBadge variant="card" />
 
           <Button 
             type="submit" 

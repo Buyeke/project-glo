@@ -5,11 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Heart, Home, Briefcase, Users, MapPin, Clock, Calendar, Lock } from 'lucide-react';
+import { Heart, Home, Briefcase, Users, MapPin, Clock, Calendar, Lock, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import ServiceRequestForm from '@/components/services/ServiceRequestForm';
 import ServiceBookingModal from '@/components/services/ServiceBookingModal';
 import { usePageTracking } from '@/hooks/useDataTracking';
+import HowItWorksSteps from '@/components/home/HowItWorksSteps';
+import TrustBadge from '@/components/ui/TrustBadge';
 
 interface Service {
   id: string;
@@ -124,42 +126,51 @@ const Services = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Loading services...</p>
+          <p className="text-muted-foreground">Loading services...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
+    <div className="min-h-screen bg-background py-4 sm:py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Booking Success Message */}
         {bookingSuccess && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-green-800 font-medium">{bookingSuccess}</p>
+          <div className="mb-6 p-4 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
+            <p className="text-green-800 dark:text-green-200 font-medium">{bookingSuccess}</p>
           </div>
         )}
 
         {/* Header */}
         <div className="text-center mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Available Services</h1>
-          <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-sm mb-4">
+            <Shield className="h-4 w-4" />
+            No login required to browse
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">Available Services</h1>
+          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto mb-4">
             Discover the support services available to help you on your journey. Book sessions or request assistance directly.
           </p>
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-3xl mx-auto">
-            <div className="flex items-center gap-2 mb-2">
-              <MapPin className="w-5 h-5 text-blue-600" />
-              <p className="text-blue-800 font-medium">
-                Serving communities with both in-person and virtual consultations
-              </p>
-            </div>
-            <p className="text-blue-700 text-sm">
-              Once your registration is confirmed, we will send you a personalized virtual meeting link via email or WhatsApp within 24 hours.
+          
+          {/* Compact How It Works */}
+          <HowItWorksSteps variant="compact" />
+        </div>
+
+        {/* Trust and Location Info */}
+        <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 max-w-3xl mx-auto mb-6">
+          <div className="flex items-center gap-2 mb-2">
+            <MapPin className="w-5 h-5 text-primary" />
+            <p className="text-foreground font-medium">
+              Serving communities with both in-person and virtual consultations
             </p>
           </div>
+          <p className="text-muted-foreground text-sm">
+            Once your request is confirmed, we'll send you a personalized virtual meeting link via email or WhatsApp within 24 hours.
+          </p>
         </div>
 
         {/* Filters */}
@@ -210,8 +221,8 @@ const Services = () => {
                 <CardHeader className="pb-4">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-blue-100 rounded-lg">
-                        <IconComponent className="h-6 w-6 text-blue-600" />
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <IconComponent className="h-6 w-6 text-primary" />
                       </div>
                       <div>
                         <CardTitle className="text-lg">{service.title}</CardTitle>
@@ -231,11 +242,11 @@ const Services = () => {
                   </CardDescription>
                   
                   <div className="space-y-2">
-                    <div className="flex items-center text-sm text-gray-600">
+                    <div className="flex items-center text-sm text-muted-foreground">
                       <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
                       <span>{service.location}</span>
                     </div>
-                    <div className="flex items-center text-sm text-gray-600">
+                    <div className="flex items-center text-sm text-muted-foreground">
                       <Users className="h-4 w-4 mr-2 flex-shrink-0" />
                       <span>{service.language_support}</span>
                     </div>
@@ -247,7 +258,7 @@ const Services = () => {
                       <ul className="text-xs space-y-1">
                         {service.key_features.slice(0, 3).map((feature, index) => (
                           <li key={index} className="flex items-start">
-                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2 mt-1.5 flex-shrink-0"></span>
+                            <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2 mt-1.5 flex-shrink-0"></span>
                             <span>{feature}</span>
                           </li>
                         ))}
@@ -279,19 +290,12 @@ const Services = () => {
           })}
         </div>
 
-        {/* Privacy Note */}
-        <div className="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <Lock className="w-5 h-5 text-blue-600 mt-0.5" />
-            <p className="text-sm text-blue-800">
-              Your information is confidential and only shared with the organizations providing your support.
-            </p>
-          </div>
-        </div>
+        {/* Privacy Note - More prominent */}
+        <TrustBadge variant="card" className="mb-8 max-w-2xl mx-auto" />
 
         {filteredServices.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No services found matching your criteria.</p>
+            <p className="text-muted-foreground text-lg">No services found matching your criteria.</p>
           </div>
         )}
 
@@ -300,7 +304,7 @@ const Services = () => {
           <Button 
             onClick={() => setShowRequestForm(true)}
             size="lg"
-            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 h-12 px-8"
+            className="h-12 px-8"
           >
             Need Custom Support? Contact Us
           </Button>
