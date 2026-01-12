@@ -45,42 +45,42 @@ const HowItWorksSteps = ({ variant = "default", showModalTrigger = false }: HowI
   }
 
   return (
-    <section className="mobile-section bg-muted/30">
+    <section className="mobile-section-compact md:mobile-section bg-muted/30">
       <div className="max-w-5xl mx-auto mobile-container">
-        <div className="text-center mb-8 md:mb-12">
-          <h2 className="text-2xl md:text-4xl font-bold text-foreground mb-3 md:mb-4">
+        <div className="text-center mb-4 md:mb-8">
+          <h2 className="text-xl md:text-3xl font-bold text-foreground mb-1 md:mb-2">
             How It Works
           </h2>
-          <p className="text-base md:text-lg text-muted-foreground">
+          <p className="text-sm md:text-base text-muted-foreground">
             Three simple steps to get support
           </p>
         </div>
         
         {/* Mobile: Vertical stack, Desktop: Horizontal */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
           {steps.map((step, index) => (
-            <div key={index} className="flex md:flex-col items-start md:items-center md:text-center gap-4">
-              <div className="h-14 w-14 md:h-16 md:w-16 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <step.icon className="h-7 w-7 md:h-8 md:w-8 text-primary" aria-hidden="true" />
+            <div key={index} className="flex md:flex-col items-start md:items-center md:text-center gap-3">
+              <div className="h-12 w-12 md:h-14 md:w-14 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <step.icon className="h-6 w-6 md:h-7 md:w-7 text-primary" aria-hidden="true" />
               </div>
               <div className="flex-1">
-                <div className="flex items-center gap-2 md:justify-center mb-1 md:mb-2">
-                  <span className="text-sm font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                <div className="flex items-center gap-2 md:justify-center mb-0.5 md:mb-1">
+                  <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
                     Step {step.number}
                   </span>
                 </div>
-                <h3 className="text-lg font-bold text-foreground mb-1 md:mb-2">{step.title}</h3>
-                <p className="text-sm md:text-base text-muted-foreground">{step.description}</p>
+                <h3 className="text-base font-bold text-foreground mb-0.5">{step.title}</h3>
+                <p className="text-sm text-muted-foreground">{step.description}</p>
               </div>
             </div>
           ))}
         </div>
         
         {showModalTrigger && (
-          <div className="flex justify-center mt-8">
+          <div className="flex justify-center mt-4 md:mt-6">
             <HowGLOWorksModal 
               trigger={
-                <Button variant="outline" className="h-12 px-6 text-base font-semibold gap-2">
+                <Button variant="outline" className="h-10 px-5 text-sm font-semibold gap-2">
                   <Play className="h-4 w-4" />
                   Watch Explainer
                 </Button>

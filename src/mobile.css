@@ -68,10 +68,10 @@ input, select, textarea {
   font-weight: 500;
 }
 
-/* ===== MOBILE SPACING ===== */
+/* ===== MOBILE SPACING - Compact ===== */
 
 .mobile-section {
-  padding: 2rem 1rem;
+  padding: 1.25rem 1rem;
 }
 
 .mobile-container {
@@ -79,6 +79,11 @@ input, select, textarea {
   padding-right: 1rem;
   max-width: 100%;
   overflow-x: hidden;
+}
+
+/* Compact section variant for tighter layouts */
+.mobile-section-compact {
+  padding: 1rem 1rem;
 }
 
 /* ===== MOBILE CARDS ===== */
@@ -175,7 +180,7 @@ body {
   }
   
   .mobile-section {
-    padding: 4rem 2rem;
+    padding: 2.5rem 2rem;
   }
 }
 
@@ -187,7 +192,7 @@ body {
   }
   
   .mobile-section {
-    padding: 5rem 2rem;
+    padding: 3rem 2rem;
   }
 }
 

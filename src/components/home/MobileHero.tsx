@@ -5,7 +5,7 @@ import HowGLOWorksModal from "./HowGLOWorksModal";
 
 const MobileHero = () => {
   return (
-    <section className="relative py-8 md:py-16 lg:py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-primary/5 via-background to-background overflow-hidden">
+    <section className="relative py-6 md:py-12 lg:py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-primary/5 via-background to-background overflow-hidden">
       {/* Background decoration - lighter on mobile for performance */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-20 -right-20 w-40 h-40 md:w-80 md:h-80 bg-primary/10 rounded-full blur-3xl" />
@@ -14,7 +14,7 @@ const MobileHero = () => {
       
       <div className="max-w-5xl mx-auto relative z-10">
         {/* Mobile-first: Stack everything vertically */}
-        <div className="flex flex-col items-center text-center gap-6 md:gap-8">
+        <div className="flex flex-col items-center text-center gap-4 md:gap-6">
           
           {/* Badge - smaller on mobile */}
           <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-primary/10 rounded-full">
@@ -36,7 +36,7 @@ const MobileHero = () => {
           </p>
           
           {/* PRIMARY CTA - Huge on mobile */}
-          <div className="w-full max-w-md mt-2">
+          <div className="w-full max-w-md">
             <Button 
               asChild 
               size="lg" 
@@ -48,20 +48,20 @@ const MobileHero = () => {
                 <ArrowRight className="h-5 w-5" aria-hidden="true" />
               </Link>
             </Button>
-            <p className="text-sm text-muted-foreground mt-3 font-medium">
+            <p className="text-sm text-muted-foreground mt-2 font-medium">
               Find safe shelter, legal aid, jobs, or counseling
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Start in 60 seconds. No login required.
             </p>
           </div>
           
           {/* Secondary CTAs - Stacked on mobile, side by side on tablet+ */}
-          <div className="w-full max-w-md flex flex-col sm:flex-row gap-3 mt-4">
+          <div className="w-full max-w-md flex flex-col sm:flex-row gap-2 mt-2">
             <Button 
               variant="outline" 
               asChild 
-              className="flex-1 h-14 text-base font-semibold touch-button"
+              className="flex-1 h-12 text-base font-semibold touch-button"
             >
               <Link to="/partners" className="flex items-center justify-center gap-2">
                 <Handshake className="h-5 w-5" aria-hidden="true" />
@@ -72,7 +72,7 @@ const MobileHero = () => {
             <Button 
               variant="outline" 
               asChild 
-              className="flex-1 h-14 text-base font-semibold touch-button"
+              className="flex-1 h-12 text-base font-semibold touch-button"
             >
               <Link to="/donate" className="flex items-center justify-center gap-2">
                 <Gift className="h-5 w-5" aria-hidden="true" />
@@ -82,15 +82,13 @@ const MobileHero = () => {
           </div>
           
           {/* How GLO Works - Easy access */}
-          <div className="mt-2">
-            <HowGLOWorksModal 
-              trigger={
-                <Button variant="ghost" className="text-primary font-semibold">
-                  See How GLO Works →
-                </Button>
-              }
-            />
-          </div>
+          <HowGLOWorksModal 
+            trigger={
+              <Button variant="ghost" className="text-primary font-semibold h-10">
+                See How GLO Works →
+              </Button>
+            }
+          />
           
           {/* Trust Signal */}
           <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground bg-muted/50 px-4 py-2 rounded-full">
