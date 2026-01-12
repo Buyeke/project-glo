@@ -30,37 +30,37 @@ const FeaturesBenefits = () => {
   ];
 
   return (
-    <section className="mobile-section bg-background">
+    <section className="mobile-section-compact md:mobile-section bg-background">
       <div className="max-w-6xl mx-auto mobile-container">
-        <div className="text-center mb-8 md:mb-12">
-          <h2 className="text-2xl md:text-4xl font-bold text-foreground mb-3 md:mb-4">
+        <div className="text-center mb-4 md:mb-8">
+          <h2 className="text-xl md:text-3xl font-bold text-foreground mb-1 md:mb-2">
             How We Support You
           </h2>
-          <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto">
             Support Designed With Your Safety and Dignity in Mind
           </p>
         </div>
         
         {/* Mobile: 1 column, Tablet: 2 columns, Desktop: 4 columns */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           {features.map((feature, index) => (
             <Card 
               key={index} 
               className="group hover:shadow-lg hover:border-primary/30 transition-all duration-300 relative overflow-hidden"
             >
               <div className="absolute top-2 right-2">
-                <span className="text-xs font-semibold px-2 py-1 bg-primary/10 text-primary rounded-full">
+                <span className="text-xs font-semibold px-2 py-0.5 bg-primary/10 text-primary rounded-full">
                   {feature.highlight}
                 </span>
               </div>
-              <CardHeader className="pt-10 md:pt-8 pb-2">
-                <div className="h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-3 md:mb-4 group-hover:bg-primary/20 transition-colors">
-                  <feature.icon className="h-6 w-6 md:h-7 md:w-7 text-primary" aria-hidden="true" />
+              <CardHeader className="pt-8 md:pt-6 pb-1">
+                <div className="h-10 w-10 md:h-12 md:w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-2 md:mb-3 group-hover:bg-primary/20 transition-colors">
+                  <feature.icon className="h-5 w-5 md:h-6 md:w-6 text-primary" aria-hidden="true" />
                 </div>
-                <CardTitle className="text-lg font-bold">{feature.title}</CardTitle>
+                <CardTitle className="text-base font-bold">{feature.title}</CardTitle>
               </CardHeader>
-              <CardContent className="pt-0">
-                <CardDescription className="text-sm md:text-base leading-relaxed">
+              <CardContent className="pt-0 pb-4">
+                <CardDescription className="text-sm leading-relaxed">
                   {feature.description}
                 </CardDescription>
               </CardContent>
