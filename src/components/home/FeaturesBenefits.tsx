@@ -37,7 +37,7 @@ const FeaturesBenefits = () => {
             How We Support You
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Compassionate, accessible support designed with your safety and dignity in mind
+            Support Designed With Your Safety and Dignity in Mind
           </p>
         </div>
         
