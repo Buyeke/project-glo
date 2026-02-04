@@ -1,103 +1,77 @@
 import { Button } from "@/components/ui/button";
-import { Shield, ArrowRight, Heart, Handshake, Gift } from "lucide-react";
+import { Shield, ArrowRight, Heart, Handshake, Info } from "lucide-react";
 import { Link } from "react-router-dom";
-import HowGLOWorksModal from "./HowGLOWorksModal";
 
 const MobileHero = () => {
   return (
     <section className="relative py-6 md:py-12 lg:py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-primary/5 via-background to-background overflow-hidden">
-      {/* Background decoration - lighter on mobile for performance */}
+      {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-20 -right-20 w-40 h-40 md:w-80 md:h-80 bg-primary/10 rounded-full blur-3xl" />
         <div className="absolute -bottom-20 -left-20 w-40 h-40 md:w-80 md:h-80 bg-primary/5 rounded-full blur-3xl" />
       </div>
       
-      <div className="max-w-5xl mx-auto relative z-10">
-        {/* Mobile-first: Stack everything vertically */}
-        <div className="flex flex-col items-center text-center gap-4 md:gap-6">
+      <div className="max-w-4xl mx-auto relative z-10">
+        <div className="flex flex-col items-center text-center gap-4 md:gap-5">
           
-          {/* Badge - smaller on mobile */}
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-primary/10 rounded-full">
-            <Heart className="h-4 w-4 text-primary" aria-hidden="true" />
-            <span className="text-sm font-semibold text-primary">
-              AI-Powered Platform for Women in Kenya
-            </span>
-          </div>
-          
-          {/* Title - Mobile first sizing */}
+          {/* Title */}
           <h1 className="mobile-hero-title text-foreground">
             Find Support{" "}
-            <span className="text-primary block md:inline">Safely and Confidentially</span>
+            <span className="text-primary block md:inline">Safely</span>
           </h1>
           
-          {/* Subtitle */}
-          <p className="mobile-hero-subtitle text-muted-foreground max-w-2xl">
-            Chat in English, Swahili, or Sheng to find verified support organizations.
+          {/* Subtitle - concise */}
+          <p className="mobile-hero-subtitle text-muted-foreground max-w-xl">
+            Project GLO connects you to verified partner organizations across Kenya.
           </p>
           
-          {/* PRIMARY CTA - Huge on mobile */}
-          <div className="w-full max-w-md">
+          {/* PRIMARY CTA */}
+          <div className="w-full max-w-sm">
             <Button 
               asChild 
               size="lg" 
               className="mobile-cta-primary bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25"
             >
               <Link to="/services" className="flex items-center justify-center gap-3">
-                <Heart className="h-6 w-6" aria-hidden="true" />
-                <span>I Need Support</span>
+                <Heart className="h-5 w-5" aria-hidden="true" />
+                <span>Get Support</span>
                 <ArrowRight className="h-5 w-5" aria-hidden="true" />
               </Link>
             </Button>
-            <p className="text-sm text-muted-foreground mt-2 font-medium">
-              Get matched with organizations offering shelter, legal aid, jobs, or counseling
-            </p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Start in 60 seconds. No login required.
+            <p className="text-xs text-muted-foreground mt-2">
+              No login required · Confidential
             </p>
           </div>
           
-          {/* Secondary CTAs - Stacked on mobile, side by side on tablet+ */}
-          <div className="w-full max-w-md flex flex-col sm:flex-row gap-2 mt-2">
+          {/* Secondary CTAs - 2 focused actions */}
+          <div className="w-full max-w-sm flex flex-col sm:flex-row gap-2">
             <Button 
               variant="outline" 
               asChild 
-              className="flex-1 h-12 text-base font-semibold touch-button"
+              className="flex-1 h-11 text-sm font-medium"
             >
               <Link to="/partners" className="flex items-center justify-center gap-2">
-                <Handshake className="h-5 w-5" aria-hidden="true" />
-                <span>I Want to Partner</span>
+                <Handshake className="h-4 w-4" aria-hidden="true" />
+                <span>Partner With Us</span>
               </Link>
             </Button>
             
             <Button 
               variant="outline" 
               asChild 
-              className="flex-1 h-12 text-base font-semibold touch-button"
+              className="flex-1 h-11 text-sm font-medium"
             >
-              <Link to="/donate" className="flex items-center justify-center gap-2">
-                <Gift className="h-5 w-5" aria-hidden="true" />
-                <span>Support Our Work</span>
+              <Link to="/about" className="flex items-center justify-center gap-2">
+                <Info className="h-4 w-4" aria-hidden="true" />
+                <span>Learn More</span>
               </Link>
             </Button>
           </div>
           
-          {/* How GLO Works - Easy access */}
-          <HowGLOWorksModal 
-            trigger={
-              <Button variant="ghost" className="text-primary font-semibold h-10">
-                See How GLO Works →
-              </Button>
-            }
-          />
-          
-          {/* Trust Signal */}
-          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground bg-muted/50 px-4 py-2 rounded-full">
-            <Shield className="h-4 w-4 text-primary" aria-hidden="true" />
-            <span className="font-medium">Your data is confidential and protected</span>
-            <span className="text-muted-foreground/50">•</span>
-            <Link to="/privacy-policy" className="underline hover:text-foreground transition-colors font-medium">
-              Privacy Policy
-            </Link>
+          {/* Trust Signal - minimal */}
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Shield className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+            <span>Data encrypted · Partner-delivered services</span>
           </div>
         </div>
       </div>
