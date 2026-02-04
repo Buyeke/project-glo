@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+/* Georgia is a system font - no import needed */
 @import "./mobile.css";
 @tailwind base;
 @tailwind components;
@@ -67,7 +67,7 @@
   }
   body {
     @apply bg-background text-foreground font-medium;
-    font-family: "Inter", sans-serif;
+    font-family: Georgia, "Times New Roman", serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
