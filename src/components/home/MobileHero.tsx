@@ -20,7 +20,7 @@ const MobileHero = () => {
           <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-primary/10 rounded-full">
             <Heart className="h-4 w-4 text-primary" aria-hidden="true" />
             <span className="text-sm font-semibold text-primary">
-              AI-Powered Support for Vulnerable Women in Kenya
+              AI-Powered Platform for Women in Kenya
             </span>
           </div>
           
@@ -32,7 +32,7 @@ const MobileHero = () => {
           
           {/* Subtitle */}
           <p className="mobile-hero-subtitle text-muted-foreground max-w-2xl">
-            Chat in English, Swahili, or Sheng to connect with trauma-informed care anytime.
+            Chat in English, Swahili, or Sheng to find verified support organizations.
           </p>
           
           {/* PRIMARY CTA - Huge on mobile */}
@@ -49,7 +49,7 @@ const MobileHero = () => {
               </Link>
             </Button>
             <p className="text-sm text-muted-foreground mt-2 font-medium">
-              Find safe shelter, legal aid, jobs, or counseling
+              Get matched with organizations offering shelter, legal aid, jobs, or counseling
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">
               Start in 60 seconds. No login required.
@@ -76,7 +76,7 @@ const MobileHero = () => {
             >
               <Link to="/donate" className="flex items-center justify-center gap-2">
                 <Gift className="h-5 w-5" aria-hidden="true" />
-                <span>I Want to Donate</span>
+                <span>Support Our Work</span>
               </Link>
             </Button>
           </div>

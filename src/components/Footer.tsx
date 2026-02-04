@@ -9,7 +9,7 @@ const Footer = () => {
           <div className="col-span-2 md:col-span-1">
             <h3 className="text-xl font-bold mb-4 text-primary">Project GLO</h3>
             <p className="text-muted-foreground mb-4 text-sm md:text-base">
-              Connecting vulnerable women in Kenya to housing support, legal aid, mental health services, and dignified work opportunities.
+              A multilingual technology platform connecting women to verified support organizations across Kenya.
             </p>
             
             {/* Trust Badges */}
@@ -66,14 +66,6 @@ const Footer = () => {
               </div>
             </div>
             
-            {/* Donate CTA */}
-            <Link 
-              to="/donate" 
-              className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
-            >
-              <Heart className="h-4 w-4" />
-              Donate Now
-            </Link>
           </div>
         </div>
         
@@ -87,9 +79,10 @@ const Footer = () => {
           </div>
           
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-muted-foreground text-sm">
-              © 2024 Project GLO. All rights reserved.
-            </p>
+            <div className="text-muted-foreground text-sm text-center md:text-left">
+              <p>© 2025 Glomera Operations Ltd. All rights reserved.</p>
+              <p className="text-xs mt-1">Project GLO is operated by Glomera Operations Ltd, a Kenya-registered social impact technology company.</p>
+            </div>
             <div className="flex space-x-4 mt-4 md:mt-0">
               <Link to="/privacy-policy" className="text-muted-foreground hover:text-primary text-sm transition-colors">
                 Privacy Policy

@@ -17,14 +17,14 @@ const HowItWorksSteps = ({ variant = "default", showModalTrigger = false }: HowI
     },
     {
       number: "2",
-      title: "Get matched to services",
-      description: "We connect you with verified organizations that can help",
+      title: "Get matched to partner organizations",
+      description: "Our platform connects you with verified, independent organizations",
       icon: Compass,
     },
     {
       number: "3",
-      title: "A real organization follows up",
-      description: "Receive a personalized response within 24 hours",
+      title: "A partner organization follows up",
+      description: "A trained support worker from a partner organization will reach out",
       icon: UserCheck,
     },
   ];

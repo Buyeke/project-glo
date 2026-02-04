@@ -14,11 +14,10 @@ const About = () => {
             <span className="text-sm font-medium text-primary">Our Story</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-            About Project Glo
+            About Project GLO
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            An AI-powered platform connecting vulnerable women in Kenya 
-            to trauma-informed care and support services through inclusive, ethical technology.
+            Project GLO is an AI-powered, multilingual data and coordination platform operated by Glomera Operations Ltd. We connect women in Kenya to independent, verified partner organizations providing trauma-informed care.
           </p>
         </div>
       </section>
@@ -33,8 +32,8 @@ const About = () => {
               </CardHeader>
               <CardContent className="text-center">
                 <p className="text-muted-foreground leading-relaxed">
-                  To build inclusive, ethical technologies rooted in care and community that 
-                  connect vulnerable women to trauma-informed support services, strengthening 
+                  To build inclusive, ethical technology infrastructure rooted in care and community that 
+                  connects women to independent, verified organizations providing trauma-informed support, strengthening 
                   outcomes for their families and reimagining how systems serve.
                 </p>
               </CardContent>
@@ -46,7 +45,7 @@ const About = () => {
               </CardHeader>
               <CardContent className="text-center">
                 <p className="text-muted-foreground leading-relaxed">
-                  A world where AI serves everyone, especially the most vulnerable, 
+                  A world where technology infrastructure enables dignified access to support services, 
                   through community-centered design that advances social justice 
                   and digital equity for all.
                 </p>
@@ -60,20 +59,20 @@ const About = () => {
       <section className="py-16 bg-muted/30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">Our Impact</h2>
+            <h2 className="text-3xl font-bold text-foreground mb-4">Platform Impact</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Supporting vulnerable communities through technology and care
+              Building coordination infrastructure for partner-delivered services
             </p>
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center">
               <div className="text-4xl font-bold text-primary mb-2">200+</div>
-              <p className="text-lg text-muted-foreground">Women Supported</p>
+              <p className="text-lg text-muted-foreground">Women Connected</p>
             </div>
             <div className="text-center">
               <div className="text-4xl font-bold text-primary mb-2">24/7</div>
-              <p className="text-lg text-muted-foreground">AI Guided Support</p>
+              <p className="text-lg text-muted-foreground">AI Matching</p>
             </div>
             <div className="text-center">
               <div className="text-4xl font-bold text-primary mb-2">3</div>
@@ -108,7 +107,7 @@ const About = () => {
               <CardContent>
                 <p className="text-muted-foreground">
                   Every interaction is designed with trauma-informed principles, 
-                  ensuring safety, trustworthiness, and cultural humility in all our services.
+                  ensuring safety, trustworthiness, and cultural humility across our coordination platform.
                 </p>
               </CardContent>
             </Card>
@@ -281,15 +280,30 @@ const About = () => {
         </div>
       </section>
 
+      {/* About Glomera Operations Ltd */}
+      <section className="py-16 bg-muted/30">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl font-bold text-foreground mb-6">About Glomera Operations Ltd</h2>
+          <p className="text-lg text-muted-foreground leading-relaxed mb-4">
+            Glomera Operations Ltd is a Kenya-registered social impact technology company dedicated to building 
+            inclusive digital infrastructure that serves vulnerable communities.
+          </p>
+          <p className="text-muted-foreground leading-relaxed">
+            Project GLO is our flagship platform, designed to coordinate secure referrals between women seeking 
+            support and independent, verified partner organizations across Kenya.
+          </p>
+        </div>
+      </section>
+
       {/* Call to Action */}
       <section className="py-16 bg-background">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <Card className="bg-primary text-primary-foreground">
             <CardContent className="p-8 text-center">
-              <h2 className="text-2xl font-bold mb-4">Join Our Mission</h2>
+              <h2 className="text-2xl font-bold mb-4">Work With Us</h2>
               <p className="text-lg mb-6 opacity-90">
-                Whether you need support or want to contribute to our work, 
-                we're here to connect and collaborate.
+                Whether you need support or want to collaborate, 
+                we're here to connect you with the right resources.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button variant="secondary" size="lg" asChild>
@@ -298,7 +312,7 @@ const About = () => {
                   </Link>
                 </Button>
                 <Button variant="outline" size="lg" className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary" asChild>
-                  <Link to="/services">Explore Services</Link>
+                  <Link to="/services">Explore the Platform</Link>
                 </Button>
               </div>
             </CardContent>

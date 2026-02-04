@@ -151,9 +151,9 @@ const Services = () => {
             <Shield className="h-4 w-4" />
             No login required to browse
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">Available Services</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">Partner Service Directory</h1>
           <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto mb-4">
-            Discover the support services available to help you on your journey. Book sessions or request assistance directly.
+            Browse services offered by verified partner organizations. Project GLO coordinates secure referrals—services are delivered by independent providers.
           </p>
           
           {/* Compact How It Works */}
@@ -165,11 +165,11 @@ const Services = () => {
           <div className="flex items-center gap-2 mb-2">
             <MapPin className="w-5 h-5 text-primary" />
             <p className="text-foreground font-medium">
-              Serving communities with both in-person and virtual consultations
+              Partner organizations serve communities through in-person and virtual consultations
             </p>
           </div>
           <p className="text-muted-foreground text-sm">
-            Once your request is confirmed, we'll send you a personalized virtual meeting link via email or WhatsApp within 24 hours.
+            Once your request is confirmed, the partner organization will send you a personalized meeting link via email or WhatsApp within 24 hours.
           </p>
         </div>
 
@@ -273,7 +273,7 @@ const Services = () => {
                       size="sm"
                     >
                       <Calendar className="h-4 w-4 mr-2" />
-                      Book Session
+                      Request Referral
                     </Button>
                     <Button 
                       variant="outline" 
@@ -293,6 +293,13 @@ const Services = () => {
         {/* Privacy Note - More prominent */}
         <TrustBadge variant="card" className="mb-8 max-w-2xl mx-auto" />
 
+        {/* Service Disclaimer */}
+        <div className="text-center mb-8 max-w-2xl mx-auto">
+          <p className="text-sm text-muted-foreground bg-muted/50 px-4 py-3 rounded-lg">
+            Services listed are provided by independent, verified partner organizations. Project GLO facilitates coordination and referrals only.
+          </p>
+        </div>
+
         {filteredServices.length === 0 && (
           <div className="text-center py-12">
             <p className="text-muted-foreground text-lg">No services found matching your criteria.</p>
@@ -306,7 +313,7 @@ const Services = () => {
             size="lg"
             className="h-12 px-8"
           >
-            Need Custom Support? Contact Us
+            Can't find what you need? Request coordination
           </Button>
         </div>
 
