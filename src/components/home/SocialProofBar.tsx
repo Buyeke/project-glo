@@ -2,8 +2,8 @@ import { Shield, Clock, Lock, Users } from "lucide-react";
 
 const SocialProofBar = () => {
   const stats = [
-    { value: "200+", label: "Vulnerable Women Supported", icon: Users },
-    { value: "24/7", label: "AI Guided Support", icon: Clock },
+    { value: "200+", label: "Women Connected to Services", icon: Users },
+    { value: "24/7", label: "AI Guided Matching", icon: Clock },
     { value: "Strictly", label: "Confidential", icon: Lock },
     { value: "Secure", label: "Encrypted Data", icon: Shield },
   ];

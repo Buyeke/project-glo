@@ -29,7 +29,7 @@ const TrustBadge = ({ variant = "inline", showLink = true, className = "" }: Tru
               Your information is protected
             </p>
             <p className="text-xs text-green-700 dark:text-green-300">
-              Confidential and only shared with support organizations.
+              Confidential and shared only with verified, independent partner organizations for service coordination.
               {showLink && (
                 <>
                   {" "}
@@ -55,7 +55,7 @@ const TrustBadge = ({ variant = "inline", showLink = true, className = "" }: Tru
       <span className="text-muted-foreground/50">•</span>
       <div className="flex items-center gap-1.5">
         <Eye className="h-4 w-4 text-blue-600" />
-        <span>Only shared with support orgs</span>
+        <span>Only shared with verified partner organizations</span>
       </div>
       {showLink && (
         <>

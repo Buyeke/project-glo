@@ -64,7 +64,7 @@ const Contact = () => {
             </div>
             <h1 className="text-4xl font-bold text-foreground mb-4">Get in Touch</h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              We're here to help. Reach out to us for support, questions, or to learn more about our services.
+              Reach out to the Glomera Operations Ltd team with questions about the platform, partnerships, or how coordination works.
             </p>
           </div>
 

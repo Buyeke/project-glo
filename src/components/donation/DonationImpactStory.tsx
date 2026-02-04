@@ -39,15 +39,15 @@ const DonationImpactStory = () => {
           <ul className="space-y-2">
             <li className="flex items-center gap-2 text-sm text-muted-foreground">
               <CheckCircle className="h-4 w-4 text-primary" />
-              100% of donations go to direct services
+              Contributions support platform operations
             </li>
             <li className="flex items-center gap-2 text-sm text-muted-foreground">
               <CheckCircle className="h-4 w-4 text-primary" />
-              Transparent reporting on impact
+              Transparent reporting on coordination impact
             </li>
             <li className="flex items-center gap-2 text-sm text-muted-foreground">
               <CheckCircle className="h-4 w-4 text-primary" />
-              Registered non-profit organization
+              Kenya-registered social impact company
             </li>
           </ul>
         </CardContent>

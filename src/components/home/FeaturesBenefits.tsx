@@ -12,19 +12,19 @@ const FeaturesBenefits = () => {
     {
       icon: Compass,
       title: "Smart Service Matching",
-      description: "We connect you with the right support based on your needs and location.",
+      description: "The platform matches you with verified partner organizations based on your needs and location.",
       highlight: "Personalized",
     },
     {
       icon: Shield,
       title: "Your Data is Protected",
-      description: "Information is encrypted and only accessible by approved support staff.",
+      description: "Information is encrypted and only shared with approved partner organizations.",
       highlight: "Confidential",
     },
     {
       icon: Clock,
       title: "Always Here for You",
-      description: "AI support anytime with human follow-up during service hours.",
+      description: "AI-guided matching anytime. Partner organizations follow up during service hours.",
       highlight: "24/7 Access",
     },
   ];
@@ -34,10 +34,10 @@ const FeaturesBenefits = () => {
       <div className="max-w-6xl mx-auto mobile-container">
         <div className="text-center mb-4 md:mb-8">
           <h2 className="text-xl md:text-3xl font-bold text-foreground mb-1 md:mb-2">
-            How We Support You
+            How the Platform Works
           </h2>
           <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto">
-            Support Designed With Your Safety and Dignity in Mind
+            Designed With Your Safety and Dignity in Mind
           </p>
         </div>
         

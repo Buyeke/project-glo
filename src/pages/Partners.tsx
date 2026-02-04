@@ -55,12 +55,12 @@ const Partners = () => {
     {
       icon: Building2,
       title: "NGO & Service Providers",
-      description: "Join our network to help vulnerable women access your services. Partnerships from $500/month.",
+      description: "Join the GLO coordination network. Receive secure referrals from our AI-powered platform. Partnerships from $500/month.",
     },
     {
       icon: Heart,
       title: "Corporate Sponsors",
-      description: "Support our mission through funding, resources, or employee engagement programs. From $10,000 (one-off or semi-annual).",
+      description: "Support platform development and infrastructure through sponsorship or employee engagement. From $10,000 (one-off or semi-annual).",
     },
     {
       icon: Globe,
@@ -91,8 +91,7 @@ const Partners = () => {
             For Partners & Collaborators
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Join Project GLO in our mission to support vulnerable women in Kenya 
-            through technology, care, and community partnerships.
+            Join the GLO coordination network operated by Glomera Operations Ltd. Partner with us to reach women across Kenya through secure, dignified referrals.
           </p>
         </div>
       </section>

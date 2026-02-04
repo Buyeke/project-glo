@@ -52,11 +52,10 @@ const Donate = () => {
             <span className="text-sm font-medium text-primary">Make a Difference</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-            Donate Now – Every Contribution Matters
+            Support the Platform
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-6">
-            Your donation directly supports vulnerable women and their families, 
-            providing pathways to stability, safety, and opportunity.
+            Your contribution helps sustain the technology infrastructure connecting women to verified partner organizations.
           </p>
           
           {/* See How GLO Works button */}
@@ -76,10 +75,10 @@ const Donate = () => {
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-10">
             <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3">
-              Your Impact at Every Level
+              How Contributions Are Allocated
             </h2>
             <p className="text-muted-foreground">
-              Choose how you want to make a difference
+              See where your contribution goes
             </p>
           </div>
           
@@ -129,8 +128,8 @@ const Donate = () => {
           <div>
             <DonationForm 
               showImpactItems={false}
-              title="Choose Your Donation Amount"
-              description="100% of your donation goes directly to supporting vulnerable communities"
+              title="Choose Your Contribution Amount"
+              description="Contributions support platform operations, partner coordination, and infrastructure maintenance"
             />
           </div>
 

@@ -35,7 +35,7 @@ const Home = () => {
                 Find Your Nearest Safe Space
               </h2>
               <p className="text-base text-muted-foreground mb-4">
-                Answer a few quick questions and we'll guide you to the right support.
+                Answer a few quick questions and we'll match you with verified partner organizations.
                 <br />
                 <span className="font-semibold">No judgment. No login required.</span>
               </p>
@@ -55,8 +55,8 @@ const Home = () => {
                     <span className="text-xs font-bold text-primary">2</span>
                   </div>
                   <div>
-                    <p className="font-semibold text-foreground text-sm">Get matched with services</p>
-                    <p className="text-muted-foreground text-sm">Verified local organizations</p>
+                    <p className="font-semibold text-foreground text-sm">Get matched to partner organizations</p>
+                    <p className="text-muted-foreground text-sm">Verified, independent providers</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -85,7 +85,7 @@ const Home = () => {
           <Card className="p-4 md:p-6 hover:shadow-lg transition-shadow border-primary/20">
             <h3 className="text-xl font-bold text-foreground mb-2">For Employers</h3>
             <p className="text-muted-foreground mb-4 text-base">
-              Post social impact jobs that support vulnerable women.
+              Post dignified work opportunities through our partner network.
             </p>
             <ul className="space-y-2 mb-4">
               <li className="flex items-center gap-2 text-muted-foreground">
@@ -116,10 +116,10 @@ const Home = () => {
         <div className="max-w-6xl mx-auto mobile-container">
           <div className="text-center mb-4 md:mb-6">
             <h2 className="text-xl md:text-3xl font-bold text-foreground mb-2">
-              Support Our Mission
+              Support the Platform
             </h2>
             <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto">
-              Every contribution helps women access safety, stability, and opportunity.
+              Your contribution helps sustain the platform and its coordination network.
             </p>
           </div>
           
@@ -150,8 +150,8 @@ const Home = () => {
             <div>
               <DonationForm 
                 showImpactItems={false} 
-                title="Donate Now – Every Contribution Matters"
-                description="Your donation is secure and goes directly to supporting vulnerable communities"
+                title="Contribute to the Platform"
+                description="Your contribution helps maintain secure referral infrastructure and partner coordination"
               />
             </div>
           </div>
@@ -165,7 +165,7 @@ const Home = () => {
             <CardContent className="p-4 md:p-8 text-center">
               <h2 className="text-xl md:text-2xl font-bold mb-2">Ready to Explore Your Options?</h2>
               <p className="text-sm md:text-base mb-4 opacity-90 max-w-2xl mx-auto">
-                Whether you need immediate help or want to learn more, AI support is available anytime with human follow-up.
+                Whether you need immediate help or want to learn more, AI-powered matching is available anytime. Partner organizations provide follow-up support.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button variant="secondary" size="lg" asChild className="h-11 text-sm font-semibold">

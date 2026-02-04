@@ -7,7 +7,7 @@ const VisitorPathSelector = () => {
     {
       id: "support",
       title: "I need support",
-      description: "Find safe shelter, legal aid, jobs, or counseling",
+      description: "Get matched with organizations offering shelter, legal aid, jobs, or counseling",
       cta: "Start in 60 seconds. No login required.",
       icon: Heart,
       link: "/services",
@@ -24,9 +24,9 @@ const VisitorPathSelector = () => {
     },
     {
       id: "donate",
-      title: "I want to fund impact",
-      description: "Support vulnerable women with a donation",
-      cta: "Donate now",
+      title: "Support the platform",
+      description: "Help sustain the platform and its mission",
+      cta: "Contribute now",
       icon: Gift,
       link: "/donate",
       variant: "secondary" as const,
