@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Handshake, Building2, Heart, Globe, CheckCircle, ArrowRight, Mail } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -55,17 +56,25 @@ const Partners = () => {
     {
       icon: Building2,
       title: "NGO & Service Providers",
-      description: "Join the GLO coordination network. Receive secure referrals from our AI-powered platform. Partnerships from $500/month.",
+      description: "Join the GLO coordination network. Get platform access to manage referrals, track cases, and measure impact. Platform subscriptions from $299/month (Community tier) to $899/month (Professional tier).",
+      links: [
+        { label: "View Full Pricing", href: "/contact" },
+        { label: "Start Free Trial", href: "/contact" }
+      ]
     },
     {
       icon: Heart,
-      title: "Corporate Sponsors",
-      description: "Support platform development and infrastructure through sponsorship or employee engagement. From $10,000 (one-off or semi-annual).",
+      title: "Corporate Sponsors & CSR Programs",
+      description: "Fund platform access for partner NGOs or sponsor feature development. Sponsorships from $5,000.",
+      links: [
+        { label: "Explore CSR Partnerships", href: "/contact" }
+      ]
     },
     {
       icon: Globe,
       title: "Research & Academic",
       description: "Collaborate on research exploring AI, social justice, and community empowerment. From $300 per deliverable.",
+      links: []
     },
   ];
 
@@ -100,9 +109,9 @@ const Partners = () => {
       <section className="py-16 bg-muted/30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">Partnership Opportunities</h2>
+            <h2 className="text-3xl font-bold text-foreground mb-4">Platform Access & Partnerships</h2>
             <p className="text-lg text-muted-foreground">
-              Different ways to collaborate with Project GLO
+              Join the GLO coordination network with platform subscriptions or sponsorship opportunities
             </p>
           </div>
 
@@ -116,7 +125,16 @@ const Partners = () => {
                   <CardTitle className="text-xl">{type.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-base">{type.description}</CardDescription>
+                  <CardDescription className="text-base mb-4">{type.description}</CardDescription>
+                  {type.links && type.links.length > 0 && (
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {type.links.map((link, linkIndex) => (
+                        <Button key={linkIndex} variant="outline" size="sm" asChild>
+                          <Link to={link.href}>{link.label}</Link>
+                        </Button>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}

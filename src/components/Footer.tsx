@@ -1,17 +1,38 @@
 import { Link } from "react-router-dom";
-import { Mail, Shield, Lock } from "lucide-react";
+import { Mail, Shield, Lock, ArrowRight, Heart } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const Footer = () => {
   return (
-    <footer className="bg-background border-t border-border py-10">
-      <div className="container mx-auto px-4">
+    <footer className="bg-background border-t border-border">
+      {/* CTA Row */}
+      <div className="border-b border-border py-6">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Button asChild>
+              <Link to="/partners">
+                Start Free Trial
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to="/donate">
+                <Heart className="mr-2 h-4 w-4" />
+                Donate
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-10">
         {/* Four-column grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {/* Column 1: Project GLO */}
           <div>
             <h3 className="text-lg font-bold mb-3 text-primary">Project GLO</h3>
             <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-              An AI-powered coordination platform connecting women in Kenya to verified partner organizations.
+              An AI-powered coordination platform with trauma-informed chatbot in Sheng, Swahili, and English—connecting women in Kenya to verified partner organizations.
             </p>
             <div className="flex gap-2">
               <div className="flex items-center gap-1 px-2 py-1 bg-primary/5 rounded text-xs">
