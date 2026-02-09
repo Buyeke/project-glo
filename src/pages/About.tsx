@@ -17,7 +17,7 @@ const About = () => {
             About Project GLO
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            Project GLO is an AI-powered, multilingual data and coordination platform operated by Glomera Operations Ltd. We connect women in Kenya to independent, verified partner organizations providing trauma-informed care.
+            GLO is an AI-powered crisis response and case management SaaS platform operated by Glomera Operations Ltd. We enable NGOs, government agencies, and social service organizations to deliver trauma-informed support at scale through AI that speaks authentic Sheng, Swahili, and English.
           </p>
         </div>
       </section>
@@ -83,7 +83,11 @@ const About = () => {
               <p className="text-lg text-muted-foreground">Founded</p>
             </div>
           </div>
-        </div>
+          
+          <p className="text-center text-muted-foreground mt-8 max-w-2xl mx-auto">
+            Our technology serves two audiences: vulnerable women seeking support, and the organizations coordinating their care.
+          </p>
+          </div>
       </section>
 
       {/* Core Values */}
