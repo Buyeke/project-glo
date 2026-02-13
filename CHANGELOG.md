@@ -7,6 +7,86 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.0] - 2026-02-13
+
+### 🏢 Multi-Tenant NGO Platform API
+
+Complete API infrastructure enabling partner organizations to operate independently on the GLO platform.
+
+### Added
+
+#### Organization Management (Phase 1)
+- **Organization Registration** - Self-service onboarding via `org-register` edge function
+- **Multi-tenant Architecture** - Full data isolation between organizations using `org_id` scoping and RLS
+- **Role-Based Access** - Owner, admin, and member roles with `organization_members` table
+- **API Key System** - SHA-256 hashed keys with scoped permissions (`knowledge_base:read/write`, `widget:embed`, `cases:read/write`, `reports:read`)
+- **API Key Lifecycle** - Create, list, and revoke keys via `org-api-keys` edge function
+
+#### Knowledge Base API (Phase 2)
+- **Organization Knowledge Base** - CRUD operations for org-specific content via `org-knowledge-base` edge function
+- **Multi-language Support** - Knowledge entries support English, Swahili, and Sheng
+- **Category & Tag System** - Organize content with categories and tags
+- **Dual Authentication** - All endpoints accept both API keys (`x-api-key`) and JWT tokens
+
+#### Embeddable Chat Widget (Phase 3)
+- **GLO Chat Widget** - Standalone JavaScript library (`glo-chat-widget.js`) for external websites
+- **AI-Powered Responses** - OpenAI GPT-4o-mini answers queries using org-specific knowledge base context
+- **Session Persistence** - Chat sessions tracked via `widget_chat_sessions` table
+- **Customizable Theming** - Light/dark mode, custom colors, position, and language via data attributes
+- **Script Tag Integration** - Single `<script>` tag deployment for partner NGOs
+
+#### Case Management API (Phase 4)
+- **Full CRUD Cases** - Create, read, update cases with auto-generated case numbers via `org-cases`
+- **Case Notes** - Attach timestamped notes to cases with type classification
+- **Filtering & Search** - Filter cases by status, priority, category, and assignment
+- **Activity Logging** - Automatic audit trail for all case operations
+
+#### Reporting & Analytics API (Phase 5)
+- **Dashboard Metrics** - Aggregated case statistics (open, closed, by priority) via `org-reports`
+- **Activity Logs** - Paginated, filterable activity history with date ranges
+- **Daily Timelines** - Case creation trends over configurable time periods
+
+#### Intake Forms API (Phase 6)
+- **Dynamic Form Builder** - JSON schema-based intake forms via `org-intake`
+- **Public Submissions** - Unauthenticated form submissions for active, public forms
+- **Schema Validation** - Server-side validation of required fields against form schema
+- **Case Linkage** - Submissions can be linked to cases for tracking
+
+### Database Schema
+
+#### New Tables (8)
+- `organizations` - Org profiles with tiers and settings
+- `organization_members` - RBAC membership
+- `organization_api_keys` - Hashed API keys with scopes and rate limits
+- `organization_knowledge_base` - Org-isolated content entries
+- `widget_chat_sessions` - Chat session persistence
+- `org_cases` - Multi-tenant case tracking
+- `org_case_notes` - Case note attachments
+- `org_activity_log` - Audit trail
+- `org_intake_forms` - Dynamic form definitions
+- `org_intake_submissions` - Public form responses
+
+#### New Edge Functions (6)
+- `org-register` - Organization onboarding
+- `org-api-keys` - API key management
+- `org-knowledge-base` - Knowledge base CRUD
+- `org-widget-chat` - AI chat for embedded widgets
+- `org-cases` - Case management
+- `org-reports` - Reporting & analytics
+- `org-intake` - Intake form management & public submission
+
+#### New Database Functions
+- `validate_api_key()` - Verify hashed API keys and return org ID
+
+### Security
+- All new tables have RLS enabled with org-scoped policies
+- API keys stored as SHA-256 hashes (raw key shown once at creation)
+- Dual auth layer: API key validation + JWT verification
+- Public intake submissions restricted to active, public forms only
+- Activity logging for audit compliance
+
+---
+
 ## [1.0.0] - 2025-01-10
 
 ### 🎉 Initial Production Release
