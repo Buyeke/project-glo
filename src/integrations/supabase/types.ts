@@ -990,6 +990,195 @@ export type Database = {
           },
         ]
       }
+      organization_api_keys: {
+        Row: {
+          created_at: string
+          created_by: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          key_hash: string
+          key_prefix: string
+          last_used_at: string | null
+          name: string
+          organization_id: string
+          rate_limit_per_minute: number
+          scopes: string[]
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_hash: string
+          key_prefix: string
+          last_used_at?: string | null
+          name?: string
+          organization_id: string
+          rate_limit_per_minute?: number
+          scopes?: string[]
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_hash?: string
+          key_prefix?: string
+          last_used_at?: string | null
+          name?: string
+          organization_id?: string
+          rate_limit_per_minute?: number
+          scopes?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_api_keys_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_knowledge_base: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          language: string
+          metadata: Json | null
+          organization_id: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          language?: string
+          metadata?: Json | null
+          organization_id: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          language?: string
+          metadata?: Json | null
+          organization_id?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_knowledge_base_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_members: {
+        Row: {
+          created_at: string
+          id: string
+          organization_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          organization_id: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          organization_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_members_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          contact_email: string
+          contact_phone: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          logo_url: string | null
+          name: string
+          owner_user_id: string
+          settings: Json | null
+          slug: string
+          tier: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          contact_email: string
+          contact_phone?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          name: string
+          owner_user_id: string
+          settings?: Json | null
+          slug: string
+          tier?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          contact_email?: string
+          contact_phone?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          name?: string
+          owner_user_id?: string
+          settings?: Json | null
+          slug?: string
+          tier?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           age: number | null
@@ -1873,6 +2062,47 @@ export type Database = {
           },
         ]
       }
+      widget_chat_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          messages: Json
+          metadata: Json | null
+          organization_id: string
+          session_token: string
+          updated_at: string
+          visitor_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          messages?: Json
+          metadata?: Json | null
+          organization_id: string
+          session_token: string
+          updated_at?: string
+          visitor_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          messages?: Json
+          metadata?: Json | null
+          organization_id?: string
+          session_token?: string
+          updated_at?: string
+          visitor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "widget_chat_sessions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       ai_performance_summary: {
@@ -1921,6 +2151,7 @@ export type Database = {
             Args: { user_email: string; user_name: string }
             Returns: undefined
           }
+      validate_api_key: { Args: { p_key_hash: string }; Returns: string }
       validate_contact_submission: {
         Args: { p_email: string; p_message: string; p_name: string }
         Returns: boolean

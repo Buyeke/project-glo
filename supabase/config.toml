@@ -66,6 +66,18 @@ verify_jwt = false
 [functions.secure-storage-upload]
 verify_jwt = true
 
+[functions.org-register]
+verify_jwt = false
+
+[functions.org-api-keys]
+verify_jwt = false
+
+[functions.org-knowledge-base]
+verify_jwt = false
+
+[functions.org-widget-chat]
+verify_jwt = false
+
 [inbucket]
 enabled = true
 port = 54324
