@@ -990,6 +990,280 @@ export type Database = {
           },
         ]
       }
+      org_activity_log: {
+        Row: {
+          activity_type: string
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          metadata: Json | null
+          organization_id: string
+          performed_by: string | null
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          metadata?: Json | null
+          organization_id: string
+          performed_by?: string | null
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          metadata?: Json | null
+          organization_id?: string
+          performed_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_activity_log_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_case_notes: {
+        Row: {
+          case_id: string
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          note_type: string
+          organization_id: string
+        }
+        Insert: {
+          case_id: string
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note_type?: string
+          organization_id: string
+        }
+        Update: {
+          case_id?: string
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note_type?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_case_notes_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "org_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_case_notes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_cases: {
+        Row: {
+          assigned_to: string | null
+          case_number: string
+          category: string
+          client_identifier: string | null
+          client_name: string | null
+          closed_at: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          metadata: Json | null
+          opened_at: string
+          organization_id: string
+          priority: string
+          status: string
+          tags: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          case_number: string
+          category?: string
+          client_identifier?: string | null
+          client_name?: string | null
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          opened_at?: string
+          organization_id: string
+          priority?: string
+          status?: string
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          case_number?: string
+          category?: string
+          client_identifier?: string | null
+          client_name?: string | null
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          opened_at?: string
+          organization_id?: string
+          priority?: string
+          status?: string
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_cases_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_intake_forms: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          form_schema: Json
+          id: string
+          is_active: boolean
+          is_public: boolean
+          organization_id: string
+          settings: Json | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          form_schema?: Json
+          id?: string
+          is_active?: boolean
+          is_public?: boolean
+          organization_id: string
+          settings?: Json | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          form_schema?: Json
+          id?: string
+          is_active?: boolean
+          is_public?: boolean
+          organization_id?: string
+          settings?: Json | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_intake_forms_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_intake_submissions: {
+        Row: {
+          assigned_case_id: string | null
+          created_at: string
+          form_id: string
+          id: string
+          metadata: Json | null
+          organization_id: string
+          priority: string | null
+          responses: Json
+          source: string | null
+          status: string
+          submitter_contact: string | null
+          submitter_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_case_id?: string | null
+          created_at?: string
+          form_id: string
+          id?: string
+          metadata?: Json | null
+          organization_id: string
+          priority?: string | null
+          responses?: Json
+          source?: string | null
+          status?: string
+          submitter_contact?: string | null
+          submitter_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_case_id?: string | null
+          created_at?: string
+          form_id?: string
+          id?: string
+          metadata?: Json | null
+          organization_id?: string
+          priority?: string | null
+          responses?: Json
+          source?: string | null
+          status?: string
+          submitter_contact?: string | null
+          submitter_name?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_intake_submissions_assigned_case_id_fkey"
+            columns: ["assigned_case_id"]
+            isOneToOne: false
+            referencedRelation: "org_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_intake_submissions_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "org_intake_forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_intake_submissions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_api_keys: {
         Row: {
           created_at: string

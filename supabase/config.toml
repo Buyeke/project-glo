@@ -78,6 +78,15 @@ verify_jwt = false
 [functions.org-widget-chat]
 verify_jwt = false
 
+[functions.org-cases]
+verify_jwt = false
+
+[functions.org-reports]
+verify_jwt = false
+
+[functions.org-intake]
+verify_jwt = false
+
 [inbucket]
 enabled = true
 port = 54324
