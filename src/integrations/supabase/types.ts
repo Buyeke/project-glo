@@ -569,6 +569,453 @@ export type Database = {
         }
         Relationships: []
       }
+      edu_anonymization_log: {
+        Row: {
+          created_at: string
+          endpoint: string
+          fields_anonymized: string[]
+          id: string
+          organization_id: string
+          student_id: string
+        }
+        Insert: {
+          created_at?: string
+          endpoint: string
+          fields_anonymized?: string[]
+          id?: string
+          organization_id: string
+          student_id: string
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string
+          fields_anonymized?: string[]
+          id?: string
+          organization_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edu_anonymization_log_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edu_anonymization_log_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "edu_students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edu_api_usage: {
+        Row: {
+          created_at: string
+          endpoint: string
+          id: string
+          ip_address: string | null
+          is_sandbox: boolean
+          method: string
+          organization_id: string
+          response_time_ms: number | null
+          status_code: number | null
+          student_id: string
+        }
+        Insert: {
+          created_at?: string
+          endpoint: string
+          id?: string
+          ip_address?: string | null
+          is_sandbox?: boolean
+          method?: string
+          organization_id: string
+          response_time_ms?: number | null
+          status_code?: number | null
+          student_id: string
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string
+          id?: string
+          ip_address?: string | null
+          is_sandbox?: boolean
+          method?: string
+          organization_id?: string
+          response_time_ms?: number | null
+          status_code?: number | null
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edu_api_usage_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edu_api_usage_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "edu_students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edu_assignments: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deadline: string | null
+          description: string | null
+          difficulty: string
+          id: string
+          is_active: boolean
+          organization_id: string
+          rate_override_per_day: number | null
+          semester_id: string | null
+          starter_query: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deadline?: string | null
+          description?: string | null
+          difficulty?: string
+          id?: string
+          is_active?: boolean
+          organization_id: string
+          rate_override_per_day?: number | null
+          semester_id?: string | null
+          starter_query?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deadline?: string | null
+          description?: string | null
+          difficulty?: string
+          id?: string
+          is_active?: boolean
+          organization_id?: string
+          rate_override_per_day?: number | null
+          semester_id?: string | null
+          starter_query?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edu_assignments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edu_assignments_semester_id_fkey"
+            columns: ["semester_id"]
+            isOneToOne: false
+            referencedRelation: "edu_semesters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edu_docs: {
+        Row: {
+          content: Json
+          doc_type: string
+          id: string
+          language: string
+          title: string
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          content?: Json
+          doc_type?: string
+          id?: string
+          language?: string
+          title: string
+          updated_at?: string
+          version?: string
+        }
+        Update: {
+          content?: Json
+          doc_type?: string
+          id?: string
+          language?: string
+          title?: string
+          updated_at?: string
+          version?: string
+        }
+        Relationships: []
+      }
+      edu_projects: {
+        Row: {
+          api_calls_used: number
+          assignment_id: string | null
+          complexity_score: number | null
+          created_at: string
+          datasets_used: string[]
+          description: string | null
+          endpoints_used: string[]
+          faculty_comments: string | null
+          grade: string | null
+          id: string
+          organization_id: string
+          repo_url: string | null
+          reviewed_at: string | null
+          status: string
+          student_id: string
+          submitted_at: string | null
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          api_calls_used?: number
+          assignment_id?: string | null
+          complexity_score?: number | null
+          created_at?: string
+          datasets_used?: string[]
+          description?: string | null
+          endpoints_used?: string[]
+          faculty_comments?: string | null
+          grade?: string | null
+          id?: string
+          organization_id: string
+          repo_url?: string | null
+          reviewed_at?: string | null
+          status?: string
+          student_id: string
+          submitted_at?: string | null
+          title: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          api_calls_used?: number
+          assignment_id?: string | null
+          complexity_score?: number | null
+          created_at?: string
+          datasets_used?: string[]
+          description?: string | null
+          endpoints_used?: string[]
+          faculty_comments?: string | null
+          grade?: string | null
+          id?: string
+          organization_id?: string
+          repo_url?: string | null
+          reviewed_at?: string | null
+          status?: string
+          student_id?: string
+          submitted_at?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edu_projects_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "edu_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edu_projects_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edu_projects_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "edu_students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edu_sandbox_data: {
+        Row: {
+          content: Json
+          created_at: string
+          data_type: string
+          id: string
+          language: string
+          organization_id: string | null
+          refresh_batch_id: string | null
+        }
+        Insert: {
+          content?: Json
+          created_at?: string
+          data_type?: string
+          id?: string
+          language?: string
+          organization_id?: string | null
+          refresh_batch_id?: string | null
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          data_type?: string
+          id?: string
+          language?: string
+          organization_id?: string | null
+          refresh_batch_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edu_sandbox_data_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edu_semesters: {
+        Row: {
+          created_at: string
+          end_date: string
+          id: string
+          is_active: boolean
+          name: string
+          organization_id: string
+          settings: Json
+          start_date: string
+          student_capacity: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          id?: string
+          is_active?: boolean
+          name: string
+          organization_id: string
+          settings?: Json
+          start_date: string
+          student_capacity?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          organization_id?: string
+          settings?: Json
+          start_date?: string
+          student_capacity?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edu_semesters_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edu_students: {
+        Row: {
+          api_key_hash: string | null
+          created_at: string
+          email: string
+          ethics_cert_id: string | null
+          ethics_certified: boolean
+          ethics_certified_at: string | null
+          ethics_quiz_score: number | null
+          id: string
+          last_active_at: string | null
+          name: string
+          organization_id: string
+          rate_limit_override: number | null
+          role: string
+          semester_id: string
+          status: string
+          student_id_external: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          api_key_hash?: string | null
+          created_at?: string
+          email: string
+          ethics_cert_id?: string | null
+          ethics_certified?: boolean
+          ethics_certified_at?: string | null
+          ethics_quiz_score?: number | null
+          id?: string
+          last_active_at?: string | null
+          name: string
+          organization_id: string
+          rate_limit_override?: number | null
+          role?: string
+          semester_id: string
+          status?: string
+          student_id_external: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          api_key_hash?: string | null
+          created_at?: string
+          email?: string
+          ethics_cert_id?: string | null
+          ethics_certified?: boolean
+          ethics_certified_at?: string | null
+          ethics_quiz_score?: number | null
+          id?: string
+          last_active_at?: string | null
+          name?: string
+          organization_id?: string
+          rate_limit_override?: number | null
+          role?: string
+          semester_id?: string
+          status?: string
+          student_id_external?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edu_students_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edu_students_semester_id_fkey"
+            columns: ["semester_id"]
+            isOneToOne: false
+            referencedRelation: "edu_semesters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edu_students_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employer_profiles: {
         Row: {
           company_name: string | null
