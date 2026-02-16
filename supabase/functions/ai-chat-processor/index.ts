@@ -397,9 +397,13 @@ Consider:
       ip_address: clientIP
     });
 
-    console.log('Enhanced Trauma-informed AI Analysis:', analysis);
-    console.log('Matched Services:', matchedServices.length);
-    console.log('User ID:', user.id);
+    // Log only non-sensitive aggregate metrics (no PII, no emotional states, no trauma details)
+    console.log('AI interaction completed', {
+      urgency_level: analysis.urgency,
+      has_trauma_indicators: !!analysis.trauma_indicators,
+      has_safety_concerns: !!analysis.safety_concerns,
+      matched_services_count: matchedServices.length,
+    });
 
     return new Response(JSON.stringify({
       response: aiResponse,

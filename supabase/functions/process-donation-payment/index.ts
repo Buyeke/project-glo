@@ -113,8 +113,8 @@ serve(async (req) => {
     });
 
     // Enhanced input validation
-    if (!amount || amount <= 0 || amount > 100000) {
-      return new Response(JSON.stringify({ error: 'Invalid amount (must be between $1 and $100,000)' }), {
+    if (!amount || amount <= 0 || amount > 10000) {
+      return new Response(JSON.stringify({ error: 'Invalid amount (must be between $1 and $10,000)' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
