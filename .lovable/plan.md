@@ -1,116 +1,112 @@
 
-# B2B SaaS Positioning Update Plan
 
-## Overview
-This plan updates website copy across multiple pages to clarify GLO's positioning as a **B2B SaaS platform** that organizations pay for, while maintaining the end-user service directory experience. The key messaging shift emphasizes:
-- Platform subscriptions (not "partnership fees")
-- Sheng language capability as the key differentiator
-- Clear distinction between organizational users and end-user beneficiaries
+# Education API Plan Update - Amendments (v1.2.0-rev1)
+
+Incorporating 5 refinements into the approved Education API plan before implementation begins.
 
 ---
 
-## Changes by Page
+## 1. Schema Change: `edu_students` Table
 
-### 1. About Page (`src/pages/About.tsx`)
+Add two columns to the `edu_students` table definition:
 
-**Hero Section - Update Opening Paragraph**
-- **Current**: "Project GLO is an AI-powered, multilingual data and coordination platform operated by Glomera Operations Ltd. We connect women in Kenya to independent, verified partner organizations providing trauma-informed care."
-- **New**: "GLO is an AI-powered crisis response and case management SaaS platform operated by Glomera Operations Ltd. We enable NGOs, government agencies, and social service organizations to deliver trauma-informed support at scale through AI that speaks authentic Sheng, Swahili, and English."
+- **`rate_limit_override`** (integer, nullable) -- Faculty can set per-student daily call limits that override the semester default. NULL means "use semester default."
+- **`last_active_at`** (timestamptz, nullable) -- Updated on every authenticated API call by the student. Avoids expensive log-table queries for the faculty dashboard's "last active" column.
 
-**After Platform Impact Section - Add New Sentence**
-- Add below the statistics grid: "Our technology serves two audiences: vulnerable women seeking support, and the organizations coordinating their care."
-
-**All other content remains unchanged**: Mission, Vision, Values, Founder section, Research Focus, Partners, Glomera Operations Ltd info
+These columns will be included in the Batch 1 migration alongside the rest of the `edu_students` table creation.
 
 ---
 
-### 2. Resources Page (`src/pages/Resources.tsx` + `src/components/resources/ResourcesHeader.tsx`)
+## 2. New Action: Suspicious Activity Detection in `education-faculty`
 
-**Add Organization CTA Section (New Component)**
-Create a prominent section above the existing content with:
-- Title: "For Organizations: Access Platform Tools"
-- Content: "Are you an NGO, government agency, or service provider?"
-- CTAs: "Access Platform Dashboard" | "Start Free Trial" | "Book a Demo"
+Add a new query action to the existing `education-faculty` edge function:
 
-**Update ResourcesHeader**
-- Add intro text: "Browse educational resources and guides. Organizations: Access full platform documentation in your dashboard."
+**`GET ?action=suspicious-activity`**
 
-**Keep Everything Else Unchanged**: All service cards, filtering, and "Request Referral" functionality
+Returns flagged students based on three heuristics:
 
----
+- **Shared API key detection** -- Multiple distinct IP addresses using the same student's key within a short window (e.g., 3+ IPs in 1 hour).
+- **Unusual query volume** -- Students exceeding 3x the cohort average call rate in a single day.
+- **Copy-paste detection** -- Near-identical query sequences between two or more students (Jaccard similarity on recent endpoint+parameter sequences).
 
-### 3. Partners Page (`src/pages/Partners.tsx`)
-
-**Update Section Title**
-- Change "Partnership Opportunities" to "Platform Access & Partnerships"
-- Add subtitle clarifying: "Join the GLO coordination network with platform subscriptions or sponsorship opportunities"
-
-**Update Partnership Type Cards**
-
-| Current | Updated |
-|---------|---------|
-| NGO & Service Providers: "Join the GLO coordination network. Receive secure referrals from our AI-powered platform. Partnerships from $500/month." | "Join the GLO coordination network. Get platform access to manage referrals, track cases, and measure impact. Platform subscriptions from $299/month (Community tier) to $899/month (Professional tier)." + Add links: "View Full Pricing" and "Start Free Trial" |
-| Corporate Sponsors: "Support platform development and infrastructure through sponsorship... From $10,000" | "Fund platform access for partner NGOs or sponsor feature development. Sponsorships from $5,000." + Add link: "Explore CSR Partnerships" |
-| Research & Academic | Keep as-is: "From $300 per deliverable" |
-
-**Keep Unchanged**: Current Partners section, Benefits section, Contact Form, Direct Contact
+Response includes `student_id`, `flag_type`, `severity` (low/medium/high), `details`, and `detected_at`. This will be built in Batch 3 alongside the rest of the faculty function.
 
 ---
 
-### 4. Employer Dashboard (`src/components/employer/EmployerAuth.tsx`)
+## 3. Anonymization Enhancement: Consistent Hashing
 
-**Add Clarifying Text Above Portal Title**
-- New subheader: "Post dignified work opportunities to help women transition to economic independence. $30 for 30 days."
+Update the `education-anonymize` function to use deterministic, session-scoped aliasing:
 
-**Update Description Below "Employer Portal" Title**
-- **Current**: "Post jobs and manage your hiring process"
-- **New**: "Post jobs and manage your hiring process. Help women in our partner network find sustainable employment. Quick setup, verified candidates, measurable impact."
+- Use HMAC-SHA256 with a per-session salt (derived from the student's session ID + a server-side secret) to generate stable mappings.
+- Example: "Case-123" always maps to "Case-A" within the same student session. "Hope Center" always maps to "Org-B" within that session.
+- A different student or different session gets different mappings (preventing cross-student de-anonymization).
+- Implementation: Build a lookup map at the start of each request using `Map<original_value, alias>`, seeded by HMAC. Cache within the request lifecycle.
 
-**Keep Unchanged**: All sign-in/sign-up functionality, forms, authentication flows
-
----
-
-### 5. Footer Updates (`src/components/Footer.tsx`)
-
-**Add Two Clear CTAs**
-Add a new row above the current footer content with prominent CTAs:
-- "Start Free Trial" (for Organizations) → links to `/partners`
-- "Donate" (Support Platform Development) → links to `/donate`
-
-**Update Project GLO Description**
-- Emphasize Sheng capability: "An AI-powered coordination platform with trauma-informed chatbot in Sheng, Swahili, and English—connecting women in Kenya to verified partner organizations."
+This will be implemented in Batch 2 with the anonymization function.
 
 ---
 
-## Technical Implementation Summary
+## 4. Clarification: `education-setup` Semester Behavior
 
-| File | Type of Change |
-|------|----------------|
-| `src/pages/About.tsx` | Copy updates (2 locations) |
-| `src/components/resources/ResourcesHeader.tsx` | Copy update + organization note |
-| `src/pages/Resources.tsx` | Add organization CTA section component |
-| `src/pages/Partners.tsx` | Copy updates to partnership types and pricing |
-| `src/components/employer/EmployerAuth.tsx` | Add clarifying copy (2 locations) |
-| `src/components/Footer.tsx` | Add CTA row + update description |
+**Decision: Auto-create first semester on setup.**
 
----
+When `education-setup` is called:
+1. Creates/updates the organization with `tier = 'education'`.
+2. Automatically creates the first `edu_semesters` record using the provided `semester_start` and `semester_end` dates.
+3. Faculty can later create additional semesters via `education-rate-limits` (see item 5 below) or a dedicated semester management action.
 
-## What Will NOT Change
-
-- Any existing forms, buttons, or functionality
-- Service cards or filtering systems
-- Navigation structure
-- Sign-in/authentication flows
-- Database interactions
-- Any code logic or technical implementation
+This avoids a two-step setup process for new university partners.
 
 ---
 
-## Key Messaging Principles Applied
+## 5. New Edge Function: `education-rate-limits`
 
-1. **Platform Subscription Language**: "Platform subscriptions" instead of "partnership fees"
-2. **Sheng Differentiator**: Highlighted wherever AI/chatbot is mentioned
-3. **Dual Audience Clarity**: Explicit mention that platform serves both organizations and end-users
-4. **Pricing Transparency**: Clear tier structure ($299-$899/month for NGOs, $5,000+ for sponsors)
-5. **CTA Visibility**: "Start Free Trial" and "Donate" visible across site
+A standalone faculty endpoint for mid-semester configuration changes, separate from org registration.
+
+**Actions:**
+
+| Method | Action | Description |
+|--------|--------|-------------|
+| GET | `?action=current` | View current rate limit config for the semester |
+| POST | `?action=update-semester` | Change daily limits for normal/assignment/off-semester periods |
+| POST | `?action=student-override` | Set `rate_limit_override` for a specific student (writes to `edu_students.rate_limit_override`) |
+| POST | `?action=clear-override` | Reset a student back to semester defaults |
+| POST | `?action=create-semester` | Create a new semester with its own rate config |
+| GET | `?action=list-semesters` | List all semesters for the org |
+
+Requires faculty/owner/admin role. Will be added to the `supabase/config.toml` with `verify_jwt = false` (uses the existing dual-auth pattern).
+
+**Implementation batch:** Batch 1 (Foundation), since rate limits are foundational to all other education endpoints.
+
+---
+
+## Updated Implementation Sequence
+
+**Batch 1 -- Foundation**
+- Database migration (all 8 tables, now with `rate_limit_override` and `last_active_at` on `edu_students`)
+- `education-setup` (auto-creates first semester)
+- `education-students`
+- `education-ethics`
+- `education-docs`
+- `education-rate-limits` (new)
+- `supabase/config.toml` updates (12 functions total)
+
+**Batch 2 -- Data Layer**
+- `education-sandbox`
+- `education-anonymize` (with consistent HMAC-based hashing)
+- `education-analytics`
+- `education-citation`
+
+**Batch 3 -- Academic Workflow**
+- `education-faculty` (with `suspicious-activity` action)
+- `education-projects`
+- `education-assignments`
+
+---
+
+## Technical Notes
+
+- The `last_active_at` column on `edu_students` will be updated by a shared utility called at the start of every authenticated education endpoint request, keeping writes lightweight (single column update).
+- The suspicious activity detection queries `edu_api_usage` for IP and pattern analysis. The `edu_api_usage` table already captures `endpoint`, `method`, and `status_code` per call, which is sufficient for copy-paste similarity detection.
+- The `education-rate-limits` function checks rate limits by reading `edu_semesters.settings` and `edu_students.rate_limit_override`, with the student override taking priority when non-null.
 
