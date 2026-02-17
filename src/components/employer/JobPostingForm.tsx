@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, MapPin, Clock, DollarSign } from 'lucide-react';
+import { useContentValue } from '@/hooks/useSiteContent';
 
 interface JobPostingFormProps {
   employerProfile: any;
@@ -15,6 +16,8 @@ interface JobPostingFormProps {
 }
 
 const JobPostingForm: React.FC<JobPostingFormProps> = ({ employerProfile, onSubmit, onCancel }) => {
+  const jobPrice = useContentValue('employer_job_price', { text: '$30' })?.text;
+  const jobDuration = useContentValue('employer_job_duration', { text: '30 days' })?.text;
   const [formData, setFormData] = useState({
     title: '',
     job_type: '',
@@ -229,9 +232,9 @@ const JobPostingForm: React.FC<JobPostingFormProps> = ({ employerProfile, onSubm
               <CardContent className="pt-6">
                 <div className="text-center space-y-2">
                   <h3 className="text-lg font-semibold text-blue-900">Job Listing Price</h3>
-                  <p className="text-3xl font-bold text-blue-600">$30 USD</p>
+                  <p className="text-3xl font-bold text-blue-600">{jobPrice} USD</p>
                   <p className="text-sm text-blue-700">
-                    Your job will be live for 30 days.
+                    Your job will be live for {jobDuration}.
                   </p>
                 </div>
               </CardContent>

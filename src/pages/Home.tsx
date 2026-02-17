@@ -7,8 +7,12 @@ import FeaturesBenefits from "@/components/home/FeaturesBenefits";
 import MobileSupportQuiz from "@/components/quiz/MobileSupportQuiz";
 import MobileHero from "@/components/home/MobileHero";
 import HowItWorksSteps from "@/components/home/HowItWorksSteps";
+import { useContentValue } from "@/hooks/useSiteContent";
 
 const Home = () => {
+  const jobPrice = useContentValue('employer_job_price', { text: '$30' })?.text;
+  const jobDuration = useContentValue('employer_job_duration', { text: '30 days' })?.text;
+
   return (
     <div className="min-h-screen prevent-overflow has-bottom-nav md:has-bottom-nav-none">
       {/* Hero - Primary CTAs */}
@@ -47,7 +51,7 @@ const Home = () => {
               <div className="flex-1">
                 <h3 className="text-base font-bold text-foreground">For Employers</h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Post dignified work opportunities · $30 for 30 days
+                  Post dignified work opportunities · {jobPrice} for {jobDuration}
                 </p>
                 <Button asChild size="sm" variant="outline">
                   <Link to="/careers">

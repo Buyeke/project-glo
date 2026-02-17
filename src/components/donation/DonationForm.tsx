@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Heart, Users, Home, Utensils } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useSiteContent } from '@/hooks/useSiteContent';
 
 interface DonationFormProps {
   showImpactItems?: boolean;
@@ -16,13 +17,44 @@ interface DonationFormProps {
   description?: string;
 }
 
+const tierIcons = [Heart, Users, Home, Utensils];
+
+const defaultTiers = [
+  { title: 'Dignity Kits', description: 'Essential hygiene and personal care items', amount: '$25', ksh: 'KSh 3,250', numericAmount: 25, numericKsh: 3250 },
+  { title: 'Mental Health Support', description: 'One week of counseling and therapy sessions', amount: '$60', ksh: 'KSh 7,800', numericAmount: 60, numericKsh: 7800 },
+  { title: 'Temporary Housing', description: 'Safe shelter for a woman for one week', amount: '$100', ksh: 'KSh 13,000', numericAmount: 100, numericKsh: 13000 },
+  { title: 'Family Nutrition', description: 'Nutritious meals for a family of 4 for a month', amount: '$250', ksh: 'KSh 32,500', numericAmount: 250, numericKsh: 32500 },
+];
+
 const DonationForm = ({ 
   showImpactItems = true, 
   title = "Make a Donation",
   description = "Choose your donation amount and help us continue our mission"
 }: DonationFormProps) => {
   const { toast } = useToast();
-  const [selectedAmount, setSelectedAmount] = useState(60);
+  const { data: siteData } = useSiteContent();
+  const contentMap = siteData?.contentMap || {};
+
+  const tiers = [1, 2, 3, 4].map((i, idx) => {
+    const tier = contentMap[`donation_tier_${i}`] || defaultTiers[idx];
+    return {
+      icon: tierIcons[idx],
+      title: tier.title,
+      description: tier.description,
+      amount: tier.amount,
+      ksh: tier.ksh,
+      numericAmount: tier.numericAmount || defaultTiers[idx].numericAmount,
+      numericKsh: tier.numericKsh || defaultTiers[idx].numericKsh,
+    };
+  });
+
+  const predefinedAmounts = tiers.map(t => ({
+    amount: t.numericAmount,
+    description: t.description,
+    ksh: t.numericKsh,
+  }));
+
+  const [selectedAmount, setSelectedAmount] = useState(predefinedAmounts[1]?.amount || 60);
   const [customAmount, setCustomAmount] = useState('');
   const [donorInfo, setDonorInfo] = useState({
     name: '',
@@ -31,44 +63,6 @@ const DonationForm = ({
     anonymous: false,
   });
   const [isProcessing, setIsProcessing] = useState(false);
-
-  const predefinedAmounts = [
-    { amount: 25, description: 'Provides a dignity kit for one woman', ksh: 3250 },
-    { amount: 60, description: 'One week of counseling and therapy sessions', ksh: 7800 },
-    { amount: 100, description: 'Safe shelter for a woman for one week', ksh: 13000 },
-    { amount: 250, description: 'Nutritious meals for a family of 4 for a month', ksh: 32500 },
-  ];
-
-  const impactItems = [
-    {
-      icon: Heart,
-      title: 'Dignity Kits',
-      description: 'Essential hygiene and personal care items',
-      amount: '$25',
-      ksh: 'KSh 3,250',
-    },
-    {
-      icon: Users,
-      title: 'Mental Health Support',
-      description: 'One week of counseling and therapy sessions',
-      amount: '$60',
-      ksh: 'KSh 7,800',
-    },
-    {
-      icon: Home,
-      title: 'Temporary Housing',
-      description: 'Safe shelter for a woman for one week',
-      amount: '$100',
-      ksh: 'KSh 13,000',
-    },
-    {
-      icon: Utensils,
-      title: 'Family Nutrition',
-      description: 'Nutritious meals for a family of 4 for a month',
-      amount: '$250',
-      ksh: 'KSh 32,500',
-    },
-  ];
 
   const handleAmountSelect = (amount: number) => {
     setSelectedAmount(amount);
@@ -118,11 +112,8 @@ const DonationForm = ({
         },
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      // Redirect to PayPal
       if (data?.approval_url) {
         window.open(data.approval_url, '_blank');
         
@@ -131,9 +122,8 @@ const DonationForm = ({
           description: "You'll be redirected to complete your donation securely.",
         });
 
-        // Reset form after a short delay
         setTimeout(() => {
-          setSelectedAmount(60);
+          setSelectedAmount(predefinedAmounts[1]?.amount || 60);
           setCustomAmount('');
           setDonorInfo({ name: '', email: '', message: '', anonymous: false });
         }, 2000);
@@ -164,7 +154,7 @@ const DonationForm = ({
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              {impactItems.map((item, index) => (
+              {tiers.map((item, index) => (
                 <div key={index} className="flex items-start space-x-4 p-4 bg-muted/30 rounded-lg border">
                   <div className="flex-shrink-0">
                     <item.icon className="h-8 w-8 text-primary" />
@@ -187,7 +177,6 @@ const DonationForm = ({
           <CardDescription>{description}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Amount Selection */}
           <div>
             <Label className="text-base font-medium mb-4 block">Select Amount (USD)</Label>
             <div className="grid grid-cols-2 gap-3 mb-4">
@@ -236,7 +225,6 @@ const DonationForm = ({
             </div>
           </div>
 
-          {/* Donor Information */}
           <div className="space-y-4">
             <div>
               <Label htmlFor="donorName">Full Name (Optional)</Label>
@@ -283,7 +271,6 @@ const DonationForm = ({
             </div>
           </div>
 
-          {/* Payment Method */}
           <div className="bg-blue-50 p-4 rounded-lg border">
             <div className="flex items-center justify-between mb-2">
               <span className="font-medium text-foreground">Secure Payment via PayPal</span>
@@ -295,7 +282,6 @@ const DonationForm = ({
             </p>
           </div>
 
-          {/* Donate Button */}
           <Button 
             onClick={handleDonate}
             disabled={isProcessing}
@@ -309,10 +295,10 @@ const DonationForm = ({
             )}
           </Button>
 
-              <p className="text-xs text-muted-foreground text-center">
-                All donations are processed securely through PayPal's platform.
-                Your contribution is in USD and will help us provide essential services.
-              </p>
+          <p className="text-xs text-muted-foreground text-center">
+            All donations are processed securely through PayPal's platform.
+            Your contribution is in USD and will help us provide essential services.
+          </p>
         </CardContent>
       </Card>
     </div>
