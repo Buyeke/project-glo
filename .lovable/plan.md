@@ -1,68 +1,94 @@
 
 
-# Make Partners Page and Pricing Content Editable via Admin CMS
+# Improve Chatbot Fallback Logic and Migrate Away from OpenAI
 
-## What This Does
+## Overview
 
-Right now, all the text and pricing on the Partners page, donation tiers, and employer job listing pricing are hardcoded in the source code. This plan makes all of that editable from the Admin Panel's Content Management tab so you can update prices, descriptions, partner listings, and benefits without touching any code.
-
-## Content That Will Become Editable
-
-### Partners Page
-- **Hero section** -- title, subtitle
-- **3 partnership type cards** -- title, description (includes pricing), and button labels for each:
-  - NGO & Service Providers ($299-$899/month)
-  - Corporate Sponsors ($5,000+)
-  - Research & Academic ($300/deliverable)
-- **Current partners list** -- each partner's name, location, and description
-- **Benefits list** -- the 6 "Why Partner With Us" bullet points
-- **Contact email** displayed at the bottom
-
-### Donation Tiers (Donate page + DonationForm)
-- 4 impact tiers: title, description, USD amount, KSh amount
-
-### Employer Job Listing Price
-- The "$30 for 30 days" text shown on Home, EmployerAuth, and JobPostingForm
+This plan addresses the four identified fallback weaknesses and introduces a migration path from OpenAI to Lovable AI (which serves Google Gemini models), eliminating your OpenAI dependency and cost.
 
 ---
 
-## Technical Approach
+## Part 1: Fix Current Fallback Issues
 
-### 1. Database: Seed new `site_content` rows
+### 1A. Remove Authentication Wall for Basic Chat
 
-Insert approximately 20 new rows into the existing `site_content` table covering all the editable content above. Each row uses the existing `content_type` values (`text` for simple strings, `stat` for number+label pairs) plus a new type `list` for arrays like benefits and partner cards.
+**Problem:** Unauthenticated visitors hit the local keyword matcher immediately because `useAIChatProcessor` requires a session.
 
-Content keys will follow the pattern:
-- `partners_hero_title`, `partners_hero_subtitle`
-- `partners_ngo_title`, `partners_ngo_description`, `partners_corporate_title`, etc.
-- `partners_benefits` (list type with array of strings)
-- `partners_current_partners` (list type with array of {name, location, description})
-- `partners_contact_email`
-- `donation_tier_1`, `donation_tier_2`, `donation_tier_3`, `donation_tier_4` (each with title, description, amount, ksh)
-- `employer_job_price`, `employer_job_duration`
+**Fix:** Create a new lightweight edge function `ai-chat-public` that skips JWT verification and uses IP-based rate limiting instead of user-based. The enhanced processor will try the public endpoint when no session exists.
 
-All rows use `section = 'partnerships'` or `section = 'pricing'`.
+- `useAIChatProcessor.tsx` -- remove the "Authentication required" throw; instead, call `ai-chat-public` for anonymous users and `ai-chat-processor` for logged-in users
+- `supabase/functions/ai-chat-public/index.ts` -- new function with IP-based rate limiting, smaller token budget (300 vs 600), and the same system prompt
 
-### 2. ContentManagement.tsx -- Support new content types
+### 1B. Add Retry for Transient AI Failures
 
-Add rendering/editing support for:
-- **`list` type** -- Render each item in the list with edit fields; allow adding/removing items
-- **`pricing_card` type** -- Structured editor with title, description, price fields
-- **`donation_tier` type** -- Editor with title, description, USD amount, KSh amount
+**Problem:** A single OpenAI 503 or timeout immediately drops to keyword matching.
 
-Add a new "Pricing" tab to the admin TabsList (expanding from 5 to 6 tabs).
+**Fix:** Add a retry wrapper (1 retry with 2-second delay) inside `useEnhancedChatMessageProcessor` before falling back to local processing.
 
-### 3. Partners.tsx -- Read from CMS instead of hardcoded values
+- `useEnhancedChatMessageProcessor.tsx` -- wrap the AI call in a retry helper; only fall back after the retry also fails
 
-Replace the hardcoded `partnershipTypes`, `benefits`, hero text, and partner list with data from `useSiteContent()` / `useContentValue()`, falling back to the current hardcoded values if the CMS data hasn't loaded yet.
+### 1C. Use Knowledge Base Results in Fallback
 
-### 4. Donate.tsx + DonationForm.tsx -- Read donation tiers from CMS
+**Problem:** When the AI call fails, the knowledge base results already fetched are discarded.
 
-Replace the hardcoded `impactLevels`/`donationTiers` arrays with CMS-sourced data, with the current values as fallbacks.
+**Fix:** Pass knowledge results into the local `useChatMessageProcessor` fallback path. If there are relevant knowledge items, include them in the bot response instead of using only the generic cultural response.
 
-### 5. Home.tsx, EmployerAuth.tsx, JobPostingForm.tsx -- Read job price from CMS
+- `useChatMessageProcessor.tsx` -- accept an optional `knowledgeContext` parameter; when present and no intent matches, use the top knowledge result as the response body instead of the generic fallback
+- `useEnhancedChatMessageProcessor.tsx` -- pass `knowledgeResults` to the fallback call
 
-Replace the hardcoded "$30 for 30 days" strings with a `useContentValue('employer_job_price', ...)` call.
+### 1D. Tell Users When They Get a Degraded Response
+
+**Problem:** Silent fallback with no indicator that the response quality is reduced.
+
+**Fix:** Add a `degraded` flag to bot messages. When displaying a fallback response, show a subtle banner: "I'm using basic matching right now. For better answers, try again in a moment."
+
+- `types/chatbot.ts` -- add optional `degraded?: boolean` field to `ChatMessage`
+- `useChatMessageProcessor.tsx` -- set `degraded: true` on fallback messages
+- `ChatMessage.tsx` -- render a small info banner when `message.degraded` is true
+
+---
+
+## Part 2: Migrate from OpenAI to Lovable AI
+
+This project already has a `LOVABLE_API_KEY` secret configured. Lovable AI provides Google Gemini models at the same OpenAI-compatible endpoint, so the migration is straightforward.
+
+### 2A. Update `ai-chat-processor` Edge Function
+
+Replace the two OpenAI `fetch` calls with calls to the Lovable AI gateway:
+
+| Current | New |
+|---------|-----|
+| `https://api.openai.com/v1/chat/completions` | `https://ai.gateway.lovable.dev/v1/chat/completions` |
+| `Bearer ${OPENAI_API_KEY}` | `Bearer ${LOVABLE_API_KEY}` |
+| `model: 'gpt-4o-mini'` | `model: 'google/gemini-3-flash-preview'` |
+
+Both the response generation call and the classification call get updated. The request/response format is identical (OpenAI-compatible).
+
+Add handling for Lovable AI-specific errors:
+- **429** -- rate limit exceeded, surface to user
+- **402** -- payment required, surface to user
+
+Update the cost tracking in `ai_model_metrics` to reflect Gemini pricing instead of GPT-4o-mini pricing.
+
+### 2B. Create `ai-chat-public` Edge Function (for anonymous users)
+
+Same as above but:
+- No JWT verification
+- IP-based rate limiting (stricter: 10 requests/minute vs 30)
+- Smaller token budget (`max_tokens: 300`)
+- Uses `google/gemini-3-flash-preview`
+- Skips the classification second call (saves cost for anonymous users)
+
+### 2C. Update `org-widget-chat` Edge Function
+
+This function also calls OpenAI directly. Update it the same way:
+- Replace OpenAI URL with Lovable AI gateway
+- Replace `OPENAI_API_KEY` with `LOVABLE_API_KEY`
+- Replace `gpt-4o-mini` with `google/gemini-3-flash-preview`
+
+### 2D. Update `config.toml`
+
+Add the new `ai-chat-public` function with `verify_jwt = false`.
 
 ---
 
@@ -70,14 +96,25 @@ Replace the hardcoded "$30 for 30 days" strings with a `useContentValue('employe
 
 | File | Change |
 |------|--------|
-| `supabase/migrations/new_migration.sql` | Insert ~20 new `site_content` rows |
-| `src/components/admin/ContentManagement.tsx` | Add `list`, `pricing_card`, `donation_tier` editors; add "Pricing" tab |
-| `src/pages/Partners.tsx` | Replace hardcoded content with `useContentValue()` calls |
-| `src/pages/Donate.tsx` | Replace hardcoded tiers with CMS data |
-| `src/components/donation/DonationForm.tsx` | Replace hardcoded tiers with CMS data |
-| `src/pages/Home.tsx` | Replace hardcoded job price with CMS data |
-| `src/components/employer/EmployerAuth.tsx` | Replace hardcoded job price with CMS data |
-| `src/components/employer/JobPostingForm.tsx` | Replace hardcoded job price with CMS data |
+| `supabase/functions/ai-chat-processor/index.ts` | Switch from OpenAI to Lovable AI gateway, add 429/402 handling |
+| `supabase/functions/ai-chat-public/index.ts` | **New** -- anonymous-friendly AI endpoint with IP rate limiting |
+| `supabase/functions/org-widget-chat/index.ts` | Switch from OpenAI to Lovable AI gateway |
+| `supabase/config.toml` | Add `ai-chat-public` function entry |
+| `src/hooks/useAIChatProcessor.tsx` | Remove auth requirement; route to public endpoint when no session |
+| `src/hooks/useEnhancedChatMessageProcessor.tsx` | Add retry logic; pass knowledge context to fallback |
+| `src/hooks/useChatMessageProcessor.tsx` | Accept knowledge context; use it in fallback responses |
+| `src/types/chatbot.ts` | Add `degraded` field to `ChatMessage` |
+| `src/components/chatbot/ChatMessage.tsx` | Render degraded-response banner |
 
-No new tables or RLS changes needed -- uses the existing `site_content` table and policies.
+No database changes needed.
+
+---
+
+## Result After Implementation
+
+- Anonymous visitors get AI-powered responses (rate-limited)
+- Transient failures retry once before falling back
+- Fallback responses include relevant knowledge base content instead of generic templates
+- Users see a subtle indicator when getting degraded responses
+- All AI calls go through Lovable AI (Gemini) instead of OpenAI -- no more OpenAI dependency or costs
 
