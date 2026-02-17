@@ -1,112 +1,83 @@
 
 
-# Education API Plan Update - Amendments (v1.2.0-rev1)
+# Make Partners Page and Pricing Content Editable via Admin CMS
 
-Incorporating 5 refinements into the approved Education API plan before implementation begins.
+## What This Does
 
----
+Right now, all the text and pricing on the Partners page, donation tiers, and employer job listing pricing are hardcoded in the source code. This plan makes all of that editable from the Admin Panel's Content Management tab so you can update prices, descriptions, partner listings, and benefits without touching any code.
 
-## 1. Schema Change: `edu_students` Table
+## Content That Will Become Editable
 
-Add two columns to the `edu_students` table definition:
+### Partners Page
+- **Hero section** -- title, subtitle
+- **3 partnership type cards** -- title, description (includes pricing), and button labels for each:
+  - NGO & Service Providers ($299-$899/month)
+  - Corporate Sponsors ($5,000+)
+  - Research & Academic ($300/deliverable)
+- **Current partners list** -- each partner's name, location, and description
+- **Benefits list** -- the 6 "Why Partner With Us" bullet points
+- **Contact email** displayed at the bottom
 
-- **`rate_limit_override`** (integer, nullable) -- Faculty can set per-student daily call limits that override the semester default. NULL means "use semester default."
-- **`last_active_at`** (timestamptz, nullable) -- Updated on every authenticated API call by the student. Avoids expensive log-table queries for the faculty dashboard's "last active" column.
+### Donation Tiers (Donate page + DonationForm)
+- 4 impact tiers: title, description, USD amount, KSh amount
 
-These columns will be included in the Batch 1 migration alongside the rest of the `edu_students` table creation.
-
----
-
-## 2. New Action: Suspicious Activity Detection in `education-faculty`
-
-Add a new query action to the existing `education-faculty` edge function:
-
-**`GET ?action=suspicious-activity`**
-
-Returns flagged students based on three heuristics:
-
-- **Shared API key detection** -- Multiple distinct IP addresses using the same student's key within a short window (e.g., 3+ IPs in 1 hour).
-- **Unusual query volume** -- Students exceeding 3x the cohort average call rate in a single day.
-- **Copy-paste detection** -- Near-identical query sequences between two or more students (Jaccard similarity on recent endpoint+parameter sequences).
-
-Response includes `student_id`, `flag_type`, `severity` (low/medium/high), `details`, and `detected_at`. This will be built in Batch 3 alongside the rest of the faculty function.
+### Employer Job Listing Price
+- The "$30 for 30 days" text shown on Home, EmployerAuth, and JobPostingForm
 
 ---
 
-## 3. Anonymization Enhancement: Consistent Hashing
+## Technical Approach
 
-Update the `education-anonymize` function to use deterministic, session-scoped aliasing:
+### 1. Database: Seed new `site_content` rows
 
-- Use HMAC-SHA256 with a per-session salt (derived from the student's session ID + a server-side secret) to generate stable mappings.
-- Example: "Case-123" always maps to "Case-A" within the same student session. "Hope Center" always maps to "Org-B" within that session.
-- A different student or different session gets different mappings (preventing cross-student de-anonymization).
-- Implementation: Build a lookup map at the start of each request using `Map<original_value, alias>`, seeded by HMAC. Cache within the request lifecycle.
+Insert approximately 20 new rows into the existing `site_content` table covering all the editable content above. Each row uses the existing `content_type` values (`text` for simple strings, `stat` for number+label pairs) plus a new type `list` for arrays like benefits and partner cards.
 
-This will be implemented in Batch 2 with the anonymization function.
+Content keys will follow the pattern:
+- `partners_hero_title`, `partners_hero_subtitle`
+- `partners_ngo_title`, `partners_ngo_description`, `partners_corporate_title`, etc.
+- `partners_benefits` (list type with array of strings)
+- `partners_current_partners` (list type with array of {name, location, description})
+- `partners_contact_email`
+- `donation_tier_1`, `donation_tier_2`, `donation_tier_3`, `donation_tier_4` (each with title, description, amount, ksh)
+- `employer_job_price`, `employer_job_duration`
 
----
+All rows use `section = 'partnerships'` or `section = 'pricing'`.
 
-## 4. Clarification: `education-setup` Semester Behavior
+### 2. ContentManagement.tsx -- Support new content types
 
-**Decision: Auto-create first semester on setup.**
+Add rendering/editing support for:
+- **`list` type** -- Render each item in the list with edit fields; allow adding/removing items
+- **`pricing_card` type** -- Structured editor with title, description, price fields
+- **`donation_tier` type** -- Editor with title, description, USD amount, KSh amount
 
-When `education-setup` is called:
-1. Creates/updates the organization with `tier = 'education'`.
-2. Automatically creates the first `edu_semesters` record using the provided `semester_start` and `semester_end` dates.
-3. Faculty can later create additional semesters via `education-rate-limits` (see item 5 below) or a dedicated semester management action.
+Add a new "Pricing" tab to the admin TabsList (expanding from 5 to 6 tabs).
 
-This avoids a two-step setup process for new university partners.
+### 3. Partners.tsx -- Read from CMS instead of hardcoded values
 
----
+Replace the hardcoded `partnershipTypes`, `benefits`, hero text, and partner list with data from `useSiteContent()` / `useContentValue()`, falling back to the current hardcoded values if the CMS data hasn't loaded yet.
 
-## 5. New Edge Function: `education-rate-limits`
+### 4. Donate.tsx + DonationForm.tsx -- Read donation tiers from CMS
 
-A standalone faculty endpoint for mid-semester configuration changes, separate from org registration.
+Replace the hardcoded `impactLevels`/`donationTiers` arrays with CMS-sourced data, with the current values as fallbacks.
 
-**Actions:**
+### 5. Home.tsx, EmployerAuth.tsx, JobPostingForm.tsx -- Read job price from CMS
 
-| Method | Action | Description |
-|--------|--------|-------------|
-| GET | `?action=current` | View current rate limit config for the semester |
-| POST | `?action=update-semester` | Change daily limits for normal/assignment/off-semester periods |
-| POST | `?action=student-override` | Set `rate_limit_override` for a specific student (writes to `edu_students.rate_limit_override`) |
-| POST | `?action=clear-override` | Reset a student back to semester defaults |
-| POST | `?action=create-semester` | Create a new semester with its own rate config |
-| GET | `?action=list-semesters` | List all semesters for the org |
-
-Requires faculty/owner/admin role. Will be added to the `supabase/config.toml` with `verify_jwt = false` (uses the existing dual-auth pattern).
-
-**Implementation batch:** Batch 1 (Foundation), since rate limits are foundational to all other education endpoints.
+Replace the hardcoded "$30 for 30 days" strings with a `useContentValue('employer_job_price', ...)` call.
 
 ---
 
-## Updated Implementation Sequence
+## Files Changed
 
-**Batch 1 -- Foundation**
-- Database migration (all 8 tables, now with `rate_limit_override` and `last_active_at` on `edu_students`)
-- `education-setup` (auto-creates first semester)
-- `education-students`
-- `education-ethics`
-- `education-docs`
-- `education-rate-limits` (new)
-- `supabase/config.toml` updates (12 functions total)
+| File | Change |
+|------|--------|
+| `supabase/migrations/new_migration.sql` | Insert ~20 new `site_content` rows |
+| `src/components/admin/ContentManagement.tsx` | Add `list`, `pricing_card`, `donation_tier` editors; add "Pricing" tab |
+| `src/pages/Partners.tsx` | Replace hardcoded content with `useContentValue()` calls |
+| `src/pages/Donate.tsx` | Replace hardcoded tiers with CMS data |
+| `src/components/donation/DonationForm.tsx` | Replace hardcoded tiers with CMS data |
+| `src/pages/Home.tsx` | Replace hardcoded job price with CMS data |
+| `src/components/employer/EmployerAuth.tsx` | Replace hardcoded job price with CMS data |
+| `src/components/employer/JobPostingForm.tsx` | Replace hardcoded job price with CMS data |
 
-**Batch 2 -- Data Layer**
-- `education-sandbox`
-- `education-anonymize` (with consistent HMAC-based hashing)
-- `education-analytics`
-- `education-citation`
-
-**Batch 3 -- Academic Workflow**
-- `education-faculty` (with `suspicious-activity` action)
-- `education-projects`
-- `education-assignments`
-
----
-
-## Technical Notes
-
-- The `last_active_at` column on `edu_students` will be updated by a shared utility called at the start of every authenticated education endpoint request, keeping writes lightweight (single column update).
-- The suspicious activity detection queries `edu_api_usage` for IP and pattern analysis. The `edu_api_usage` table already captures `endpoint`, `method`, and `status_code` per call, which is sufficient for copy-paste similarity detection.
-- The `education-rate-limits` function checks rate limits by reading `edu_semesters.settings` and `edu_students.rate_limit_override`, with the student override taking priority when non-null.
+No new tables or RLS changes needed -- uses the existing `site_content` table and policies.
 
