@@ -396,6 +396,78 @@ const ContentManagement = () => {
         );
       }
 
+      // Check if emergency contacts list (has organization/phone/locations_served)
+      const isEmergencyContacts = items.length > 0 && items[0].organization !== undefined;
+
+      if (isEmergencyContacts) {
+        return (
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Emergency Contacts</label>
+            {isEditing ? (
+              <div className="space-y-3">
+                {items.map((contact: any, i: number) => (
+                  <div key={i} className="border rounded p-3 space-y-2">
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Organization"
+                        value={contact.organization || ''}
+                        onChange={(e) => {
+                          const newItems = [...items];
+                          newItems[i] = { ...newItems[i], organization: e.target.value };
+                          setEditValues({ ...editValues, [item.id]: { ...currentValue, items: newItems } });
+                        }}
+                      />
+                      <Input
+                        placeholder="Phone Number"
+                        value={contact.phone || ''}
+                        onChange={(e) => {
+                          const newItems = [...items];
+                          newItems[i] = { ...newItems[i], phone: e.target.value };
+                          setEditValues({ ...editValues, [item.id]: { ...currentValue, items: newItems } });
+                        }}
+                      />
+                      <Input
+                        placeholder="Locations Served"
+                        value={contact.locations_served || ''}
+                        onChange={(e) => {
+                          const newItems = [...items];
+                          newItems[i] = { ...newItems[i], locations_served: e.target.value };
+                          setEditValues({ ...editValues, [item.id]: { ...currentValue, items: newItems } });
+                        }}
+                      />
+                      <Button size="sm" variant="ghost" onClick={() => {
+                        setEditValues({
+                          ...editValues,
+                          [item.id]: { ...currentValue, items: items.filter((_: any, idx: number) => idx !== i) }
+                        });
+                      }}>
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                <Button size="sm" variant="outline" onClick={() => {
+                  setEditValues({
+                    ...editValues,
+                    [item.id]: { ...currentValue, items: [...items, { organization: '', phone: '', locations_served: '' }] }
+                  });
+                }}>
+                  <Plus className="h-3 w-3 mr-1" /> Add Contact
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {items.map((c: any, i: number) => (
+                  <div key={i} className="p-2 bg-muted rounded text-sm">
+                    <strong>{c.organization}</strong> — {c.phone} ({c.locations_served})
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      }
+
       // Object list (partners)
       return (
         <div className="space-y-2">
@@ -490,13 +562,14 @@ const ContentManagement = () => {
       </div>
 
       <Tabs defaultValue="homepage" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="homepage">Homepage</TabsTrigger>
           <TabsTrigger value="about">About</TabsTrigger>
           <TabsTrigger value="team">Team</TabsTrigger>
           <TabsTrigger value="services">Services</TabsTrigger>
           <TabsTrigger value="partnerships">Partners</TabsTrigger>
           <TabsTrigger value="pricing">Pricing</TabsTrigger>
+          <TabsTrigger value="resources">Resources</TabsTrigger>
         </TabsList>
 
         {Object.entries(groupedContent).map(([section, items]) => (

@@ -4,6 +4,7 @@ import { generateCulturalResponse } from '@/utils/culturalResponseGenerator';
 import { getEnhancedTranslation, enhanceResponseWithEmotion, detectEmotionalState } from '@/utils/languageUtils';
 import { enhancedMatchIntent } from '@/utils/enhancedIntentMatcher';
 import { matchService, getFallbackResponse, translateText } from '@/utils/intentMatcher';
+import { formatEmergencyContactsForChat } from '@/utils/emergencyDetection';
 
 export const useChatMessageProcessor = (intents: Intent[], services: Service[]) => {
   const processMessage = async (
@@ -81,17 +82,17 @@ export const useChatMessageProcessor = (intents: Intent[], services: Service[]) 
 
       // Generate culturally appropriate service intro with urgency awareness
       const serviceIntro = generateServiceResponseIntro(detectedLanguage, urgency || 'medium', detection.formality);
-      response = `${serviceIntro}\n\n🔹 ${service.title}\n${service.description}\n\nKey Features:\n${features}`;
+      response = `${serviceIntro}\n\n${service.title}\n${service.description}\n\nKey Features:\n${features}`;
       
       // Add contact information with cultural context
       if (service.contact_phone) {
         const callText = getCallText(detectedLanguage, detection.formality);
-        response += `\n\n📞 ${callText}: ${service.contact_phone}`;
+        response += `\n\n${callText}: ${service.contact_phone}`;
       }
       
       if (service.contact_url) {
         const moreInfoText = getMoreInfoText(detectedLanguage, detection.formality);
-        response += `\n🌐 ${moreInfoText}: ${service.contact_url}`;
+        response += `\n${moreInfoText}: ${service.contact_url}`;
       }
 
       // Add trauma-informed encouragement for critical situations
@@ -109,9 +110,10 @@ export const useChatMessageProcessor = (intents: Intent[], services: Service[]) 
       
       // Add urgency indicators for critical situations
       if (urgency === 'critical') {
-        baseResponse = `🚨 **URGENT** 🚨\n\n${baseResponse}`;
+        baseResponse = `**URGENT**\n\n${baseResponse}`;
+        baseResponse += formatEmergencyContactsForChat();
       } else if (urgency === 'high') {
-        baseResponse = `⚠️ **PRIORITY** ⚠️\n\n${baseResponse}`;
+        baseResponse = `**PRIORITY**\n\n${baseResponse}`;
       }
       
       // Enhance with emotional and cultural context
@@ -134,7 +136,7 @@ export const useChatMessageProcessor = (intents: Intent[], services: Service[]) 
       
       if (contentMatch) {
         const title = titleMatch ? titleMatch[1] : '';
-        response = title ? `📚 ${title}\n\n${contentMatch[1]}` : contentMatch[1];
+        response = title ? `${title}\n\n${contentMatch[1]}` : contentMatch[1];
       } else {
         const culturalResponse = generateCulturalResponse(userMessage, 'help', detectedLanguage);
         response = culturalResponse.text;
@@ -193,21 +195,22 @@ export const useChatMessageProcessor = (intents: Intent[], services: Service[]) 
 // Additional helper functions for enhanced trauma-informed responses
 const generateTraumaInformedEncouragement = (language: string): string => {
   const encouragements = {
-    sheng: "💜 Mresh, haumo peke yako kwa hii. Tutakusaidia step by step. Unaweza pause wakati wowote.",
-    swahili: "💜 Rafiki, haumo peke yako. Tutakusaidia polepole. Unaweza kupumzika wakati wowote.",
-    english: "💜 You're not alone in this. We'll help you step by step. You can pause anytime you need to.",
-    arabic: "💜 لست وحدك في هذا. سنساعدك خطوة بخطوة. يمكنك التوقف في أي وقت تحتاجينه."
+    sheng: "Mresh, haumo peke yako kwa hii. Tutakusaidia step by step. Unaweza pause wakati wowote.",
+    swahili: "Rafiki, haumo peke yako. Tutakusaidia polepole. Unaweza kupumzika wakati wowote.",
+    english: "You're not alone in this. We'll help you step by step. You can pause anytime you need to.",
+    arabic: "لست وحدك في هذا. سنساعدك خطوة بخطوة. يمكنك التوقف في أي وقت تحتاجينه."
   };
   
   return encouragements[language as keyof typeof encouragements] || encouragements.sheng;
 };
 
 const getSafetyNote = (language: string): string => {
+  const contacts = formatEmergencyContactsForChat();
   const safetyNotes = {
-    sheng: "🛡️ Uko safe hapa. Kama uko kwa danger sasa hivi, piga 999 ama 112.",
-    swahili: "🛡️ Uko salama hapa. Kama uko katika hatari sasa hivi, piga 999 au 112.",
-    english: "🛡️ You're safe here. If you're in immediate danger, call 999 or 112.",
-    arabic: "🛡️ أنت آمنة هنا. إذا كنت في خطر فوري، اتصلي بـ 999 أو 112."
+    sheng: `Uko safe hapa. Kama uko kwa danger sasa hivi:${contacts}`,
+    swahili: `Uko salama hapa. Kama uko katika hatari sasa hivi:${contacts}`,
+    english: `You're safe here. If you're in immediate danger:${contacts}`,
+    arabic: `أنت آمنة هنا. إذا كنت في خطر فوري:${contacts}`
   };
   
   return safetyNotes[language as keyof typeof safetyNotes] || safetyNotes.sheng;
@@ -226,10 +229,10 @@ const getClarificationText = (language: string): string => {
 
 const getSupportNote = (language: string): string => {
   const supportNotes = {
-    sheng: "💪🏽 Nitakuwa nayo through hii journey. Unaweza niongelesha wakati wowote.",
-    swahili: "💪🏽 Nitakuwa pamoja nawe katika safari hii. Unaweza kuniongelesha wakati wowote.",
-    english: "💪🏽 I'll be with you through this journey. You can talk to me anytime.",
-    arabic: "💪🏽 سأكون معك في هذه الرحلة. يمكنك التحدث معي في أي وقت."
+    sheng: "Nitakuwa nayo through hii journey. Unaweza niongelesha wakati wowote.",
+    swahili: "Nitakuwa pamoja nawe katika safari hii. Unaweza kuniongelesha wakati wowote.",
+    english: "I'll be with you through this journey. You can talk to me anytime.",
+    arabic: "سأكون معك في هذه الرحلة. يمكنك التحدث معي في أي وقت."
   };
   
   return supportNotes[language as keyof typeof supportNotes] || supportNotes.sheng;

@@ -4,6 +4,7 @@ import ResourcesFilters from '@/components/resources/ResourcesFilters';
 import ResourcesGrid from '@/components/resources/ResourcesGrid';
 import ResourcesCTA from '@/components/resources/ResourcesCTA';
 import OrganizationCTA from '@/components/resources/OrganizationCTA';
+import EmergencyContacts from '@/components/resources/EmergencyContacts';
 import { useResources } from '@/hooks/useResources';
 
 const Resources = () => {
@@ -37,6 +38,8 @@ const Resources = () => {
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-7xl mx-auto">
         <ResourcesHeader />
+        
+        <EmergencyContacts />
         
         <OrganizationCTA />
         

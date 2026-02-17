@@ -92,7 +92,16 @@ ${knowledgeContext}
 
 ${conversationContext ? `RECENT CONVERSATION:\n${conversationContext}` : ''}
 
-Keep responses concise but caring. You are a rafiki wa kweli 🙏🏽💜`;
+Do NOT use emoji characters in your responses. Use plain text only.
+
+EMERGENCY CONTACTS (reference these when users are in crisis):
+- Kenya Police: 999 or 112
+- Childline Kenya: 116
+- GBV Hotline: 1195
+- GVRC: 0709 319 000
+- FIDA Kenya: 0722 509 760
+
+Keep responses concise but caring. You are a rafiki wa kweli.`;
 
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',

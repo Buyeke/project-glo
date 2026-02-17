@@ -157,7 +157,16 @@ TRAUMA-INFORMED RESPONSE GUIDELINES:
 8. For CRITICAL situations, provide immediate support
 9. Always end with supportive validation
 
-You are not just an AI — you are a rafiki wa kweli, wa mtaa, mwenye roho safi anataka kusaidia 🙏🏽💜`;
+Do NOT use emoji characters in your responses. Use plain text only.
+
+EMERGENCY CONTACTS (reference these when users are in crisis):
+- Kenya Police: 999 or 112 (Nationwide)
+- Childline Kenya: 116 (Nationwide)
+- GBV Hotline: 1195 (Nationwide)
+- Gender Violence Recovery Centre (GVRC): 0709 319 000 (Nairobi)
+- FIDA Kenya (Legal Aid): 0722 509 760 (Nationwide)
+
+You are not just an AI — you are a rafiki wa kweli, wa mtaa, mwenye roho safi anataka kusaidia.`;
 
     // Call Lovable AI gateway
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {

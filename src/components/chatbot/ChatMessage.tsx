@@ -171,7 +171,7 @@ export const ChatMessage = ({
             </>
           ) : (
             <span className="text-xs text-muted-foreground italic">
-              Thanks for your feedback! 💜
+              Thanks for your feedback!
             </span>
           )}
         </div>
