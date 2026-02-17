@@ -171,6 +171,21 @@ export const shengIntents: ShengIntent[] = [
 ];
 
 // Enhanced matching function with trauma-informed response
+// Helper: check if a phrase appears in text at word boundaries
+const matchesAtWordBoundary = (text: string, phrase: string): boolean => {
+  const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`(?:^|\\s|[,;.!?])${escaped}(?:$|\\s|[,;.!?])`, 'i');
+  return regex.test(` ${text} `); // pad so start/end match
+};
+
+// Helper: check if a single word appears at word boundaries
+const wordMatchesExact = (text: string, word: string): boolean => {
+  if (word.length <= 2) return false; // skip tiny words like "ni", "na"
+  const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`\\b${escaped}\\b`, 'i');
+  return regex.test(text);
+};
+
 export const matchShengIntent = (message: string): {
   intent: ShengIntent | null;
   confidence: number;
@@ -187,33 +202,33 @@ export const matchShengIntent = (message: string): {
     const shengPhrase = shengIntent.sheng.toLowerCase();
     let score = 0;
 
-    // Direct phrase matching (highest priority)
-    if (lowerMessage.includes(shengPhrase)) {
+    // Direct phrase matching at word boundaries (highest priority)
+    if (matchesAtWordBoundary(lowerMessage, shengPhrase)) {
       score += 10;
       matches.push(shengPhrase);
       console.log(`Direct match found: "${shengPhrase}" (score: ${score})`);
     } else {
-      // Word-level matching
+      // Word-level matching — only exact whole-word matches, skip short words
       const messageWords = lowerMessage.split(/\s+/);
-      const phraseWords = shengPhrase.split(/\s+/);
+      const phraseWords = shengPhrase.split(/\s+/).filter(w => w.length > 2);
       
-      let wordMatches = 0;
-      for (const phraseWord of phraseWords) {
-        if (messageWords.some(msgWord => 
-          msgWord === phraseWord || 
-          msgWord.includes(phraseWord) || 
-          phraseWord.includes(msgWord)
-        )) {
-          wordMatches++;
+      if (phraseWords.length > 0) {
+        let wordMatches = 0;
+        for (const phraseWord of phraseWords) {
+          if (messageWords.some(msgWord => msgWord === phraseWord) || 
+              wordMatchesExact(lowerMessage, phraseWord)) {
+            wordMatches++;
+          }
         }
-      }
-      
-      // Calculate word match score
-      if (wordMatches > 0) {
-        score += (wordMatches / phraseWords.length) * 7;
-        if (score > 3) {
-          matches.push(shengPhrase);
-          console.log(`Word match found: "${shengPhrase}" (${wordMatches}/${phraseWords.length} words, score: ${score})`);
+        
+        // Require at least 50% of significant words to match for multi-word phrases
+        const matchRatio = wordMatches / phraseWords.length;
+        if (wordMatches > 0 && (phraseWords.length === 1 || matchRatio >= 0.5)) {
+          score += matchRatio * 7;
+          if (score > 3) {
+            matches.push(shengPhrase);
+            console.log(`Word match found: "${shengPhrase}" (${wordMatches}/${phraseWords.length} words, score: ${score.toFixed(1)})`);
+          }
         }
       }
     }
