@@ -5,6 +5,7 @@ import { useChatMessageProcessor } from './useChatMessageProcessor';
 import { useKnowledgeBase } from './useKnowledgeBase';
 import { useProactiveFollowups } from './useProactiveFollowups';
 import { detectLanguageWithContext } from '@/utils/enhancedLanguageDetection';
+import { formatEmergencyContactsForChat } from '@/utils/emergencyDetection';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -82,7 +83,7 @@ export const useEnhancedChatMessageProcessor = (intents: Intent[], services: Ser
       if (knowledgeResults.length > 0 && aiResult.analysis.confidence > 0.7) {
         const relevantKnowledge = knowledgeResults[0];
         if (relevantKnowledge.relevance_score && relevantKnowledge.relevance_score > 0.8) {
-          enhancedResponse += `\n\n📚 **Additional Information:**\n${relevantKnowledge.content}`;
+          enhancedResponse += `\n\n**Additional Information:**\n${relevantKnowledge.content}`;
         }
       }
 
@@ -99,24 +100,30 @@ export const useEnhancedChatMessageProcessor = (intents: Intent[], services: Ser
       // Add service information
       if (aiResult.matchedServices.length > 0) {
         const service = aiResult.matchedServices[0];
-        let serviceInfo = `\n\n🔹 ${service.title}\n${service.description}`;
+        let serviceInfo = `\n\n${service.title}\n${service.description}`;
         if (service.key_features && Array.isArray(service.key_features)) {
           serviceInfo += `\n\nKey Features:\n${service.key_features.map((f: string) => `• ${f}`).join('\n')}`;
         }
-        if (service.contact_phone) serviceInfo += `\n\n📞 Call: ${service.contact_phone}`;
-        if (service.contact_url) serviceInfo += `\n🌐 More info: ${service.contact_url}`;
+        if (service.contact_phone) serviceInfo += `\n\nCall: ${service.contact_phone}`;
+        if (service.contact_url) serviceInfo += `\nMore info: ${service.contact_url}`;
         botMsg.text += serviceInfo;
       }
 
       // Urgency indicators
       if (aiResult.analysis.urgency === 'critical') {
-        botMsg.text = `🚨 **URGENT SUPPORT NEEDED** 🚨\n\n${botMsg.text}`;
+        botMsg.text = `**URGENT SUPPORT NEEDED**\n\n${botMsg.text}`;
+        botMsg.text += formatEmergencyContactsForChat();
       } else if (aiResult.analysis.urgency === 'high') {
-        botMsg.text = `⚠️ **Priority Support** ⚠️\n\n${botMsg.text}`;
+        botMsg.text = `**Priority Support**\n\n${botMsg.text}`;
       }
 
       if (aiResult.analysis.requires_human) {
-        botMsg.text += `\n\n👥 **A human counselor will be notified to provide additional support.**`;
+        botMsg.text += `\n\n**A human counselor will be notified to provide additional support.**`;
+      }
+
+      // Append emergency contacts for safety concerns
+      if (aiResult.analysis.safety_concerns && aiResult.analysis.urgency !== 'critical') {
+        botMsg.text += formatEmergencyContactsForChat();
       }
 
       // Schedule follow-ups

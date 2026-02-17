@@ -138,7 +138,7 @@ export const ChatQuickActions = ({ currentLanguage, onActionClick }: ChatQuickAc
         })}
       </div>
       <div className="mt-2 text-xs text-gray-600 text-center">
-        💜 Unaweza pause ama stop wakati wowote. Uko safe hapa.
+        Unaweza pause ama stop wakati wowote. Uko safe hapa.
       </div>
     </div>
   );

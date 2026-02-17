@@ -94,7 +94,7 @@ Deno.serve(async (req) => {
     if (lovableApiKey && kbContext) {
       const systemPrompt = `You are a helpful assistant for ${org?.name || 'this organization'}. 
 Answer questions using ONLY the following knowledge base. If you cannot answer from the knowledge base, say so politely and suggest contacting the organization directly.
-Be trauma-informed, culturally sensitive, and supportive. Respond in the language the user writes in (English, Swahili, or Sheng).
+Be trauma-informed, culturally sensitive, and supportive. Respond in the language the user writes in (English, Swahili, or Sheng). Do NOT use emoji characters in your responses.
 
 Knowledge Base:
 ${kbContext}`

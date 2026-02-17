@@ -67,18 +67,38 @@ export const detectEmergency = (responses: Record<string, any>, messageText?: st
 
 export const getEmergencyServices = () => [
   {
-    name: "Emergency Hotline",
-    number: "911",
-    description: "Immediate emergency response"
+    name: "Kenya Police",
+    number: "999",
+    altNumber: "112",
+    description: "Immediate emergency response (Nationwide)"
   },
   {
-    name: "Crisis Support Line",
-    number: "0800-CRISIS",
-    description: "24/7 crisis counseling and support"
+    name: "Childline Kenya",
+    number: "116",
+    description: "Child protection and support (Nationwide)"
   },
   {
-    name: "GBV Helpline",
-    number: "0800-GBV-HELP",
-    description: "Gender-based violence support"
+    name: "GBV Hotline (Healthcare Assistance Kenya)",
+    number: "1195",
+    description: "Gender-based violence support (Nationwide)"
+  },
+  {
+    name: "Gender Violence Recovery Centre (GVRC)",
+    number: "0709 319 000",
+    description: "GBV recovery services (Nairobi)"
+  },
+  {
+    name: "FIDA Kenya (Legal Aid)",
+    number: "0722 509 760",
+    description: "Free legal aid for women (Nationwide)"
   }
 ];
+
+export const formatEmergencyContactsForChat = (): string => {
+  const contacts = getEmergencyServices();
+  const lines = contacts.map(c => {
+    const numbers = c.altNumber ? `${c.number} / ${c.altNumber}` : c.number;
+    return `- ${c.name}: ${numbers}`;
+  });
+  return `\n\nIMPORTANT EMERGENCY CONTACTS:\n${lines.join('\n')}\n\nCall any of these numbers if you need immediate help.`;
+};
