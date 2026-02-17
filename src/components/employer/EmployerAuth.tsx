@@ -7,10 +7,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Phone, Mail, Briefcase } from 'lucide-react';
+import { useContentValue } from '@/hooks/useSiteContent';
 
 interface EmployerAuthProps {}
 
 const EmployerAuth: React.FC<EmployerAuthProps> = () => {
+  const jobPrice = useContentValue('employer_job_price', { text: '$30' })?.text;
+  const jobDuration = useContentValue('employer_job_duration', { text: '30 days' })?.text;
   const [isLoading, setIsLoading] = useState(false);
   const [authMethod, setAuthMethod] = useState<'email' | 'phone'>('email');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -201,7 +204,7 @@ const EmployerAuth: React.FC<EmployerAuthProps> = () => {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <p className="text-sm font-medium text-primary mb-4">
-            Post dignified work opportunities to help women transition to economic independence. $30 for 30 days.
+            Post dignified work opportunities to help women transition to economic independence. {jobPrice} for {jobDuration}.
           </p>
           <Briefcase className="mx-auto h-12 w-12 text-blue-600" />
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">

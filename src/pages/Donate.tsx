@@ -5,42 +5,33 @@ import DonationForm from '@/components/donation/DonationForm';
 import DonationImpactStory from '@/components/donation/DonationImpactStory';
 import HowGLOWorksModal from '@/components/home/HowGLOWorksModal';
 import { Button } from '@/components/ui/button';
+import { useSiteContent } from '@/hooks/useSiteContent';
+
+const tierIcons = [Heart, Users, Home, Utensils];
+const tierColors = ['bg-pink-500', 'bg-purple-500', 'bg-blue-500', 'bg-green-500'];
+
+const defaultTiers = [
+  { title: 'Dignity Kits', description: 'Essential hygiene and personal care items', amount: '$25', ksh: 'KSh 3,250' },
+  { title: 'Mental Health Support', description: 'One week of counseling and therapy sessions', amount: '$60', ksh: 'KSh 7,800' },
+  { title: 'Temporary Housing', description: 'Safe shelter for a woman for one week', amount: '$100', ksh: 'KSh 13,000' },
+  { title: 'Family Nutrition', description: 'Nutritious meals for a family of 4 for a month', amount: '$250', ksh: 'KSh 32,500' },
+];
 
 const Donate = () => {
-  const impactTiers = [
-    {
-      icon: Heart,
-      title: 'Dignity Kits',
-      description: 'Essential hygiene and personal care items',
-      amount: '$25',
-      ksh: 'KSh 3,250',
-      color: 'bg-pink-500',
-    },
-    {
-      icon: Users,
-      title: 'Mental Health Support',
-      description: 'One week of counseling and therapy sessions',
-      amount: '$60',
-      ksh: 'KSh 7,800',
-      color: 'bg-purple-500',
-    },
-    {
-      icon: Home,
-      title: 'Temporary Housing',
-      description: 'Safe shelter for a woman for one week',
-      amount: '$100',
-      ksh: 'KSh 13,000',
-      color: 'bg-blue-500',
-    },
-    {
-      icon: Utensils,
-      title: 'Family Nutrition',
-      description: 'Nutritious meals for a family of 4 for a month',
-      amount: '$250',
-      ksh: 'KSh 32,500',
-      color: 'bg-green-500',
-    },
-  ];
+  const { data } = useSiteContent();
+  const contentMap = data?.contentMap || {};
+
+  const impactTiers = [1, 2, 3, 4].map((i, idx) => {
+    const tier = contentMap[`donation_tier_${i}`] || defaultTiers[idx];
+    return {
+      icon: tierIcons[idx],
+      title: tier.title,
+      description: tier.description,
+      amount: tier.amount,
+      ksh: tier.ksh,
+      color: tierColors[idx],
+    };
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -58,7 +49,6 @@ const Donate = () => {
             Your contribution helps sustain the technology infrastructure connecting women to verified partner organizations.
           </p>
           
-          {/* See How GLO Works button */}
           <HowGLOWorksModal 
             trigger={
               <Button variant="outline" size="lg" className="gap-2">
@@ -70,7 +60,7 @@ const Donate = () => {
         </div>
       </section>
 
-      {/* Impact Tiers - Prominent Display */}
+      {/* Impact Tiers */}
       <section className="py-12 bg-muted/30">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-10">
@@ -98,21 +88,12 @@ const Donate = () => {
                       </div>
                     </div>
                     
-                    <h3 className="text-lg font-bold text-foreground mb-2">
-                      {tier.title}
-                    </h3>
-                    
-                    <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">
-                      {tier.description}
-                    </p>
+                    <h3 className="text-lg font-bold text-foreground mb-2">{tier.title}</h3>
+                    <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">{tier.description}</p>
                     
                     <div className="space-y-1">
-                      <div className="text-2xl font-bold text-primary">
-                        {tier.amount}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {tier.ksh}
-                      </div>
+                      <div className="text-2xl font-bold text-primary">{tier.amount}</div>
+                      <div className="text-sm text-muted-foreground">{tier.ksh}</div>
                     </div>
                   </CardContent>
                 </Card>
@@ -124,7 +105,6 @@ const Donate = () => {
 
       <div className="max-w-6xl mx-auto px-4 py-16">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Donation Form */}
           <div>
             <DonationForm 
               showImpactItems={false}
@@ -133,12 +113,9 @@ const Donate = () => {
             />
           </div>
 
-          {/* Stats, Story, and Additional Info */}
           <div className="space-y-8">
-            {/* Impact Story & Trust Signals */}
             <DonationImpactStory />
 
-            {/* Impact Stats */}
             <Card className="bg-primary text-primary-foreground">
               <CardContent className="p-6">
                 <div className="grid grid-cols-3 gap-4 text-center">
