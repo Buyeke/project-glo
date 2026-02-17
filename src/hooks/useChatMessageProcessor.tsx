@@ -9,7 +9,8 @@ export const useChatMessageProcessor = (intents: Intent[], services: Service[]) 
   const processMessage = async (
     userMessage: string, 
     messages: ChatMessage[], 
-    forcedLanguage?: string
+    forcedLanguage?: string,
+    knowledgeContext?: string
   ): Promise<{ userMsg: ChatMessage; botMsg: ChatMessage }> => {
     console.log('Processing message with enhanced Sheng matching:', userMessage);
     
@@ -124,6 +125,24 @@ export const useChatMessageProcessor = (intents: Intent[], services: Service[]) 
       }
       
       console.log('Using enhanced intent response:', response);
+    } else if (knowledgeContext && knowledgeContext.trim().length > 0) {
+      // Use knowledge base results as fallback instead of generic response
+      const kbLines = knowledgeContext.split('\n\n');
+      const firstEntry = kbLines[0] || '';
+      const titleMatch = firstEntry.match(/Title: (.+)/);
+      const contentMatch = firstEntry.match(/Content: (.+)/);
+      
+      if (contentMatch) {
+        const title = titleMatch ? titleMatch[1] : '';
+        response = title ? `📚 ${title}\n\n${contentMatch[1]}` : contentMatch[1];
+      } else {
+        const culturalResponse = generateCulturalResponse(userMessage, 'help', detectedLanguage);
+        response = culturalResponse.text;
+      }
+      
+      const clarificationText = getClarificationText(detectedLanguage);
+      response += `\n\n${clarificationText}`;
+      console.log('Using knowledge base fallback:', response.substring(0, 80));
     } else {
       // Enhanced fallback with cultural greeting and trauma-informed care
       const culturalResponse = generateCulturalResponse(userMessage, 'help', detectedLanguage);
@@ -162,6 +181,7 @@ export const useChatMessageProcessor = (intents: Intent[], services: Service[]) 
       confidence,
       matchedService: matchedServiceId,
       translatedFrom: messageForMatching !== userMessage ? detectedLanguage : undefined,
+      degraded: true,
     };
 
     return { userMsg, botMsg };

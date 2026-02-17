@@ -8,6 +8,7 @@ export interface ChatMessage {
   intent?: string;
   confidence?: number;
   matchedService?: string;
+  degraded?: boolean;
 }
 
 export interface Intent {
