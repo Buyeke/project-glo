@@ -37,18 +37,20 @@ export const useAIChatProcessor = () => {
     mutationFn: async (request: AIProcessorRequest): Promise<AIProcessorResponse> => {
       console.log('Processing message with AI:', request.message);
       
-      // Get current session to include JWT token
+      // Check if user is authenticated
       const { data: { session } } = await supabase.auth.getSession();
       
-      if (!session) {
-        throw new Error('Authentication required for AI processing');
+      // Choose endpoint based on auth status
+      const functionName = session ? 'ai-chat-processor' : 'ai-chat-public';
+      const headers: Record<string, string> = {};
+      
+      if (session) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
       }
 
-      const { data, error } = await supabase.functions.invoke('ai-chat-processor', {
+      const { data, error } = await supabase.functions.invoke(functionName, {
         body: request,
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
-        }
+        headers,
       });
 
       if (error) {
@@ -66,10 +68,10 @@ export const useAIChatProcessor = () => {
     },
     onError: (error) => {
       console.error('AI chat processing failed:', error);
-      if (error.message.includes('Authentication')) {
-        toast.error('Please sign in to use AI chat features');
-      } else if (error.message.includes('Rate limit')) {
+      if (error.message.includes('Rate limit') || error.message.includes('Too many')) {
         toast.error('Too many requests. Please wait before trying again.');
+      } else if (error.message.includes('402') || error.message.includes('payment')) {
+        toast.error('AI service temporarily unavailable.');
       } else {
         toast.error('AI processing failed, falling back to basic responses');
       }

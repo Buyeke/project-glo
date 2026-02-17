@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, Heart, ThumbsUp, ThumbsDown, MessageCircle } from 'lucide-react';
+import { AlertTriangle, Heart, ThumbsUp, ThumbsDown, MessageCircle, Info } from 'lucide-react';
 import { ChatMessage as ChatMessageType } from '@/types/chatbot';
 import { ChatbotFeedbackDialog } from './ChatbotFeedbackDialog';
 import { useChatbotFeedback } from '@/hooks/useChatbotFeedback';
@@ -123,6 +123,16 @@ export const ChatMessage = ({
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Degraded response indicator */}
+      {message.isBot && message.degraded && (
+        <div className="mt-2 p-2 bg-muted/50 border border-border rounded-lg flex items-center gap-2">
+          <Info className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+          <p className="text-xs text-muted-foreground">
+            I'm using basic matching right now. For better answers, try again in a moment.
+          </p>
         </div>
       )}
 

@@ -87,11 +87,11 @@ Deno.serve(async (req) => {
       .map(e => `[${e.category}] ${e.title}: ${e.content}`)
       .join('\n\n')
 
-    // Generate response using OpenAI
-    const openaiKey = Deno.env.get('OPENAI_API_KEY')
+    // Generate response using Lovable AI gateway
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')
     let responseText = ''
 
-    if (openaiKey && kbContext) {
+    if (lovableApiKey && kbContext) {
       const systemPrompt = `You are a helpful assistant for ${org?.name || 'this organization'}. 
 Answer questions using ONLY the following knowledge base. If you cannot answer from the knowledge base, say so politely and suggest contacting the organization directly.
 Be trauma-informed, culturally sensitive, and supportive. Respond in the language the user writes in (English, Swahili, or Sheng).
@@ -99,14 +99,14 @@ Be trauma-informed, culturally sensitive, and supportive. Respond in the languag
 Knowledge Base:
 ${kbContext}`
 
-      const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${openaiKey}`,
+          'Authorization': `Bearer ${lovableApiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
+          model: 'google/gemini-3-flash-preview',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: sanitizedMessage },

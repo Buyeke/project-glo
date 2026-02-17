@@ -6,6 +6,8 @@ import { useKnowledgeBase } from './useKnowledgeBase';
 import { useProactiveFollowups } from './useProactiveFollowups';
 import { detectLanguageWithContext } from '@/utils/enhancedLanguageDetection';
 
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 export const useEnhancedChatMessageProcessor = (intents: Intent[], services: Service[]) => {
   const { processWithAI, isProcessing: isAIProcessing } = useAIChatProcessor();
   const { processMessage: fallbackProcess } = useChatMessageProcessor(intents, services);
@@ -22,7 +24,6 @@ export const useEnhancedChatMessageProcessor = (intents: Intent[], services: Ser
     const detection = detectLanguageWithContext(userMessage);
     const detectedLanguage = forcedLanguage || detection.language;
 
-    // Create user message
     const userMsg: ChatMessage = {
       id: messages.length + 1,
       text: userMessage,
@@ -30,32 +31,51 @@ export const useEnhancedChatMessageProcessor = (intents: Intent[], services: Ser
       language: detectedLanguage,
     };
 
+    // Fetch knowledge base results (used by both AI and fallback paths)
+    let knowledgeResults: any[] = [];
+    let knowledgeContext = '';
     try {
-      // Search knowledge base for relevant information
-      const knowledgeResults = await searchKnowledge(userMessage, 3);
-      console.log('Knowledge search results:', knowledgeResults.length);
-      
-      // Prepare context with knowledge base results
-      const knowledgeContext = knowledgeResults.map(item => 
+      knowledgeResults = await searchKnowledge(userMessage, 3);
+      knowledgeContext = knowledgeResults.map(item => 
         `Title: ${item.title}\nContent: ${item.content}\nCategory: ${item.category}`
       ).join('\n\n');
+    } catch (err) {
+      console.error('Knowledge search failed:', err);
+    }
 
-      // Try AI processing with enhanced context
-      const aiResult = await new Promise<any>((resolve, reject) => {
-        processWithAI({
-          message: userMessage,
-          conversationHistory: messages,
-          language: detectedLanguage,
-          knowledgeContext: knowledgeContext
-        }, {
-          onSuccess: resolve,
-          onError: reject
-        });
+    // Try AI processing with retry
+    const tryAICall = () => new Promise<any>((resolve, reject) => {
+      processWithAI({
+        message: userMessage,
+        conversationHistory: messages,
+        language: detectedLanguage,
+        knowledgeContext,
+      }, {
+        onSuccess: resolve,
+        onError: reject,
       });
+    });
+
+    try {
+      let aiResult: any;
+      try {
+        aiResult = await tryAICall();
+      } catch (firstError: any) {
+        // Retry once after 2s for transient failures
+        const isTransient = firstError?.message?.includes('503') || 
+                           firstError?.message?.includes('timeout') ||
+                           firstError?.message?.includes('gateway error');
+        if (isTransient) {
+          console.log('Transient AI failure, retrying in 2s...');
+          await delay(2000);
+          aiResult = await tryAICall();
+        } else {
+          throw firstError;
+        }
+      }
 
       console.log('AI processing with RAG successful:', aiResult);
 
-      // Create enhanced bot message with AI response
       let enhancedResponse = aiResult.response;
       
       // Add relevant knowledge if found
@@ -76,47 +96,37 @@ export const useEnhancedChatMessageProcessor = (intents: Intent[], services: Ser
         matchedService: aiResult.matchedServices[0]?.id,
       };
 
-      // Add service information if services were matched
+      // Add service information
       if (aiResult.matchedServices.length > 0) {
         const service = aiResult.matchedServices[0];
         let serviceInfo = `\n\n🔹 ${service.title}\n${service.description}`;
-        
         if (service.key_features && Array.isArray(service.key_features)) {
-          const features = service.key_features.map(feature => `• ${feature}`).join('\n');
-          serviceInfo += `\n\nKey Features:\n${features}`;
+          serviceInfo += `\n\nKey Features:\n${service.key_features.map((f: string) => `• ${f}`).join('\n')}`;
         }
-        
-        if (service.contact_phone) {
-          serviceInfo += `\n\n📞 Call: ${service.contact_phone}`;
-        }
-        
-        if (service.contact_url) {
-          serviceInfo += `\n🌐 More info: ${service.contact_url}`;
-        }
-
+        if (service.contact_phone) serviceInfo += `\n\n📞 Call: ${service.contact_phone}`;
+        if (service.contact_url) serviceInfo += `\n🌐 More info: ${service.contact_url}`;
         botMsg.text += serviceInfo;
       }
 
-      // Add urgent response indicator
+      // Urgency indicators
       if (aiResult.analysis.urgency === 'critical') {
         botMsg.text = `🚨 **URGENT SUPPORT NEEDED** 🚨\n\n${botMsg.text}`;
       } else if (aiResult.analysis.urgency === 'high') {
         botMsg.text = `⚠️ **Priority Support** ⚠️\n\n${botMsg.text}`;
       }
 
-      // Add human escalation if needed
       if (aiResult.analysis.requires_human) {
         botMsg.text += `\n\n👥 **A human counselor will be notified to provide additional support.**`;
       }
 
-      // Schedule proactive follow-ups based on context
+      // Schedule follow-ups
       try {
         await autoScheduleFollowUps({
           urgency: aiResult.analysis.urgency,
           emotional_state: aiResult.analysis.emotional_state,
           matched_services: aiResult.matchedServices,
           requires_human: aiResult.analysis.requires_human,
-          language: detectedLanguage
+          language: detectedLanguage,
         });
       } catch (error) {
         console.error('Error scheduling follow-ups:', error);
@@ -125,10 +135,10 @@ export const useEnhancedChatMessageProcessor = (intents: Intent[], services: Ser
       return { userMsg, botMsg };
 
     } catch (error) {
-      console.error('Enhanced AI processing failed, using fallback:', error);
+      console.error('AI processing failed after retry, using fallback with knowledge:', error);
       
-      // Fallback to original processing
-      return await fallbackProcess(userMessage, messages, forcedLanguage);
+      // Fallback with knowledge context
+      return await fallbackProcess(userMessage, messages, forcedLanguage, knowledgeContext);
     }
   };
 

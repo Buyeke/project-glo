@@ -3,8 +3,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://fznhhkxwzqipwfwihwqr.supabase.co',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
@@ -12,6 +12,10 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const startTime = Date.now();
+  let user: any = null;
+  let supabase: any = null;
 
   try {
     // Get authorization header
@@ -25,23 +29,24 @@ serve(async (req) => {
 
     const token = authHeader.replace('Bearer ', '');
     
-    // Verify JWT token with service role client
     const supabaseAuth = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token);
+    const { data: { user: authUser }, error: authError } = await supabaseAuth.auth.getUser(token);
     
-    if (authError || !user) {
-      console.log('Authentication failed:', authError?.message);
+    if (authError || !authUser) {
       return new Response(
         JSON.stringify({ error: 'Invalid or expired token' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Check rate limit for authenticated user
+    user = authUser;
+    supabase = supabaseAuth;
+
+    // Check rate limit
     const clientIP = req.headers.get('cf-connecting-ip') || 
                     req.headers.get('x-forwarded-for')?.split(',')[0] || 
                     'unknown';
@@ -73,15 +78,10 @@ serve(async (req) => {
 
     const { message, conversationHistory, language = 'sheng', knowledgeContext = '' } = await req.json();
     
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    if (!lovableApiKey) {
+      throw new Error('LOVABLE_API_KEY not configured');
     }
-
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
 
     // Get available services and intents for context
     const { data: services } = await supabase
@@ -93,9 +93,8 @@ serve(async (req) => {
       .from('chatbot_intents')
       .select('*');
 
-    // Build enhanced context for OpenAI
-    const serviceContext = services?.map(s => `${s.title}: ${s.description}`).join('\n') || '';
-    const intentContext = intents?.map(i => `${i.intent_key}: ${i.response_template.sheng || i.response_template.swahili || i.response_template.english}`).join('\n') || '';
+    const serviceContext = services?.map((s: any) => `${s.title}: ${s.description}`).join('\n') || '';
+    const intentContext = intents?.map((i: any) => `${i.intent_key}: ${i.response_template.sheng || i.response_template.swahili || i.response_template.english}`).join('\n') || '';
     
     const conversationContext = conversationHistory?.slice(-5).map((msg: any) => 
       `${msg.isBot ? 'GLO' : 'Mresh'}: ${msg.text}`
@@ -137,21 +136,6 @@ CRITICAL SHENG EXPRESSIONS TO RECOGNIZE:
 - "sina doo" = I have no money (MEDIUM - financial)
 - "nataka therapist" = I want a therapist (MEDIUM - mental health)
 - "nataka lawyer" = I need a lawyer (MEDIUM - legal aid)
-- "nimevunjika moyo" = I'm heartbroken (MEDIUM - emotional care)
-- "naskia niko peke yangu" = I feel alone (MEDIUM - emotional support)
-- "sina mtu wa kunisaidia" = I have no one to help me (MEDIUM - social support)
-- "nimepoteza job" = I lost my job (MEDIUM - employment)
-- "nimechanganyikiwa" = I'm confused (MEDIUM - guidance needed)
-- "nataka kusaidiwa" = I want help (LOW - general support)
-
-TRAUMA-INFORMED RESPONSE EXAMPLES:
-If user says "nimebanwa": "Pole sana mresh. Naona uko kwa shida kubwa. Unaweza nipatia area uko? Nitakusaidia kupata msaada wa haraka. Haumo peke yako kwa hii."
-
-If user says "kupigwa na msee": "Pole sana kwa hayo mambaya. Hii ni serious sana. Kuna advocates wa GBV tunaeza kuwasiliana nao. Unataka nikupe nambari ama nikuwekee? Uko safe hapa."
-
-If user says "nimechoka na life": "Pole sana mresh. Naona uko kwa pain kubwa. Kuna counselors specialized na hii situation. Unataka niongelesha na mmoja sasa? Haumo peke yako."
-
-If user says "sina mahali pa kulala": "Pole sana mresh. Unaweza nipatia area uko? Nitakusaidia kupata place safe haraka. Kuna safe houses za emergency tunaeza kufikia."
 
 AVAILABLE SERVICES:
 ${serviceContext}
@@ -165,42 +149,25 @@ ${conversationContext}
 TRAUMA-INFORMED RESPONSE GUIDELINES:
 1. Always speak calmly and respectfully - like a caring big sister
 2. Never rush the user or pressure them for information
-3. Always offer choices: "Unataka niongelesha nini? Shelter, mental health, legal aid, ama job opportunities?"
-4. Validate their feelings: "Pole sana mresh" when they share difficulties
+3. Always offer choices
+4. Validate their feelings: "Pole sana mresh"
 5. Use authentic Sheng that respects street culture
-6. Never judge or blame - always show understanding
-7. Prioritize safety and well-being in all responses
-8. Let them know they can pause or stop anytime
-9. Be sensitive to trauma indicators and respond appropriately
-10. Always offer multiple options rather than directing single actions
-11. For CRITICAL situations (suicide, violence, abuse), provide immediate support
-12. For HIGH situations (threats, forced pregnancy), prioritize safety
-13. For MEDIUM situations (general needs), provide warm support
-14. Always end with supportive validation
+6. Never judge or blame
+7. Prioritize safety and well-being
+8. For CRITICAL situations, provide immediate support
+9. Always end with supportive validation
 
-RESPONSE LANGUAGE:
-- Default: Sheng (unless user requests English/Swahili)
-- Tone: Warm, caring, trauma-informed
-- Style: Like a "rafiki wa kweli, wa mtaa, mwenye roho safi"
-- Speed: Never rush - "polepole" approach always
+You are not just an AI — you are a rafiki wa kweli, wa mtaa, mwenye roho safi anataka kusaidia 🙏🏽💜`;
 
-CRITICAL: Always prioritize user safety and well-being. If someone is in immediate danger, provide emergency resources immediately while being trauma-informed.
-
-    You are not just an AI — you are a rafiki wa kweli, wa mtaa, mwenye roho safi anataka kusaidia 🙏🏽💜`;
-
-    // Track performance metrics
-    const startTime = Date.now();
-    let metricId: string | null = null;
-
-    // Call OpenAI for intelligent response generation with enhanced context
-    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Call Lovable AI gateway
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': `Bearer ${lovableApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'google/gemini-3-flash-preview',
         messages: [
           { role: 'system', content: enhancedSystemPrompt },
           { role: 'user', content: message }
@@ -210,30 +177,44 @@ CRITICAL: Always prioritize user safety and well-being. If someone is in immedia
       }),
     });
 
-    const aiResult = await openAIResponse.json();
-    
-    if (!aiResult.choices?.[0]?.message?.content) {
-      throw new Error('No response from OpenAI');
+    if (!aiResponse.ok) {
+      if (aiResponse.status === 429) {
+        return new Response(JSON.stringify({ error: 'Rate limits exceeded, please try again later.' }), {
+          status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      if (aiResponse.status === 402) {
+        return new Response(JSON.stringify({ error: 'AI service payment required. Please contact support.' }), {
+          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      const errText = await aiResponse.text();
+      console.error('AI gateway error:', aiResponse.status, errText);
+      throw new Error(`AI gateway error: ${aiResponse.status}`);
     }
 
-    const aiResponse = aiResult.choices[0].message.content;
+    const aiResult = await aiResponse.json();
+    
+    if (!aiResult.choices?.[0]?.message?.content) {
+      throw new Error('No response from AI gateway');
+    }
+
+    const responseText = aiResult.choices[0].message.content;
     const endTime = Date.now();
     const responseTimeMs = endTime - startTime;
 
-    // Calculate cost (gpt-4o-mini pricing: $0.150 per 1M input tokens, $0.600 per 1M output tokens)
     const promptTokens = aiResult.usage?.prompt_tokens || 0;
     const completionTokens = aiResult.usage?.completion_tokens || 0;
     const totalTokens = aiResult.usage?.total_tokens || 0;
-    const inputCost = (promptTokens / 1_000_000) * 0.150;
-    const outputCost = (completionTokens / 1_000_000) * 0.600;
-    const estimatedCost = inputCost + outputCost;
+    // Gemini pricing estimate
+    const estimatedCost = (totalTokens / 1_000_000) * 0.10;
 
-    // Insert performance metrics using service role
+    // Insert performance metrics
     const { data: metricData, error: metricError } = await supabase
       .from('ai_model_metrics')
       .insert({
         user_id: user.id,
-        model_name: 'gpt-4o-mini',
+        model_name: 'google/gemini-3-flash-preview',
         request_timestamp: new Date(startTime).toISOString(),
         response_timestamp: new Date(endTime).toISOString(),
         response_time_ms: responseTimeMs,
@@ -245,50 +226,36 @@ CRITICAL: Always prioritize user safety and well-being. If someone is in immedia
         model_parameters: {
           temperature: 0.7,
           max_tokens: 600,
-          model: 'gpt-4o-mini'
+          model: 'google/gemini-3-flash-preview'
         }
       })
       .select()
       .single();
 
+    let metricId: string | null = null;
     if (metricError) {
       console.error('Failed to insert AI metric:', metricError);
     } else {
       metricId = metricData?.id;
-      console.log('AI metrics recorded:', {
-        responseTimeMs,
-        totalTokens,
-        estimatedCost: estimatedCost.toFixed(6),
-        metricId
-      });
     }
 
-    // Enhanced classification with Sheng expressions
-    const classificationResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Classification call
+    const classificationResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': `Bearer ${lovableApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'google/gemini-3-flash-preview',
         messages: [
           {
             role: 'system',
-            content: `Analyze this message from a homeless woman or child in Kenya and return JSON with trauma-informed analysis. Pay special attention to Sheng expressions that indicate urgency:
+            content: `Analyze this message from a homeless woman or child in Kenya and return JSON with trauma-informed analysis. Pay special attention to Sheng expressions that indicate urgency.
 
-CRITICAL SHENG EXPRESSIONS (urgency: "critical"):
-- "nimebanwa", "kupigwa na msee", "nimechoka na life", "nataka kujitoa", "nimefukuzwa", "niko kwa matope", "nimepigwa vibaya", "nataka kuhepa", "nimefungiwa kwa room", "niko kwa lockdown ya msee", "sina mahali pa kulala", "nimebebwa kwa nguvu"
-
-HIGH PRIORITY SHENG EXPRESSIONS (urgency: "high"):
-- "msee amenitishia", "nimebebwa na police", "niko na ball ya force", "nataka safe house", "niko na stress ya ball", "mtoi wangu ameumwa"
-
-MEDIUM PRIORITY SHENG EXPRESSIONS (urgency: "medium"):
-- "nimebeba ball", "nataka job", "sina fare", "niko down", "niko na stress", "sina doo", "nataka therapist", "nataka lawyer"
-
-Return JSON:
+Return JSON only:
 {
-  "intent": "emergency|shelter|food|healthcare|mental_health|legal|gbv|safety_planning|job_training|court_support|general_help|greeting|thanks|followup_response|suicide_crisis|abuse_support|pregnancy_support|child_support|documentation|financial_aid",
+  "intent": "emergency|shelter|food|healthcare|mental_health|legal|gbv|safety_planning|job_training|general_help|greeting|thanks|suicide_crisis|abuse_support|pregnancy_support|child_support|documentation|financial_aid",
   "urgency": "low|medium|high|critical",
   "emotional_state": "neutral|distressed|traumatized|grateful|angry|scared|hopeful|overwhelmed|suicidal|abused",
   "services_needed": ["array of relevant service types"],
@@ -300,17 +267,9 @@ Return JSON:
   "follow_up_recommended": boolean,
   "knowledge_base_relevance": 0.0-1.0,
   "cultural_context": "street_life|domestic_violence|homelessness|vulnerability|empowerment|crisis|pregnancy|family_support",
-  "sheng_expressions_detected": ["array of detected Sheng expressions"],
+  "sheng_expressions_detected": [],
   "immediate_intervention_needed": boolean
-}
-
-Consider:
-- Sheng expressions indicating crisis or trauma
-- Need for immediate human intervention
-- Cultural context of street life and homelessness
-- Emotional state requiring extra care
-- Whether proactive follow-up would be beneficial
-- Specific Sheng phrases that indicate urgency levels`
+}`
           },
           { role: 'user', content: `Message: "${message}"\nKnowledge Context: "${knowledgeContext}"` }
         ],
@@ -318,50 +277,39 @@ Consider:
       }),
     });
 
-    const classificationResult = await classificationResponse.json();
     let analysis;
-    
-    try {
-      analysis = JSON.parse(classificationResult.choices[0].message.content);
-    } catch {
-      analysis = {
-        intent: 'general_help',
-        urgency: 'medium',
-        emotional_state: 'neutral',
-        services_needed: [],
-        confidence: 0.5,
-        requires_human: false,
-        trauma_indicators: false,
-        safety_concerns: false,
-        language_detected: language,
-        follow_up_recommended: false,
-        knowledge_base_relevance: 0.0,
-        cultural_context: 'general',
-        sheng_expressions_detected: [],
-        immediate_intervention_needed: false
-      };
+    if (classificationResponse.ok) {
+      const classificationResult = await classificationResponse.json();
+      try {
+        const content = classificationResult.choices?.[0]?.message?.content || '';
+        // Strip markdown code fences if present
+        const jsonStr = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        analysis = JSON.parse(jsonStr);
+      } catch {
+        analysis = getDefaultAnalysis(language);
+      }
+    } else {
+      analysis = getDefaultAnalysis(language);
     }
 
-    // Find matching services based on enhanced AI analysis
-    const matchedServices = services?.filter(service => {
+    // Find matching services
+    const matchedServices = services?.filter((service: any) => {
       const serviceMatch = analysis.services_needed.some((need: string) => 
         service.category.toLowerCase().includes(need.toLowerCase()) ||
         service.title.toLowerCase().includes(need.toLowerCase()) ||
         service.description.toLowerCase().includes(need.toLowerCase())
       );
-      
       const knowledgeMatch = knowledgeContext.toLowerCase().includes(service.title.toLowerCase());
-      
       return serviceMatch || knowledgeMatch;
     }).slice(0, 3) || [];
 
-    // Log the interaction with metrics link and AI analysis data
+    // Log the interaction
     const { data: interactionData, error: logError } = await supabase
       .from('chat_interactions')
       .insert({
         user_id: user.id,
         original_message: message,
-        response: aiResponse,
+        response: responseText,
         detected_language: analysis.language_detected,
         matched_intent: analysis.intent,
         confidence_score: analysis.confidence,
@@ -380,7 +328,7 @@ Consider:
       console.error('Failed to log interaction:', logError);
     }
 
-    // Log interaction for security monitoring
+    // Security log
     await supabase.from('security_logs').insert({
       event_type: 'admin_access',
       user_id: user.id,
@@ -388,25 +336,19 @@ Consider:
         action: 'ai_chat_interaction',
         intent: analysis.intent,
         urgency: analysis.urgency,
-        emotional_state: analysis.emotional_state,
         requires_human: analysis.requires_human,
-        trauma_indicators: analysis.trauma_indicators,
-        safety_concerns: analysis.safety_concerns,
         chat_interaction_id: interactionData?.id
       },
       ip_address: clientIP
     });
 
-    // Log only non-sensitive aggregate metrics (no PII, no emotional states, no trauma details)
     console.log('AI interaction completed', {
       urgency_level: analysis.urgency,
-      has_trauma_indicators: !!analysis.trauma_indicators,
-      has_safety_concerns: !!analysis.safety_concerns,
       matched_services_count: matchedServices.length,
     });
 
     return new Response(JSON.stringify({
-      response: aiResponse,
+      response: responseText,
       analysis,
       matchedServices,
       conversationMetadata: {
@@ -432,23 +374,23 @@ Consider:
     const responseTimeMs = endTime - startTime;
     console.error('AI chat processing failed:', error);
     
-    // Categorize error type
     const errorType = categorizeError(error);
     
-    // Log failed request metrics using service role
     try {
-      await supabase
-        .from('ai_model_metrics')
-        .insert({
-          user_id: user?.id,
-          model_name: 'gpt-4o-mini',
-          request_timestamp: new Date(startTime).toISOString(),
-          response_timestamp: new Date(endTime).toISOString(),
-          response_time_ms: responseTimeMs,
-          request_success: false,
-          error_type: errorType,
-          error_message: error.message
-        });
+      if (supabase) {
+        await supabase
+          .from('ai_model_metrics')
+          .insert({
+            user_id: user?.id,
+            model_name: 'google/gemini-3-flash-preview',
+            request_timestamp: new Date(startTime).toISOString(),
+            response_timestamp: new Date(endTime).toISOString(),
+            response_time_ms: responseTimeMs,
+            request_success: false,
+            error_type: errorType,
+            error_message: error.message
+          });
+      }
     } catch (metricError) {
       console.error('Failed to log error metric:', metricError);
     }
@@ -466,7 +408,25 @@ Consider:
   }
 });
 
-// Helper function to categorize errors
+function getDefaultAnalysis(language: string) {
+  return {
+    intent: 'general_help',
+    urgency: 'medium',
+    emotional_state: 'neutral',
+    services_needed: [],
+    confidence: 0.5,
+    requires_human: false,
+    trauma_indicators: false,
+    safety_concerns: false,
+    language_detected: language,
+    follow_up_recommended: false,
+    knowledge_base_relevance: 0.0,
+    cultural_context: 'general',
+    sheng_expressions_detected: [],
+    immediate_intervention_needed: false
+  };
+}
+
 function categorizeError(error: any): string {
   const message = error.message?.toLowerCase() || '';
   if (message.includes('rate limit')) return 'rate_limit';
