@@ -1,94 +1,115 @@
 
-
-# Improve Chatbot Fallback Logic and Migrate Away from OpenAI
+# Remove Emojis from Chatbot, Add Emergency Contacts with Links
 
 ## Overview
 
-This plan addresses the four identified fallback weaknesses and introduces a migration path from OpenAI to Lovable AI (which serves Google Gemini models), eliminating your OpenAI dependency and cost.
+Three changes: (1) strip all emoji characters from chatbot responses and UI, (2) add actual emergency contact links/numbers in chat responses, and (3) add an admin-editable Emergency Contacts section to the Resources page.
 
 ---
 
-## Part 1: Fix Current Fallback Issues
+## 1. Remove Emojis from Chatbot
 
-### 1A. Remove Authentication Wall for Basic Chat
+Emojis appear in multiple places across the chatbot codebase. All will be removed:
 
-**Problem:** Unauthenticated visitors hit the local keyword matcher immediately because `useAIChatProcessor` requires a session.
+### Files and specific emoji locations:
 
-**Fix:** Create a new lightweight edge function `ai-chat-public` that skips JWT verification and uses IP-based rate limiting instead of user-based. The enhanced processor will try the public endpoint when no session exists.
+**`supabase/functions/ai-chat-processor/index.ts`**
+- Line 160: Remove emojis from system prompt ending (`🙏🏽💜`)
+- Add instruction to system prompt: "Do NOT use emoji characters in your responses."
 
-- `useAIChatProcessor.tsx` -- remove the "Authentication required" throw; instead, call `ai-chat-public` for anonymous users and `ai-chat-processor` for logged-in users
-- `supabase/functions/ai-chat-public/index.ts` -- new function with IP-based rate limiting, smaller token budget (300 vs 600), and the same system prompt
+**`supabase/functions/ai-chat-public/index.ts`**
+- Line 95: Remove emojis from system prompt (`🙏🏽💜`)
+- Add same "no emoji" instruction
 
-### 1B. Add Retry for Transient AI Failures
+**`supabase/functions/org-widget-chat/index.ts`**
+- No emojis in system prompt currently, but add "no emoji" instruction for consistency
 
-**Problem:** A single OpenAI 503 or timeout immediately drops to keyword matching.
+**`src/hooks/useEnhancedChatMessageProcessor.tsx`**
+- Line 85: Remove `📚` from "Additional Information" prefix
+- Line 102: Remove `🔹` from service title prefix
+- Line 106: Remove `📞` from phone prefix
+- Line 107: Remove `🌐` from URL prefix
+- Line 113: Remove `🚨` emojis from urgent support text
+- Line 115: Remove `⚠️` emojis from priority support text
+- Line 119: Remove `👥` from human counselor text
 
-**Fix:** Add a retry wrapper (1 retry with 2-second delay) inside `useEnhancedChatMessageProcessor` before falling back to local processing.
+**`src/hooks/useChatMessageProcessor.tsx`**
+- Line 84: Remove `🔹` from service response
+- Line 89: Remove `📞` from call text
+- Line 94: Remove `🌐` from more info text
+- Line 111-114: Remove `🚨` and `⚠️` from urgency indicators
+- Line 137: Remove `📚` from knowledge base response
+- Lines 196-202: Remove `💜` from trauma encouragement strings
+- Lines 207-213: Remove `🛡️` from safety note strings
+- Lines 228-235: Remove `💪🏽` from support note strings
 
-- `useEnhancedChatMessageProcessor.tsx` -- wrap the AI call in a retry helper; only fall back after the retry also fails
+**`src/components/chatbot/ChatQuickActions.tsx`**
+- Line 141: Remove `💜` from the bottom safety message
 
-### 1C. Use Knowledge Base Results in Fallback
-
-**Problem:** When the AI call fails, the knowledge base results already fetched are discarded.
-
-**Fix:** Pass knowledge results into the local `useChatMessageProcessor` fallback path. If there are relevant knowledge items, include them in the bot response instead of using only the generic cultural response.
-
-- `useChatMessageProcessor.tsx` -- accept an optional `knowledgeContext` parameter; when present and no intent matches, use the top knowledge result as the response body instead of the generic fallback
-- `useEnhancedChatMessageProcessor.tsx` -- pass `knowledgeResults` to the fallback call
-
-### 1D. Tell Users When They Get a Degraded Response
-
-**Problem:** Silent fallback with no indicator that the response quality is reduced.
-
-**Fix:** Add a `degraded` flag to bot messages. When displaying a fallback response, show a subtle banner: "I'm using basic matching right now. For better answers, try again in a moment."
-
-- `types/chatbot.ts` -- add optional `degraded?: boolean` field to `ChatMessage`
-- `useChatMessageProcessor.tsx` -- set `degraded: true` on fallback messages
-- `ChatMessage.tsx` -- render a small info banner when `message.degraded` is true
+**`src/components/chatbot/ChatMessage.tsx`**
+- Line 152: Remove `💜` from "Thanks for your feedback!" text
 
 ---
 
-## Part 2: Migrate from OpenAI to Lovable AI
+## 2. Add Emergency Contact Links in Chat
 
-This project already has a `LOVABLE_API_KEY` secret configured. Lovable AI provides Google Gemini models at the same OpenAI-compatible endpoint, so the migration is straightforward.
+Replace the hardcoded placeholder contacts in `emergencyDetection.ts` with real Kenya emergency numbers, and surface them in chat responses.
 
-### 2A. Update `ai-chat-processor` Edge Function
+**`src/utils/emergencyDetection.ts`**
+- Update `getEmergencyServices()` to return real contacts:
+  - Kenya Police: 999 / 112
+  - Childline Kenya: 116
+  - GBV Hotline (Healthcare Assistance Kenya): 1195
+  - Gender Violence Recovery Centre (GVRC): 0709 319 000
+  - FIDA Kenya (legal aid): 0722 509 760
 
-Replace the two OpenAI `fetch` calls with calls to the Lovable AI gateway:
+**`src/hooks/useEnhancedChatMessageProcessor.tsx`**
+- When `analysis.urgency === 'critical'` or `analysis.safety_concerns === true`, append emergency contacts from `getEmergencyServices()` to the bot response with clickable `tel:` links formatted as text
 
-| Current | New |
-|---------|-----|
-| `https://api.openai.com/v1/chat/completions` | `https://ai.gateway.lovable.dev/v1/chat/completions` |
-| `Bearer ${OPENAI_API_KEY}` | `Bearer ${LOVABLE_API_KEY}` |
-| `model: 'gpt-4o-mini'` | `model: 'google/gemini-3-flash-preview'` |
+**`src/hooks/useChatMessageProcessor.tsx`**
+- In the `getSafetyNote()` helper, replace hardcoded "call 999 or 112" with the full emergency contact list from `getEmergencyServices()`
+- For critical/high urgency responses, append emergency contacts
 
-Both the response generation call and the classification call get updated. The request/response format is identical (OpenAI-compatible).
+**`supabase/functions/ai-chat-processor/index.ts`**
+- Add emergency contacts to the system prompt so the AI model can reference them directly when responding to crisis messages
 
-Add handling for Lovable AI-specific errors:
-- **429** -- rate limit exceeded, surface to user
-- **402** -- payment required, surface to user
+---
 
-Update the cost tracking in `ai_model_metrics` to reflect Gemini pricing instead of GPT-4o-mini pricing.
+## 3. Emergency Contacts Section on Resources Page (Admin-Editable)
 
-### 2B. Create `ai-chat-public` Edge Function (for anonymous users)
+### Database: New `site_content` rows
 
-Same as above but:
-- No JWT verification
-- IP-based rate limiting (stricter: 10 requests/minute vs 30)
-- Smaller token budget (`max_tokens: 300`)
-- Uses `google/gemini-3-flash-preview`
-- Skips the classification second call (saves cost for anonymous users)
+Insert seed data into `site_content` with:
+- `content_key`: `emergency_contacts`
+- `content_type`: `list`
+- `section`: `resources`
+- `content_value`: JSON array of objects, each with `organization`, `phone`, `locations_served` fields
 
-### 2C. Update `org-widget-chat` Edge Function
+Default seed data:
+| Organization | Phone | Locations Served |
+|---|---|---|
+| Kenya Police | 999 / 112 | Nationwide |
+| Childline Kenya | 116 | Nationwide |
+| Healthcare Assistance Kenya (GBV) | 1195 | Nationwide |
+| Gender Violence Recovery Centre (GVRC) | 0709 319 000 | Nairobi |
+| FIDA Kenya (Legal Aid) | 0722 509 760 | Nationwide |
 
-This function also calls OpenAI directly. Update it the same way:
-- Replace OpenAI URL with Lovable AI gateway
-- Replace `OPENAI_API_KEY` with `LOVABLE_API_KEY`
-- Replace `gpt-4o-mini` with `google/gemini-3-flash-preview`
+### New Component: `src/components/resources/EmergencyContacts.tsx`
 
-### 2D. Update `config.toml`
+A prominently styled section at the top of the Resources page (below header, above filters) displaying a table/card grid of emergency contacts. Each row shows:
+- Organization name
+- Phone number (clickable `tel:` link)
+- Locations served
 
-Add the new `ai-chat-public` function with `verify_jwt = false`.
+Data sourced from `useContentValue('emergency_contacts', [...defaults])`.
+
+### Resources Page Update: `src/pages/Resources.tsx`
+
+Import and render `EmergencyContacts` between `ResourcesHeader` and `OrganizationCTA`.
+
+### Admin CMS: `src/components/admin/ContentManagement.tsx`
+
+The existing `list` type editor already supports editing arrays. The emergency contacts will appear under the "Resources" section (or a new tab if needed). Each list item will have fields for `organization`, `phone`, and `locations_served`.
 
 ---
 
@@ -96,25 +117,14 @@ Add the new `ai-chat-public` function with `verify_jwt = false`.
 
 | File | Change |
 |------|--------|
-| `supabase/functions/ai-chat-processor/index.ts` | Switch from OpenAI to Lovable AI gateway, add 429/402 handling |
-| `supabase/functions/ai-chat-public/index.ts` | **New** -- anonymous-friendly AI endpoint with IP rate limiting |
-| `supabase/functions/org-widget-chat/index.ts` | Switch from OpenAI to Lovable AI gateway |
-| `supabase/config.toml` | Add `ai-chat-public` function entry |
-| `src/hooks/useAIChatProcessor.tsx` | Remove auth requirement; route to public endpoint when no session |
-| `src/hooks/useEnhancedChatMessageProcessor.tsx` | Add retry logic; pass knowledge context to fallback |
-| `src/hooks/useChatMessageProcessor.tsx` | Accept knowledge context; use it in fallback responses |
-| `src/types/chatbot.ts` | Add `degraded` field to `ChatMessage` |
-| `src/components/chatbot/ChatMessage.tsx` | Render degraded-response banner |
-
-No database changes needed.
-
----
-
-## Result After Implementation
-
-- Anonymous visitors get AI-powered responses (rate-limited)
-- Transient failures retry once before falling back
-- Fallback responses include relevant knowledge base content instead of generic templates
-- Users see a subtle indicator when getting degraded responses
-- All AI calls go through Lovable AI (Gemini) instead of OpenAI -- no more OpenAI dependency or costs
-
+| `supabase/functions/ai-chat-processor/index.ts` | Remove emojis from prompt; add "no emoji" rule; add emergency contacts to prompt |
+| `supabase/functions/ai-chat-public/index.ts` | Remove emojis; add "no emoji" rule |
+| `src/hooks/useEnhancedChatMessageProcessor.tsx` | Remove all emojis; append emergency contacts for critical situations |
+| `src/hooks/useChatMessageProcessor.tsx` | Remove all emojis; update safety notes with real contacts |
+| `src/utils/emergencyDetection.ts` | Replace placeholder contacts with real Kenya emergency numbers |
+| `src/components/chatbot/ChatQuickActions.tsx` | Remove emoji from safety message |
+| `src/components/chatbot/ChatMessage.tsx` | Remove emoji from feedback text |
+| `src/components/resources/EmergencyContacts.tsx` | **New** -- emergency contacts display component |
+| `src/pages/Resources.tsx` | Add EmergencyContacts section |
+| `supabase/migrations/new_migration.sql` | Insert emergency_contacts seed data into site_content |
+| `src/components/admin/ContentManagement.tsx` | Ensure list editor renders `organization`/`phone`/`locations_served` fields for emergency contacts |
