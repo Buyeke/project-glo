@@ -108,9 +108,14 @@ const Partners = () => {
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
             {heroTitle}
           </h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
             {heroSubtitle}
           </p>
+          <Button size="lg" asChild>
+            <Link to="/partner-register">
+              Apply to Partner <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
         </div>
       </section>
 
