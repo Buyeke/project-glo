@@ -1900,6 +1900,83 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_applications: {
+        Row: {
+          admin_notes: string | null
+          contact_email: string
+          contact_name: string
+          contact_phone: string | null
+          created_at: string
+          description: string | null
+          expected_student_count: number | null
+          id: string
+          institution_type: string
+          invoice_sent: boolean
+          organization_id: string | null
+          organization_name: string
+          payment_amount: number | null
+          payment_due_date: string | null
+          payment_status: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          selected_tier: string
+          status: string
+          website: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          contact_email: string
+          contact_name: string
+          contact_phone?: string | null
+          created_at?: string
+          description?: string | null
+          expected_student_count?: number | null
+          id?: string
+          institution_type?: string
+          invoice_sent?: boolean
+          organization_id?: string | null
+          organization_name: string
+          payment_amount?: number | null
+          payment_due_date?: string | null
+          payment_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selected_tier?: string
+          status?: string
+          website?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          contact_email?: string
+          contact_name?: string
+          contact_phone?: string | null
+          created_at?: string
+          description?: string | null
+          expected_student_count?: number | null
+          id?: string
+          institution_type?: string
+          invoice_sent?: boolean
+          organization_id?: string | null
+          organization_name?: string
+          payment_amount?: number | null
+          payment_due_date?: string | null
+          payment_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selected_tier?: string
+          status?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_applications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_invoices: {
         Row: {
           amount: number
