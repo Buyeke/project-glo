@@ -13,22 +13,28 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const TIER_PRICING: Record<string, { name: string; price: string; amount: number; features: string[] }> = {
+  pilot: {
+    name: "Pilot",
+    price: "$2,000/month",
+    amount: 2000,
+    features: ["Sandbox API access", "Up to 40 students", "Basic analytics", "Email support"],
+  },
   essentials: {
     name: "Essentials",
-    price: "$300/semester",
-    amount: 300,
+    price: "$2,500/month",
+    amount: 2500,
     features: ["Sandbox API access", "Up to 40 students", "Basic analytics", "Email support"],
   },
   standard: {
     name: "Standard",
-    price: "$600/semester",
-    amount: 600,
+    price: "$4,000/month",
+    amount: 4000,
     features: ["Full API access", "Up to 100 students", "Advanced analytics", "Assignment management", "Priority support"],
   },
   premium: {
     name: "Premium",
-    price: "$900/semester",
-    amount: 900,
+    price: "$10,000/month",
+    amount: 10000,
     features: ["Full API + custom datasets", "Unlimited students", "Faculty dashboard", "Custom integrations", "Dedicated support"],
   },
 };
@@ -44,7 +50,7 @@ const PartnerRegister = () => {
     website: "",
     institution_type: "academic",
     description: "",
-    selected_tier: "essentials",
+    selected_tier: "pilot",
     expected_student_count: "",
   });
 
@@ -143,7 +149,7 @@ const PartnerRegister = () => {
       <section className="py-12 px-4 bg-muted/30">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-2xl font-bold text-center text-foreground mb-8">Choose Your Plan</h2>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {Object.entries(TIER_PRICING).map(([key, tier]) => (
               <Card
                 key={key}
