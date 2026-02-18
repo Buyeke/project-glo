@@ -2945,6 +2945,16 @@ export type Database = {
         Returns: boolean
       }
       expire_old_jobs: { Args: never; Returns: undefined }
+      get_ai_performance_summary: {
+        Args: { p_end: string; p_start: string; p_tenant: string }
+        Returns: Database["public"]["CompositeTypes"]["ai_perf_summary_row"][]
+        SetofOptions: {
+          from: "*"
+          to: "ai_perf_summary_row"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       is_admin_user: { Args: never; Returns: boolean }
       rotate_security_logs: {
         Args: { retention_days?: number }
@@ -2984,7 +2994,14 @@ export type Database = {
       [_ in never]: never
     }
     CompositeTypes: {
-      [_ in never]: never
+      ai_perf_summary_row: {
+        tenant_id: string | null
+        period_start: string | null
+        period_end: string | null
+        requests_count: number | null
+        avg_latency_ms: number | null
+        success_rate: number | null
+      }
     }
   }
 }
