@@ -7,8 +7,10 @@ import FloatingHelpButton from './FloatingHelpButton';
 import QuickExitButton from './QuickExitButton';
 import { MobileBottomNav } from './MobileBottomNav';
 import { LazyComponents } from '@/utils/performanceOptimizations';
+import { useSessionTracking } from '@/hooks/useDataTracking';
 
 const Layout = () => {
+  useSessionTracking();
   return (
     <div className="min-h-screen bg-background pb-16 sm:pb-0">
       <Navigation />
