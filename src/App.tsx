@@ -31,6 +31,8 @@ import DonationCancelled from "./pages/DonationCancelled";
 import Partners from "./pages/Partners";
 import PartnerRegister from "./pages/PartnerRegister";
 import DonorDashboard from "./pages/DonorDashboard";
+import StudentRegister from "./pages/StudentRegister";
+import PartnerPortal from "./pages/PartnerPortal";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +62,8 @@ const App = () => {
                 <Route path="donate" element={<Donate />} />
                 <Route path="partners" element={<Partners />} />
                 <Route path="partner-register" element={<PartnerRegister />} />
+                <Route path="student-register/:orgSlug" element={<StudentRegister />} />
+                <Route path="partner-portal" element={<PartnerPortal />} />
                 <Route path="donation-success" element={<DonationSuccess />} />
                 <Route path="donation-cancelled" element={<DonationCancelled />} />
                 <Route path="auth" element={<Auth />} />
