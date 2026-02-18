@@ -1,78 +1,65 @@
 
 
-# Partner Onboarding and Invoice Management in Admin Dashboard
+# User Time Tracking on Admin Dashboard
 
 ## Overview
 
-Add a new "Partners" tab to the Admin Dashboard where you can:
-1. Onboard new partners (create organization records with contact details, tier, etc.)
-2. View and manage existing partners
-3. Create invoices for partners with a month/year billing period selector (e.g., "Jan 2026")
+Add a new "Usage" tab to the Admin Dashboard that shows how many hours each user has spent on the platform. Users are displayed with their name, organization type (user_type from profiles), and organization name (from the organizations table if applicable). The system will track actual session time by creating a `user_sessions` table that logs session start/end times.
 
 ---
 
-## Part 1: Database -- New `partner_invoices` Table
+## Part 1: Database -- New `user_sessions` Table
 
-Create a new table to store invoices linked to organizations:
+Create a table to track individual user sessions with start and end timestamps, enabling accurate time-on-platform calculations.
 
 | Column | Type | Notes |
 |--------|------|-------|
 | `id` | uuid | Primary key |
-| `organization_id` | uuid | FK to `organizations` |
-| `invoice_number` | text | Auto-generated (e.g., INV-2026-001) |
-| `billing_period_month` | integer | 1-12 |
-| `billing_period_year` | integer | e.g., 2026 |
-| `amount` | numeric | Invoice amount |
-| `currency` | text | Default 'USD' |
-| `description` | text | Line item description |
-| `status` | text | draft / sent / paid / overdue / cancelled |
-| `due_date` | date | Payment due date |
-| `paid_at` | timestamptz | When payment was received |
-| `notes` | text | Admin notes |
-| `created_by` | uuid | Admin who created it |
+| `user_id` | uuid | References auth.users, not null |
+| `session_start` | timestamptz | When user started the session |
+| `session_end` | timestamptz | Updated when user leaves/goes idle |
+| `duration_minutes` | numeric | Computed on session end |
+| `device_type` | text | desktop/mobile/tablet |
 | `created_at` | timestamptz | Auto |
-| `updated_at` | timestamptz | Auto |
 
-RLS: Admin-only access for all operations.
-
----
-
-## Part 2: Admin Dashboard -- New "Partners" Tab
-
-### 2A. Add Tab to AdminDashboard
-
-Add a "Partners" tab (8th tab) to `AdminDashboard.tsx` that renders a new `PartnerManagement` component.
-
-### 2B. Create `PartnerManagement.tsx`
-
-This component has two sub-views:
-
-**Partners List View:**
-- Table showing all organizations: name, contact email, tier, status (active/inactive), created date
-- "Add Partner" button opens an onboarding form
-- Click a partner row to view details and invoices
-
-**Partner Onboarding Form (dialog/modal):**
-- Fields: Organization Name, Slug (auto-generated from name), Contact Email, Contact Phone, Website, Description, Tier (dropdown: community / professional / enterprise), Notes
-- On submit: inserts into `organizations` table with `owner_user_id` set to the admin's ID (can be reassigned later)
-
-**Invoice Section (per partner):**
-- "Create Invoice" button opens invoice form
-- Invoice form fields:
-  - Billing Period: two dropdowns -- Month (January-December) and Year (2024-2030)
-  - Amount (numeric input)
-  - Currency (USD default, dropdown)
-  - Description (text)
-  - Due Date (date picker)
-  - Notes (optional textarea)
-- Invoice list for the selected partner showing: invoice number, billing period, amount, status, due date
-- Status can be updated inline (draft -> sent -> paid)
+RLS: Users can insert/update their own sessions. Admins can read all.
 
 ---
 
-## Part 3: Quick Action on Overview
+## Part 2: Client-Side Session Tracking
 
-Add a "Manage Partners" quick action button on the overview tab that navigates to the partners tab.
+Update `src/hooks/useDataTracking.tsx` to:
+
+- On mount (when user is authenticated), insert a new `user_sessions` row with `session_start = now()`
+- Store the session ID in state
+- On `beforeunload` / `visibilitychange` (tab hidden), update the row with `session_end = now()` and computed `duration_minutes`
+- Use a heartbeat (every 60 seconds) to update `session_end` so we don't lose data if the browser crashes
+
+---
+
+## Part 3: Admin Dashboard -- New "Usage" Tab
+
+### New Component: `src/components/admin/UserUsageTracker.tsx`
+
+Displays a table with the following columns:
+- **User Name** (from `profiles.full_name`)
+- **Organization Type** (from `profiles.user_type` -- individual, ngo, etc.)
+- **Organization Name** (joined from `organizations.name` via `organization_members`, or "N/A" for individuals)
+- **Total Hours** (sum of `duration_minutes` from `user_sessions`, converted to hours)
+- **Last Active** (most recent `session_end`)
+
+Features:
+- Date range filter (from/to date pickers) to filter sessions
+- Sort by total hours or name
+- Search/filter by user name or organization type
+
+The component queries `user_sessions` joined with `profiles` and optionally `organization_members` + `organizations` to get org names.
+
+### AdminDashboard Update
+
+- Add a 9th tab "Usage" with a Clock icon
+- Render `UserUsageTracker` in that tab
+- Update the grid from `grid-cols-8` to `grid-cols-9`
 
 ---
 
@@ -80,16 +67,17 @@ Add a "Manage Partners" quick action button on the overview tab that navigates t
 
 | File | Change |
 |------|--------|
-| `supabase/migrations/new.sql` | Create `partner_invoices` table with RLS |
-| `src/components/admin/PartnerManagement.tsx` | **New** -- Partner list, onboarding form, invoice CRUD |
-| `src/components/admin/AdminDashboard.tsx` | Add "Partners" tab, quick action button |
+| `supabase/migrations/new.sql` | Create `user_sessions` table with RLS policies |
+| `src/hooks/useDataTracking.tsx` | Add session start/end tracking with heartbeat |
+| `src/components/admin/UserUsageTracker.tsx` | **New** -- usage tracking table with filters |
+| `src/components/admin/AdminDashboard.tsx` | Add "Usage" tab |
 
 ---
 
-## Technical Notes
+## Technical Details
 
-- The `organizations` table already has the fields needed for partner data (name, slug, contact_email, tier, etc.), so no schema changes needed there
-- Invoice numbers will be generated client-side as `INV-{YEAR}-{sequential}` based on existing invoice count
-- The billing period selector uses two `<Select>` dropdowns -- one for month name, one for year -- storing as integers in the database for easy querying
-- All operations are admin-only, enforced by RLS policies on `partner_invoices` and existing policies on `organizations`
+- Session tracking uses `navigator.sendBeacon` on `beforeunload` for reliable end-of-session updates, falling back to a regular Supabase update
+- The heartbeat pattern ensures sessions are captured even if the user closes the browser abruptly -- the last heartbeat timestamp serves as a reasonable `session_end`
+- The admin query aggregates `SUM(duration_minutes)` grouped by `user_id`, joining `profiles` for name/type and `organization_members` + `organizations` for org name
+- Sessions without an `session_end` (active sessions) use `now() - session_start` for real-time display
 
