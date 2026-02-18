@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowLeft, Plus, FileText, CalendarIcon, ClipboardList } from 'lucide-react';
+import { ArrowLeft, Plus, FileText, CalendarIcon, ClipboardList, Ban, Archive, RotateCcw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -33,6 +33,7 @@ interface Organization {
   description: string | null;
   tier: string;
   is_active: boolean;
+  status: string;
   created_at: string;
 }
 
@@ -86,14 +87,31 @@ const PartnerManagement = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from('organizations')
-      .select('id, name, slug, contact_email, contact_phone, website, description, tier, is_active, created_at')
+      .select('id, name, slug, contact_email, contact_phone, website, description, tier, is_active, status, created_at')
       .order('created_at', { ascending: false });
     if (error) {
       toast({ title: 'Error loading partners', description: error.message, variant: 'destructive' });
     } else {
-      setPartners(data || []);
+      setPartners((data as any[]) || []);
     }
     setLoading(false);
+  };
+
+  const updateOrgStatus = async (orgId: string, newStatus: string) => {
+    const isActive = newStatus === 'active';
+    const { error } = await supabase
+      .from('organizations')
+      .update({ status: newStatus, is_active: isActive } as any)
+      .eq('id', orgId);
+    if (error) {
+      toast({ title: 'Error updating status', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: `Organization ${newStatus}` });
+      fetchPartners();
+      if (selectedPartner?.id === orgId) {
+        setSelectedPartner({ ...selectedPartner, status: newStatus, is_active: isActive });
+      }
+    }
   };
 
   const fetchInvoices = async (orgId: string) => {
@@ -212,7 +230,7 @@ const PartnerManagement = () => {
   if (selectedPartner) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-wrap">
           <Button variant="ghost" size="sm" onClick={() => setSelectedPartner(null)}>
             <ArrowLeft className="h-4 w-4 mr-1" /> Back
           </Button>
@@ -220,9 +238,31 @@ const PartnerManagement = () => {
             <h2 className="text-2xl font-bold">{selectedPartner.name}</h2>
             <p className="text-sm text-muted-foreground">{selectedPartner.contact_email}</p>
           </div>
-          <Badge variant={selectedPartner.is_active ? 'default' : 'secondary'} className="ml-auto">
-            {selectedPartner.is_active ? 'Active' : 'Inactive'}
+          <Badge variant={selectedPartner.status === 'active' ? 'default' : selectedPartner.status === 'suspended' ? 'destructive' : 'secondary'} className="ml-auto">
+            {selectedPartner.status || 'active'}
           </Badge>
+          <div className="flex gap-1">
+            {(selectedPartner.status || 'active') === 'active' && (
+              <>
+                <Button size="sm" variant="outline" onClick={() => updateOrgStatus(selectedPartner.id, 'suspended')}>
+                  <Ban className="h-3 w-3 mr-1" /> Suspend
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => updateOrgStatus(selectedPartner.id, 'archived')}>
+                  <Archive className="h-3 w-3 mr-1" /> Archive
+                </Button>
+              </>
+            )}
+            {selectedPartner.status === 'suspended' && (
+              <Button size="sm" variant="outline" onClick={() => updateOrgStatus(selectedPartner.id, 'active')}>
+                <RotateCcw className="h-3 w-3 mr-1" /> Reactivate
+              </Button>
+            )}
+            {selectedPartner.status === 'archived' && (
+              <Button size="sm" variant="outline" onClick={() => updateOrgStatus(selectedPartner.id, 'active')}>
+                <RotateCcw className="h-3 w-3 mr-1" /> Restore
+              </Button>
+            )}
+          </div>
         </div>
 
         <Card>
@@ -413,8 +453,8 @@ const PartnerManagement = () => {
                         <TableCell>{p.contact_email}</TableCell>
                         <TableCell><Badge variant="outline">{p.tier}</Badge></TableCell>
                         <TableCell>
-                          <Badge variant={p.is_active ? 'default' : 'secondary'}>
-                            {p.is_active ? 'Active' : 'Inactive'}
+                          <Badge variant={(p.status || 'active') === 'active' ? 'default' : (p.status || 'active') === 'suspended' ? 'destructive' : 'secondary'}>
+                            {p.status || 'active'}
                           </Badge>
                         </TableCell>
                         <TableCell>{new Date(p.created_at).toLocaleDateString()}</TableCell>

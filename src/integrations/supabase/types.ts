@@ -1862,6 +1862,7 @@ export type Database = {
           owner_user_id: string
           settings: Json | null
           slug: string
+          status: string
           tier: string
           updated_at: string
           website: string | null
@@ -1878,6 +1879,7 @@ export type Database = {
           owner_user_id: string
           settings?: Json | null
           slug: string
+          status?: string
           tier?: string
           updated_at?: string
           website?: string | null
@@ -1894,6 +1896,7 @@ export type Database = {
           owner_user_id?: string
           settings?: Json | null
           slug?: string
+          status?: string
           tier?: string
           updated_at?: string
           website?: string | null
