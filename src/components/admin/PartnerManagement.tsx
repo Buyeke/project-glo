@@ -10,10 +10,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowLeft, Plus, FileText, CalendarIcon } from 'lucide-react';
+import { ArrowLeft, Plus, FileText, CalendarIcon, ClipboardList } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import PartnerApplications from './PartnerApplications';
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -51,6 +52,7 @@ interface Invoice {
 }
 
 const PartnerManagement = () => {
+  const [view, setView] = useState<'partners' | 'applications'>('partners');
   const [partners, setPartners] = useState<Organization[]>([]);
   const [selectedPartner, setSelectedPartner] = useState<Organization | null>(null);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -363,104 +365,120 @@ const PartnerManagement = () => {
   // Partners list view
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>Partners</CardTitle>
-            <CardDescription>Manage partner organizations and invoices</CardDescription>
-          </div>
-          <Button onClick={() => setShowAddPartner(true)}>
-            <Plus className="h-4 w-4 mr-2" /> Add Partner
-          </Button>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <p className="text-muted-foreground text-center py-8">Loading...</p>
-          ) : partners.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">No partners yet. Add your first partner to get started.</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Organization</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Tier</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {partners.map((p) => (
-                  <TableRow key={p.id} className="cursor-pointer" onClick={() => setSelectedPartner(p)}>
-                    <TableCell className="font-medium">{p.name}</TableCell>
-                    <TableCell>{p.contact_email}</TableCell>
-                    <TableCell><Badge variant="outline">{p.tier}</Badge></TableCell>
-                    <TableCell>
-                      <Badge variant={p.is_active ? 'default' : 'secondary'}>
-                        {p.is_active ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{new Date(p.created_at).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); setSelectedPartner(p); }}>
-                        <FileText className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+      {/* View Toggle */}
+      <div className="flex gap-2">
+        <Button variant={view === 'partners' ? 'default' : 'outline'} onClick={() => setView('partners')}>
+          <FileText className="h-4 w-4 mr-2" /> Partners
+        </Button>
+        <Button variant={view === 'applications' ? 'default' : 'outline'} onClick={() => setView('applications')}>
+          <ClipboardList className="h-4 w-4 mr-2" /> Applications
+        </Button>
+      </div>
 
-      {/* Add Partner Dialog */}
-      <Dialog open={showAddPartner} onOpenChange={setShowAddPartner}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Onboard New Partner</DialogTitle>
-            <DialogDescription>Create a new partner organization</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Organization Name *</Label>
-              <Input value={partnerForm.name} onChange={(e) => setPartnerForm(f => ({ ...f, name: e.target.value }))} placeholder="Organization name" />
-            </div>
-            <div>
-              <Label>Contact Email *</Label>
-              <Input type="email" value={partnerForm.contact_email} onChange={(e) => setPartnerForm(f => ({ ...f, contact_email: e.target.value }))} placeholder="email@org.com" />
-            </div>
-            <div>
-              <Label>Contact Phone</Label>
-              <Input value={partnerForm.contact_phone} onChange={(e) => setPartnerForm(f => ({ ...f, contact_phone: e.target.value }))} placeholder="+254..." />
-            </div>
-            <div>
-              <Label>Website</Label>
-              <Input value={partnerForm.website} onChange={(e) => setPartnerForm(f => ({ ...f, website: e.target.value }))} placeholder="https://..." />
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Textarea value={partnerForm.description} onChange={(e) => setPartnerForm(f => ({ ...f, description: e.target.value }))} placeholder="Brief description" />
-            </div>
-            <div>
-              <Label>Tier</Label>
-              <Select value={partnerForm.tier} onValueChange={(v) => setPartnerForm(f => ({ ...f, tier: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="community">Community</SelectItem>
-                  <SelectItem value="professional">Professional</SelectItem>
-                  <SelectItem value="enterprise">Enterprise</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddPartner(false)}>Cancel</Button>
-            <Button onClick={handleAddPartner}>Add Partner</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {view === 'applications' ? (
+        <PartnerApplications onApplicationApproved={fetchPartners} />
+      ) : (
+        <>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Partners</CardTitle>
+                <CardDescription>Manage partner organizations and invoices</CardDescription>
+              </div>
+              <Button onClick={() => setShowAddPartner(true)}>
+                <Plus className="h-4 w-4 mr-2" /> Add Partner
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <p className="text-muted-foreground text-center py-8">Loading...</p>
+              ) : partners.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">No partners yet. Add your first partner to get started.</p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Organization</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Tier</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {partners.map((p) => (
+                      <TableRow key={p.id} className="cursor-pointer" onClick={() => setSelectedPartner(p)}>
+                        <TableCell className="font-medium">{p.name}</TableCell>
+                        <TableCell>{p.contact_email}</TableCell>
+                        <TableCell><Badge variant="outline">{p.tier}</Badge></TableCell>
+                        <TableCell>
+                          <Badge variant={p.is_active ? 'default' : 'secondary'}>
+                            {p.is_active ? 'Active' : 'Inactive'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{new Date(p.created_at).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); setSelectedPartner(p); }}>
+                            <FileText className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Add Partner Dialog */}
+          <Dialog open={showAddPartner} onOpenChange={setShowAddPartner}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Onboard New Partner</DialogTitle>
+                <DialogDescription>Create a new partner organization</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label>Organization Name *</Label>
+                  <Input value={partnerForm.name} onChange={(e) => setPartnerForm(f => ({ ...f, name: e.target.value }))} placeholder="Organization name" />
+                </div>
+                <div>
+                  <Label>Contact Email *</Label>
+                  <Input type="email" value={partnerForm.contact_email} onChange={(e) => setPartnerForm(f => ({ ...f, contact_email: e.target.value }))} placeholder="email@org.com" />
+                </div>
+                <div>
+                  <Label>Contact Phone</Label>
+                  <Input value={partnerForm.contact_phone} onChange={(e) => setPartnerForm(f => ({ ...f, contact_phone: e.target.value }))} placeholder="+254..." />
+                </div>
+                <div>
+                  <Label>Website</Label>
+                  <Input value={partnerForm.website} onChange={(e) => setPartnerForm(f => ({ ...f, website: e.target.value }))} placeholder="https://..." />
+                </div>
+                <div>
+                  <Label>Description</Label>
+                  <Textarea value={partnerForm.description} onChange={(e) => setPartnerForm(f => ({ ...f, description: e.target.value }))} placeholder="Brief description" />
+                </div>
+                <div>
+                  <Label>Tier</Label>
+                  <Select value={partnerForm.tier} onValueChange={(v) => setPartnerForm(f => ({ ...f, tier: v }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="community">Community</SelectItem>
+                      <SelectItem value="professional">Professional</SelectItem>
+                      <SelectItem value="enterprise">Enterprise</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowAddPartner(false)}>Cancel</Button>
+                <Button onClick={handleAddPartner}>Add Partner</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
     </div>
   );
 };

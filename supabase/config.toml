@@ -126,6 +126,9 @@ verify_jwt = false
 [functions.education-citation]
 verify_jwt = false
 
+[functions.send-partner-email]
+verify_jwt = false
+
 [inbucket]
 enabled = true
 port = 54324
