@@ -42,7 +42,7 @@ const Partners = () => {
   const academicCard = useContentValue('partners_academic_card', {
     title: "Research & Academic",
     description: "Collaborate on research exploring AI, social justice, and community empowerment. From $300 per deliverable.",
-    links: []
+    links: [{ label: "Apply Now", href: "/partner-register" }]
   });
 
   const partnershipTypes = [ngoCard, corporateCard, academicCard];
