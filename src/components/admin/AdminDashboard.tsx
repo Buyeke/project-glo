@@ -14,7 +14,8 @@ import {
   Download,
   TrendingUp,
   AlertTriangle,
-  Edit3
+  Edit3,
+  Handshake
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -24,6 +25,7 @@ import ChatInteractionsPanel from './ChatInteractionsPanel';
 import SecurityPanel from './SecurityPanel';
 import ContentManagement from './ContentManagement';
 import { AIPerformanceDashboard } from './AIPerformanceDashboard';
+import PartnerManagement from './PartnerManagement';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -131,11 +133,12 @@ const AdminDashboard = () => {
       <div className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <div className="overflow-x-auto -mx-4 px-4 pb-2">
-            <TabsList className="inline-flex w-auto min-w-full sm:w-full sm:grid sm:grid-cols-7">
+            <TabsList className="inline-flex w-auto min-w-full sm:w-full sm:grid sm:grid-cols-8">
               <TabsTrigger value="overview" className="whitespace-nowrap">Overview</TabsTrigger>
               <TabsTrigger value="content" className="whitespace-nowrap">Content</TabsTrigger>
               <TabsTrigger value="contacts" className="whitespace-nowrap">Contacts</TabsTrigger>
               <TabsTrigger value="blog" className="whitespace-nowrap">Blog</TabsTrigger>
+              <TabsTrigger value="partners" className="whitespace-nowrap">Partners</TabsTrigger>
               <TabsTrigger value="chat" className="whitespace-nowrap">Chat</TabsTrigger>
               <TabsTrigger value="ai-performance" className="whitespace-nowrap">AI</TabsTrigger>
               <TabsTrigger value="security" className="whitespace-nowrap">Security</TabsTrigger>
@@ -210,6 +213,14 @@ const AdminDashboard = () => {
                   <Button 
                     variant="outline" 
                     className="h-20 flex-col"
+                    onClick={() => setActiveTab('partners')}
+                  >
+                    <Handshake className="h-6 w-6 mb-2" />
+                    Manage Partners
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="h-20 flex-col"
                     onClick={() => setActiveTab('security')}
                   >
                     <Shield className="h-6 w-6 mb-2" />
@@ -260,6 +271,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="blog">
             <BlogManagement />
+          </TabsContent>
+
+          <TabsContent value="partners">
+            <PartnerManagement />
           </TabsContent>
 
           <TabsContent value="chat">
