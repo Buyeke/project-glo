@@ -272,10 +272,10 @@ const PartnerRegister = () => {
                   />
                 </div>
 
-                <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground">
-                  <strong>Selected plan:</strong> {TIER_PRICING[form.selected_tier].name} — {TIER_PRICING[form.selected_tier].price}
-                  <br />
-                  Payment details will be shared after your application is approved.
+                <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground space-y-1">
+                  <p><strong>Selected plan:</strong> {TIER_PRICING[form.selected_tier].name} — {TIER_PRICING[form.selected_tier].price}</p>
+                  <p>A one-off onboarding and customization fee applies, to be communicated after agreement on scope.</p>
+                  <p>Payment details will be shared after your application is approved.</p>
                 </div>
 
                 <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
