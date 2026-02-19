@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Building2, ArrowRight, Play } from 'lucide-react';
+import { Building2, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const OrganizationCTA = () => {
@@ -27,8 +27,8 @@ const OrganizationCTA = () => {
               </Button>
               <Button variant="outline" asChild>
                 <Link to="/partners">
-                  <Play className="mr-2 h-4 w-4" />
-                  Start Free Trial
+                  <ArrowRight className="mr-2 h-4 w-4" />
+                  Explore Partnership Options
                 </Link>
               </Button>
               <Button variant="ghost" asChild>

@@ -208,7 +208,7 @@ const About = () => {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-foreground mb-6">Our Research Focus</h2>
           <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-            Project Glo's work is grounded in interdisciplinary research that explores 
+            Project GLO's work is grounded in interdisciplinary research that explores 
             the intersection of technology, social justice, and community empowerment.
           </p>
           
