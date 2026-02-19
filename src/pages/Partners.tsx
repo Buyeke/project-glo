@@ -31,8 +31,8 @@ const Partners = () => {
 
   const ngoCard = useContentValue('partners_ngo_card', {
     title: "NGO & Service Providers",
-    description: "Join the GLO coordination network. Get platform access to manage referrals, track cases, and measure impact. Platform subscriptions from $299/month (Community tier) to $899/month (Professional tier).",
-    links: [{ label: "View Full Pricing", href: "/contact" }, { label: "Start Free Trial", href: "/contact" }]
+    description: "Join the GLO coordination network. Get platform access to manage referrals, track cases, and measure impact. Platform subscriptions from $2,000/month (Pilot) to $10,000/month (Premium).",
+    links: [{ label: "View Full Pricing", href: "/partner-register" }, { label: "Get in Touch", href: "/contact" }]
   });
   const corporateCard = useContentValue('partners_corporate_card', {
     title: "Corporate Sponsors & CSR Programs",
@@ -41,7 +41,7 @@ const Partners = () => {
   });
   const academicCard = useContentValue('partners_academic_card', {
     title: "Research & Academic",
-    description: "Collaborate on research exploring AI, social justice, and community empowerment. From $300 per deliverable.",
+    description: "Collaborate on research exploring AI, social justice, and community empowerment. Institutional API access from $2,000/month.",
     links: [{ label: "Apply Now", href: "/partner-register" }]
   });
 

@@ -11,8 +11,9 @@ import { CheckCircle, Building2, GraduationCap, ArrowRight } from "lucide-react"
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useContentValue } from "@/hooks/useSiteContent";
 
-const TIER_PRICING: Record<string, { name: string; price: string; amount: number; features: string[] }> = {
+const DEFAULT_TIERS: Record<string, { name: string; price: string; amount: number; features: string[] }> = {
   pilot: {
     name: "Pilot",
     price: "$2,000/month",
@@ -40,6 +41,19 @@ const TIER_PRICING: Record<string, { name: string; price: string; amount: number
 };
 
 const PartnerRegister = () => {
+  // CMS-editable tiers with hardcoded fallbacks
+  const pilotTier = useContentValue('partner_tier_pilot', DEFAULT_TIERS.pilot);
+  const essentialsTier = useContentValue('partner_tier_essentials', DEFAULT_TIERS.essentials);
+  const standardTier = useContentValue('partner_tier_standard', DEFAULT_TIERS.standard);
+  const premiumTier = useContentValue('partner_tier_premium', DEFAULT_TIERS.premium);
+
+  const TIER_PRICING: Record<string, { name: string; price: string; amount: number; features: string[] }> = {
+    pilot: pilotTier,
+    essentials: essentialsTier,
+    standard: standardTier,
+    premium: premiumTier,
+  };
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({
@@ -253,7 +267,7 @@ const PartnerRegister = () => {
                     </Select>
                   </div>
                   <div>
-                    <Label>Expected Number of Students</Label>
+                    <Label>Expected Number of Users</Label>
                     <Input
                       type="number"
                       value={form.expected_student_count}

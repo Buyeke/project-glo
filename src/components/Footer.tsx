@@ -11,7 +11,7 @@ const Footer = () => {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button asChild>
               <Link to="/partners">
-                Start Free Trial
+                Become a Partner
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>

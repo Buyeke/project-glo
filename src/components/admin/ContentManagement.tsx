@@ -159,35 +159,127 @@ const ContentManagement = () => {
     if (item.content_type === 'pricing_card') {
       return (
         <div className="space-y-4">
-          <div>
-            <label className="text-sm font-medium">Title</label>
-            {isEditing ? (
-              <Input
-                value={currentValue?.title || ''}
-                onChange={(e) => setEditValues({
-                  ...editValues,
-                  [item.id]: { ...currentValue, title: e.target.value }
-                })}
-              />
-            ) : (
-              <div className="p-2 bg-muted rounded font-semibold">{currentValue?.title}</div>
-            )}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium">Title / Name</label>
+              {isEditing ? (
+                <Input
+                  value={currentValue?.title || currentValue?.name || ''}
+                  onChange={(e) => setEditValues({
+                    ...editValues,
+                    [item.id]: { ...currentValue, title: e.target.value, name: e.target.value }
+                  })}
+                />
+              ) : (
+                <div className="p-2 bg-muted rounded font-semibold">{currentValue?.title || currentValue?.name}</div>
+              )}
+            </div>
+            <div>
+              <label className="text-sm font-medium">Price</label>
+              {isEditing ? (
+                <Input
+                  value={currentValue?.price || ''}
+                  onChange={(e) => setEditValues({
+                    ...editValues,
+                    [item.id]: { ...currentValue, price: e.target.value }
+                  })}
+                  placeholder="e.g. $2,000/month"
+                />
+              ) : (
+                <div className="p-2 bg-muted rounded text-lg font-bold">{currentValue?.price}</div>
+              )}
+            </div>
           </div>
-          <div>
-            <label className="text-sm font-medium">Description (include pricing)</label>
-            {isEditing ? (
-              <Textarea
-                value={currentValue?.description || ''}
-                onChange={(e) => setEditValues({
-                  ...editValues,
-                  [item.id]: { ...currentValue, description: e.target.value }
-                })}
-                rows={3}
-              />
-            ) : (
-              <div className="p-2 bg-muted rounded text-sm">{currentValue?.description}</div>
-            )}
-          </div>
+          {(currentValue?.amount !== undefined) && (
+            <div>
+              <label className="text-sm font-medium">Numeric Amount (USD)</label>
+              {isEditing ? (
+                <Input
+                  type="number"
+                  value={currentValue?.amount || ''}
+                  onChange={(e) => setEditValues({
+                    ...editValues,
+                    [item.id]: { ...currentValue, amount: Number(e.target.value) }
+                  })}
+                />
+              ) : (
+                <div className="p-2 bg-muted rounded">${currentValue?.amount}</div>
+              )}
+            </div>
+          )}
+          {currentValue?.description !== undefined && (
+            <div>
+              <label className="text-sm font-medium">Description</label>
+              {isEditing ? (
+                <Textarea
+                  value={currentValue?.description || ''}
+                  onChange={(e) => setEditValues({
+                    ...editValues,
+                    [item.id]: { ...currentValue, description: e.target.value }
+                  })}
+                  rows={3}
+                />
+              ) : (
+                <div className="p-2 bg-muted rounded text-sm">{currentValue?.description}</div>
+              )}
+            </div>
+          )}
+          {currentValue?.features && (
+            <div>
+              <label className="text-sm font-medium">Features</label>
+              {isEditing ? (
+                <div className="space-y-2">
+                  {(currentValue.features || []).map((feat: string, i: number) => (
+                    <div key={i} className="flex gap-2 items-center">
+                      <Input
+                        value={feat}
+                        onChange={(e) => {
+                          const newFeatures = [...currentValue.features];
+                          newFeatures[i] = e.target.value;
+                          setEditValues({
+                            ...editValues,
+                            [item.id]: { ...currentValue, features: newFeatures }
+                          });
+                        }}
+                      />
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          const newFeatures = currentValue.features.filter((_: any, idx: number) => idx !== i);
+                          setEditValues({
+                            ...editValues,
+                            [item.id]: { ...currentValue, features: newFeatures }
+                          });
+                        }}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      const newFeatures = [...(currentValue.features || []), ''];
+                      setEditValues({
+                        ...editValues,
+                        [item.id]: { ...currentValue, features: newFeatures }
+                      });
+                    }}
+                  >
+                    <Plus className="h-3 w-3 mr-1" /> Add Feature
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {currentValue.features.map((f: string, i: number) => (
+                    <div key={i} className="p-2 bg-muted rounded text-sm">• {f}</div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
           {currentValue?.links && (
             <div>
               <label className="text-sm font-medium">Links</label>

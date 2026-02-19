@@ -230,7 +230,7 @@ const PartnerApplications = ({ onApplicationApproved }: { onApplicationApproved?
                   <TableHead>Contact</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Tier</TableHead>
-                  <TableHead>Students</TableHead>
+                  <TableHead>Users</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead></TableHead>
@@ -274,7 +274,7 @@ const PartnerApplications = ({ onApplicationApproved }: { onApplicationApproved?
                 <div><span className="text-muted-foreground">Phone:</span> {selectedApp.contact_phone || "—"}</div>
                 <div><span className="text-muted-foreground">Website:</span> {selectedApp.website || "—"}</div>
                 <div><span className="text-muted-foreground">Type:</span> {selectedApp.institution_type}</div>
-                <div><span className="text-muted-foreground">Expected Students:</span> {selectedApp.expected_student_count || "—"}</div>
+                <div><span className="text-muted-foreground">Expected Users:</span> {selectedApp.expected_student_count || "—"}</div>
               </div>
 
               <div className="bg-muted/50 rounded-lg p-3">
