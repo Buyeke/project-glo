@@ -17,25 +17,25 @@ const TIER_PRICING: Record<string, { name: string; price: string; amount: number
     name: "Pilot",
     price: "$2,000/month",
     amount: 2000,
-    features: ["Sandbox API access", "Up to 40 students", "Basic analytics", "Email support"],
+    features: ["Sandbox API access", "Up to 40 users", "Basic analytics", "Email support"],
   },
   essentials: {
     name: "Essentials",
     price: "$2,500/month",
     amount: 2500,
-    features: ["Sandbox API access", "Up to 40 students", "Basic analytics", "Email support"],
+    features: ["Sandbox API access", "Up to 40 users", "Basic analytics", "Email support"],
   },
   standard: {
     name: "Standard",
     price: "$4,000/month",
     amount: 4000,
-    features: ["Full API access", "Up to 100 students", "Advanced analytics", "Assignment management", "Priority support"],
+    features: ["Full API access", "Up to 100 users", "Advanced analytics", "Assignment management", "Priority support"],
   },
   premium: {
     name: "Premium",
     price: "$10,000/month",
     amount: 10000,
-    features: ["Full API + custom datasets", "Unlimited students", "Faculty dashboard", "Custom integrations", "Dedicated support"],
+    features: ["Full API + custom datasets", "Unlimited users", "Faculty dashboard", "Custom integrations", "Dedicated support"],
   },
 };
 
