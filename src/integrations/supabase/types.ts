@@ -1995,6 +1995,9 @@ export type Database = {
           notes: string | null
           organization_id: string
           paid_at: string | null
+          payment_reference: string | null
+          payment_url: string | null
+          sent_at: string | null
           status: string
           updated_at: string
         }
@@ -2012,6 +2015,9 @@ export type Database = {
           notes?: string | null
           organization_id: string
           paid_at?: string | null
+          payment_reference?: string | null
+          payment_url?: string | null
+          sent_at?: string | null
           status?: string
           updated_at?: string
         }
@@ -2029,6 +2035,9 @@ export type Database = {
           notes?: string | null
           organization_id?: string
           paid_at?: string | null
+          payment_reference?: string | null
+          payment_url?: string | null
+          sent_at?: string | null
           status?: string
           updated_at?: string
         }
