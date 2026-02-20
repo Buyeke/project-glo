@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowLeft, Plus, FileText, CalendarIcon, ClipboardList, Ban, Archive, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Plus, FileText, CalendarIcon, ClipboardList, Ban, Archive, RotateCcw, Send, CreditCard, Loader2, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -50,6 +50,9 @@ interface Invoice {
   paid_at: string | null;
   notes: string | null;
   created_at: string;
+  payment_reference: string | null;
+  payment_url: string | null;
+  sent_at: string | null;
 }
 
 const PartnerManagement = () => {
@@ -60,6 +63,8 @@ const PartnerManagement = () => {
   const [showAddPartner, setShowAddPartner] = useState(false);
   const [showAddInvoice, setShowAddInvoice] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [sendingInvoice, setSendingInvoice] = useState<string | null>(null);
+  const [generatingPayment, setGeneratingPayment] = useState<string | null>(null);
 
   // Partner form state
   const [partnerForm, setPartnerForm] = useState({
@@ -216,6 +221,71 @@ const PartnerManagement = () => {
     }
   };
 
+  const sendInvoice = async (inv: Invoice) => {
+    if (!selectedPartner) return;
+    setSendingInvoice(inv.id);
+    try {
+      // Generate payment link first if not already present
+      let paymentUrl = inv.payment_url;
+      if (!paymentUrl && inv.status !== 'paid') {
+        const { data: payData, error: payErr } = await supabase.functions.invoke('paystack-invoice-init', {
+          body: { invoice_id: inv.id },
+        });
+        if (payErr) throw payErr;
+        paymentUrl = payData?.payment_url;
+      }
+
+      // Send email
+      const { error: emailErr } = await supabase.functions.invoke('send-partner-email', {
+        body: {
+          type: 'invoice_sent',
+          to: selectedPartner.contact_email,
+          data: {
+            invoice_number: inv.invoice_number,
+            organization_name: selectedPartner.name,
+            billing_period: `${MONTHS[inv.billing_period_month - 1]} ${inv.billing_period_year}`,
+            amount: Number(inv.amount).toLocaleString(),
+            currency: inv.currency,
+            due_date: inv.due_date || null,
+            description: inv.description,
+            notes: inv.notes,
+            payment_url: paymentUrl,
+          },
+        },
+      });
+      if (emailErr) throw emailErr;
+
+      // Update status to sent
+      await supabase
+        .from('partner_invoices')
+        .update({ status: 'sent', sent_at: new Date().toISOString() } as any)
+        .eq('id', inv.id);
+
+      toast({ title: 'Invoice sent', description: `Sent to ${selectedPartner.contact_email}` });
+      fetchInvoices(selectedPartner.id);
+    } catch (err: any) {
+      toast({ title: 'Failed to send invoice', description: err.message, variant: 'destructive' });
+    } finally {
+      setSendingInvoice(null);
+    }
+  };
+
+  const generatePaymentLink = async (invoiceId: string) => {
+    setGeneratingPayment(invoiceId);
+    try {
+      const { data, error } = await supabase.functions.invoke('paystack-invoice-init', {
+        body: { invoice_id: invoiceId },
+      });
+      if (error) throw error;
+      toast({ title: 'Payment link generated', description: 'Link is ready and saved to the invoice.' });
+      if (selectedPartner) fetchInvoices(selectedPartner.id);
+    } catch (err: any) {
+      toast({ title: 'Failed to generate payment link', description: err.message, variant: 'destructive' });
+    } finally {
+      setGeneratingPayment(null);
+    }
+  };
+
   const statusColor = (status: string) => {
     switch (status) {
       case 'paid': return 'default';
@@ -301,16 +371,35 @@ const PartnerManagement = () => {
                       </TableCell>
                       <TableCell>{inv.due_date || '—'}</TableCell>
                       <TableCell>
-                        <div className="flex gap-1">
+                        <div className="flex gap-1 flex-wrap">
                           {inv.status === 'draft' && (
-                            <Button size="sm" variant="outline" onClick={() => updateInvoiceStatus(inv.id, 'sent')}>
-                              Mark Sent
+                            <Button size="sm" variant="default" onClick={() => sendInvoice(inv)} disabled={sendingInvoice === inv.id}>
+                              {sendingInvoice === inv.id ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Send className="h-3 w-3 mr-1" />}
+                              Send Invoice
                             </Button>
                           )}
                           {inv.status === 'sent' && (
-                            <Button size="sm" variant="outline" onClick={() => updateInvoiceStatus(inv.id, 'paid')}>
-                              Mark Paid
-                            </Button>
+                            <>
+                              <Button size="sm" variant="outline" onClick={() => updateInvoiceStatus(inv.id, 'paid')}>
+                                Mark Paid
+                              </Button>
+                              {!inv.payment_url && (
+                                <Button size="sm" variant="outline" onClick={() => generatePaymentLink(inv.id)} disabled={generatingPayment === inv.id}>
+                                  {generatingPayment === inv.id ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <CreditCard className="h-3 w-3 mr-1" />}
+                                  Payment Link
+                                </Button>
+                              )}
+                              {inv.payment_url && (
+                                <Button size="sm" variant="ghost" asChild>
+                                  <a href={inv.payment_url} target="_blank" rel="noopener noreferrer">
+                                    <ExternalLink className="h-3 w-3 mr-1" /> Pay Link
+                                  </a>
+                                </Button>
+                              )}
+                            </>
+                          )}
+                          {inv.status === 'paid' && inv.payment_reference && (
+                            <span className="text-xs text-muted-foreground">Ref: {inv.payment_reference}</span>
                           )}
                         </div>
                       </TableCell>

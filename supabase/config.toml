@@ -129,6 +129,12 @@ verify_jwt = false
 [functions.send-partner-email]
 verify_jwt = false
 
+[functions.paystack-invoice-init]
+verify_jwt = true
+
+[functions.paystack-invoice-webhook]
+verify_jwt = false
+
 [inbucket]
 enabled = true
 port = 54324

@@ -6,7 +6,7 @@ const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") || "GLO Platform <onboarding@resend.dev>";
 
 interface EmailRequest {
-  type: "application_submitted" | "application_approved" | "application_rejected" | "student_registered" | "student_registered_org";
+  type: "application_submitted" | "application_approved" | "application_rejected" | "student_registered" | "student_registered_org" | "invoice_sent";
   to: string;
   data: Record<string, any>;
 }
@@ -108,6 +108,47 @@ function getEmailContent(type: string, data: Record<string, any>): { subject: st
             </ul>
             <p>Total students: <strong>${data.total_students}</strong></p>
             <p>Best regards,<br/>The GLO Team</p>
+          </div>`,
+      };
+
+    case "invoice_sent":
+      return {
+        subject: `Invoice ${data.invoice_number} from Project GLO`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background: #1a1a2e; color: white; padding: 24px; border-radius: 8px 8px 0 0;">
+              <h2 style="margin: 0;">Invoice ${data.invoice_number}</h2>
+              <p style="margin: 4px 0 0; opacity: 0.8;">Project GLO Platform</p>
+            </div>
+            <div style="border: 1px solid #e5e7eb; border-top: none; padding: 24px; border-radius: 0 0 8px 8px;">
+              <p>Dear ${data.organization_name} team,</p>
+              <p>Please find your invoice details below:</p>
+              <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+                <tr style="border-bottom: 1px solid #e5e7eb;">
+                  <td style="padding: 8px 0; color: #6b7280;">Invoice Number</td>
+                  <td style="padding: 8px 0; text-align: right; font-weight: 600;">${data.invoice_number}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e5e7eb;">
+                  <td style="padding: 8px 0; color: #6b7280;">Billing Period</td>
+                  <td style="padding: 8px 0; text-align: right;">${data.billing_period}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e5e7eb;">
+                  <td style="padding: 8px 0; color: #6b7280;">Amount Due</td>
+                  <td style="padding: 8px 0; text-align: right; font-weight: 700; font-size: 18px;">${data.currency} ${data.amount}</td>
+                </tr>
+                ${data.due_date ? `<tr style="border-bottom: 1px solid #e5e7eb;"><td style="padding: 8px 0; color: #6b7280;">Due Date</td><td style="padding: 8px 0; text-align: right;">${data.due_date}</td></tr>` : ''}
+                ${data.description ? `<tr style="border-bottom: 1px solid #e5e7eb;"><td style="padding: 8px 0; color: #6b7280;">Description</td><td style="padding: 8px 0; text-align: right;">${data.description}</td></tr>` : ''}
+              </table>
+              ${data.payment_url ? `
+                <div style="text-align: center; margin: 24px 0;">
+                  <a href="${data.payment_url}" style="background: #2563eb; color: white; padding: 12px 32px; border-radius: 6px; text-decoration: none; font-weight: 600; display: inline-block;">Pay Now</a>
+                </div>
+                <p style="text-align: center; color: #6b7280; font-size: 12px;">Or copy this link: <a href="${data.payment_url}">${data.payment_url}</a></p>
+              ` : '<p style="color: #6b7280;">Payment instructions will be communicated separately.</p>'}
+              ${data.notes ? `<p style="color: #6b7280; font-size: 14px; margin-top: 16px;"><strong>Notes:</strong> ${data.notes}</p>` : ''}
+              <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
+              <p style="color: #6b7280; font-size: 12px;">If you have any questions about this invoice, please contact us at <a href="mailto:founder@projectglo.org">founder@projectglo.org</a>.</p>
+            </div>
           </div>`,
       };
 
