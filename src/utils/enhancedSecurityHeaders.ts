@@ -13,19 +13,19 @@ export const setSecurityHeaders = () => {
   // Create hardened Content Security Policy - removed unsafe-inline and unsafe-eval
   const cspContent = [
     "default-src 'self'",
-    "script-src 'self' 'nonce-' https://js.paypal.com https://www.paypal.com https://www.sandbox.paypal.com https://apis.google.com",
+    "script-src 'self' 'nonce-' https://js.paystack.co https://apis.google.com",
     "style-src 'self' 'nonce-' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com data:",
     "img-src 'self' data: blob: https://fznhhkxwzqipwfwihwqr.supabase.co",
     "media-src 'self' data: blob:",
-    "connect-src 'self' https://fznhhkxwzqipwfwihwqr.supabase.co https://api.paypal.com https://api.sandbox.paypal.com https://www.paypal.com https://www.sandbox.paypal.com wss://fznhhkxwzqipwfwihwqr.supabase.co",
+    "connect-src 'self' https://fznhhkxwzqipwfwihwqr.supabase.co https://api.paystack.co wss://fznhhkxwzqipwfwihwqr.supabase.co",
     "frame-src 'none'",
     "frame-ancestors 'none'",
     "worker-src 'self' blob:",
     "child-src 'none'",
     "object-src 'none'",
     "base-uri 'self'",
-    "form-action 'self' https://www.paypal.com https://www.sandbox.paypal.com",
+    "form-action 'self' https://checkout.paystack.com",
     "upgrade-insecure-requests",
     "block-all-mixed-content"
   ].join('; ');

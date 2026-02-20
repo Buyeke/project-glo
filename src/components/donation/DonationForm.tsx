@@ -118,7 +118,7 @@ const DonationForm = ({
         window.open(data.approval_url, '_blank');
         
         toast({
-          title: "Redirecting to PayPal",
+          title: "Redirecting to Paystack",
           description: "You'll be redirected to complete your donation securely.",
         });
 
@@ -271,14 +271,14 @@ const DonationForm = ({
             </div>
           </div>
 
-          <div className="bg-blue-50 p-4 rounded-lg border">
+          <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
             <div className="flex items-center justify-between mb-2">
-              <span className="font-medium text-foreground">Secure Payment via PayPal</span>
-              <div className="text-2xl font-bold text-blue-600">PayPal</div>
+              <span className="font-medium text-foreground">Secure Payment via Paystack</span>
+              <div className="text-2xl font-bold text-primary">Paystack</div>
             </div>
             <p className="text-sm text-muted-foreground">
               Your payment is secured with industry-standard encryption. 
-              You can pay with PayPal or any major credit card.
+              Pay with M-Pesa, card, or bank transfer.
             </p>
           </div>
 
@@ -296,8 +296,8 @@ const DonationForm = ({
           </Button>
 
           <p className="text-xs text-muted-foreground text-center">
-            All donations are processed securely through PayPal's platform.
-            Your contribution is in USD and will help us provide essential services.
+            All donations are processed securely through Paystack.
+            Your contribution will help us provide essential services.
           </p>
         </CardContent>
       </Card>

@@ -67,7 +67,7 @@ const DonorDashboard = () => {
   const familiesHelped = Math.floor(totalDonated / 100);
 
   const handleSetupRecurring = () => {
-    // In a real implementation, this would integrate with PayPal subscriptions
+    // In a real implementation, this would integrate with Paystack subscriptions
     toast.success(`Recurring ${recurringFrequency} donation of $${recurringAmount} set up successfully!`);
     setRecurringDialogOpen(false);
   };
