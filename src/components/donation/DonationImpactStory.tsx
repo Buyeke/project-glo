@@ -27,8 +27,8 @@ const DonationImpactStory = () => {
           <h3 className="font-semibold text-foreground mb-4 text-center">Your Donation is Secure</h3>
           
           <div className="flex flex-wrap justify-center gap-4 mb-4">
-            <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg">
-              <span className="text-xl font-bold text-blue-600">PayPal</span>
+            <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-lg">
+              <span className="text-xl font-bold text-primary">Paystack</span>
             </div>
             <div className="flex items-center gap-2 px-4 py-2 bg-muted rounded-lg">
               <Shield className="h-4 w-4 text-primary" />

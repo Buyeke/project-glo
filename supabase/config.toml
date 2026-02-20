@@ -54,13 +54,13 @@ verify_jwt = true
 [functions.rate-limit-check]
 verify_jwt = false
 
-[functions.process-paypal-payment]
-verify_jwt = true
+[functions.process-paystack-job-payment]
+verify_jwt = false
 
 [functions.process-donation-payment]
 verify_jwt = false
 
-[functions.paypal-webhook]
+[functions.paystack-webhook]
 verify_jwt = false
 
 [functions.get-client-ip]
@@ -131,9 +131,6 @@ verify_jwt = false
 
 [functions.paystack-invoice-init]
 verify_jwt = true
-
-[functions.paystack-invoice-webhook]
-verify_jwt = false
 
 [inbucket]
 enabled = true

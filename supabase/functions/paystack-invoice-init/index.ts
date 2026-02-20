@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
         amount: amountInKobo,
         currency: invoice.currency === "KES" ? "KES" : "USD",
         reference: `INV-${invoice.id}`,
-        callback_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/paystack-invoice-webhook?type=callback`,
+        callback_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/paystack-webhook?type=callback`,
         metadata: {
           invoice_id: invoice.id,
           invoice_number: invoice.invoice_number,
