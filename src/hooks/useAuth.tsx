@@ -30,6 +30,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Start session monitoring when user logs in
         if (session && event === 'SIGNED_IN') {
           SessionManager.startSessionMonitoring();
+          
+          // Send auth notification email (fire-and-forget)
+          const isNewUser = session.user?.created_at && 
+            (Date.now() - new Date(session.user.created_at).getTime()) < 60000;
+          
+          supabase.functions.invoke('auth-notification', {
+            body: {
+              event_type: isNewUser ? 'signup' : 'login',
+              user_email: session.user?.email || 'unknown',
+              user_id: session.user?.id || 'unknown',
+              timestamp: new Date().toISOString(),
+            }
+          }).catch(err => console.error('Auth notification failed:', err));
         } else if (event === 'SIGNED_OUT') {
           SessionManager.stopSessionMonitoring();
         }
