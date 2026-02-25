@@ -129,6 +129,9 @@ verify_jwt = false
 [functions.send-partner-email]
 verify_jwt = false
 
+[functions.auth-notification]
+verify_jwt = false
+
 [functions.paystack-invoice-init]
 verify_jwt = true
 
