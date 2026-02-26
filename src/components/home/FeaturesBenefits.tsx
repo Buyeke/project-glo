@@ -1,4 +1,4 @@
-import { MessageCircle, Shield, Clock, Globe } from "lucide-react";
+import { MessageCircle, Shield, Globe, Search } from "lucide-react";
 
 const FeaturesBenefits = () => {
   const features = [
@@ -13,14 +13,14 @@ const FeaturesBenefits = () => {
       description: "Encrypted, confidential",
     },
     {
-      icon: MessageCircle,
-      title: "AI-Guided",
-      description: "Smart matching to partners",
+      icon: Search,
+      title: "Smart Matching",
+      description: "Guided service discovery",
     },
     {
-      icon: Clock,
-      title: "24/7 Access",
-      description: "Anytime, anywhere",
+      icon: MessageCircle,
+      title: "Chat Support",
+      description: "AI assistant available 24/7",
     },
   ];
 

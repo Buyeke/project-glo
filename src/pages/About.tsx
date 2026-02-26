@@ -17,7 +17,7 @@ const About = () => {
             About Project GLO
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            GLO is an AI-powered crisis response and case management SaaS platform operated by Glomera Operations Ltd. We enable NGOs, government agencies, and social service organizations to deliver trauma-informed support at scale through AI that speaks authentic Sheng, Swahili, and English.
+            Project GLO is a coordination platform that connects women seeking support with verified organizations offering shelter, legal aid, counseling, and employment services across Kenya. We use multilingual chat tools (English, Swahili, and Sheng) to make finding help easier and more accessible.
           </p>
         </div>
       </section>
@@ -55,39 +55,52 @@ const About = () => {
         </div>
       </section>
 
-      {/* Impact Statistics */}
+      {/* What We Actually Do */}
       <section className="py-16 bg-muted/30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">Platform Impact</h2>
+            <h2 className="text-3xl font-bold text-foreground mb-4">What GLO Does</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Building coordination infrastructure for partner-delivered services
+              We're an early-stage platform building coordination infrastructure for social services in Kenya
             </p>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">200+</div>
-              <p className="text-lg text-muted-foreground">Women Connected</p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">24/7</div>
-              <p className="text-lg text-muted-foreground">AI Matching</p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">3</div>
-              <p className="text-lg text-muted-foreground">Languages</p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">2024</div>
-              <p className="text-lg text-muted-foreground">Founded</p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="font-semibold text-foreground mb-2">For Women Seeking Support</h3>
+                <ul className="text-sm text-muted-foreground space-y-2">
+                  <li>• Browse partner services anonymously — no login required</li>
+                  <li>• Chat with our multilingual assistant (English, Swahili, Sheng)</li>
+                  <li>• Get matched to relevant organizations based on your needs</li>
+                  <li>• Request referrals to verified partner organizations</li>
+                </ul>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="font-semibold text-foreground mb-2">For Organizations</h3>
+                <ul className="text-sm text-muted-foreground space-y-2">
+                  <li>• List your services on our partner directory</li>
+                  <li>• Receive coordinated referrals from the platform</li>
+                  <li>• Access case management and intake tools</li>
+                  <li>• Track impact across your service delivery</li>
+                </ul>
+              </CardContent>
+            </Card>
           </div>
           
-          <p className="text-center text-muted-foreground mt-8 max-w-2xl mx-auto">
-            Our technology serves two audiences: vulnerable women seeking support, and the organizations coordinating their care.
-          </p>
+          <div className="text-center mt-8">
+            <div className="inline-flex items-center gap-4 text-sm text-muted-foreground bg-background px-6 py-3 rounded-lg border">
+              <span><strong>Founded:</strong> 2024</span>
+              <span className="text-border">·</span>
+              <span><strong>Stage:</strong> Early-stage</span>
+              <span className="text-border">·</span>
+              <span><strong>Languages:</strong> 3</span>
+            </div>
           </div>
+        </div>
       </section>
 
       {/* Core Values */}
@@ -149,7 +162,7 @@ const About = () => {
         </div>
       </section>
 
-      {/* Founder Section - Expanded */}
+      {/* Founder Section */}
       <section className="py-16 bg-muted/30">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -159,28 +172,26 @@ const About = () => {
           <Card className="overflow-hidden">
             <CardContent className="p-0">
               <div className="grid md:grid-cols-3 gap-0">
-                {/* Photo Placeholder */}
                 <div className="bg-gradient-to-br from-primary/20 to-primary/5 p-8 flex items-center justify-center">
                   <div className="h-32 w-32 rounded-full bg-primary/20 flex items-center justify-center">
                     <Users className="h-16 w-16 text-primary/60" />
                   </div>
                 </div>
                 
-                {/* Bio */}
                 <div className="md:col-span-2 p-8">
                   <div className="flex items-center gap-2 mb-4">
                     <Award className="h-5 w-5 text-primary" />
-                    <span className="text-sm font-medium text-primary">OBREAL & AAU Youth Incubator (2024/2025)</span>
+                    <span className="text-sm font-medium text-primary">OBREAL & AAU Youth Incubator (2024/2025 · 2025/2026)</span>
                   </div>
                   
                   <h3 className="text-xl font-bold text-foreground mb-3">
-                    Visionary Leader in AI for Social Good
+                    Building Technology Rooted in Care
                   </h3>
                   
                   <p className="text-muted-foreground leading-relaxed mb-4">
                     Our founder brings together expertise in technology, poetry, and community organizing. 
                     As a participant in the OBREAL & AAU Youth Incubator, she is committed to building systems 
-                    that truly serve those who need them most—reimagining how AI can advance social justice 
+                    that truly serve those who need them most—reimagining how technology can advance social justice 
                     and empower vulnerable communities.
                   </p>
                   
@@ -233,9 +244,9 @@ const About = () => {
             
             <Card className="hover:shadow-md transition-shadow">
               <CardContent className="p-6 text-center">
-                <h3 className="font-semibold text-foreground mb-2">AI & Social Justice</h3>
+                <h3 className="font-semibold text-foreground mb-2">Multilingual Technology</h3>
                 <p className="text-sm text-muted-foreground">
-                  Building ethical AI systems that advance equity and justice
+                  Building accessible tools in English, Swahili, and Sheng
                 </p>
               </CardContent>
             </Card>
@@ -255,9 +266,9 @@ const About = () => {
       {/* Partnership */}
       <section className="py-16 bg-muted/30">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-foreground mb-6">Our Partners</h2>
+          <h2 className="text-3xl font-bold text-foreground mb-6">Backed By</h2>
           <p className="text-lg text-muted-foreground mb-8">
-            Working together to advance inclusive technology and community empowerment
+            Incubated and supported by international partners
           </p>
           
           <div className="flex flex-wrap justify-center gap-6 mb-8">
@@ -270,7 +281,7 @@ const About = () => {
             <Card className="px-8 py-6">
               <div className="text-center">
                 <h3 className="text-xl font-semibold text-foreground mb-1">OBREAL & AAU Youth Incubator</h3>
-                <p className="text-muted-foreground">2024/2025 Cohort</p>
+                <p className="text-muted-foreground">2024/2025 · 2025/2026 Cohorts</p>
               </div>
             </Card>
           </div>
@@ -285,7 +296,7 @@ const About = () => {
       </section>
 
       {/* About Glomera Operations Ltd */}
-      <section className="py-16 bg-muted/30">
+      <section className="py-16 bg-background">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-foreground mb-6">About Glomera Operations Ltd</h2>
           <p className="text-lg text-muted-foreground leading-relaxed mb-4">
@@ -300,23 +311,23 @@ const About = () => {
       </section>
 
       {/* Call to Action */}
-      <section className="py-16 bg-background">
+      <section className="py-16 bg-muted/30">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <Card className="bg-primary text-primary-foreground">
             <CardContent className="p-8 text-center">
-              <h2 className="text-2xl font-bold mb-4">Work With Us</h2>
+              <h2 className="text-2xl font-bold mb-4">Get Involved</h2>
               <p className="text-lg mb-6 opacity-90">
-                Whether you need support or want to collaborate, 
-                we're here to connect you with the right resources.
+                Whether you need support or want to join as a partner organization, 
+                we're here to help.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button variant="secondary" size="lg" asChild>
-                  <Link to="/contact">
-                    Get In Touch <ArrowRight className="ml-2 h-4 w-4" />
+                  <Link to="/services">
+                    Browse Services <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
                 <Button variant="outline" size="lg" className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary" asChild>
-                  <Link to="/services">Explore the Platform</Link>
+                  <Link to="/partners">Partner With Us</Link>
                 </Button>
               </div>
             </CardContent>

@@ -9,14 +9,14 @@ const ImpactTestimonial = () => {
           <Quote className="h-10 w-10 text-primary/40 flex-shrink-0 rotate-180" />
           <div>
             <p className="text-lg md:text-xl text-foreground leading-relaxed italic mb-4">
-              "Last month, your donations helped 10 women access legal aid and safe shelter. 
-              One mother told us, 'For the first time in years, my children and I feel safe.' 
-              This is the impact of your generosity."
+              "Project GLO is building the coordination infrastructure that social services in Kenya need. 
+              By connecting women to verified partner organizations through accessible, multilingual tools, 
+              the platform helps ensure no one falls through the cracks."
             </p>
             <div className="flex items-center gap-2">
               <Heart className="h-4 w-4 text-primary" />
               <span className="text-sm font-medium text-muted-foreground">
-                — Project GLO Impact Report, December 2024
+                — Our Mission
               </span>
             </div>
           </div>

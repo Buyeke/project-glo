@@ -8,18 +8,19 @@ const MobileHero = () => {
       <div className="max-w-4xl mx-auto relative z-10">
         <div className="flex flex-col items-center text-center gap-6 md:gap-8">
           
-          {/* Title - single solid color */}
+          {/* Title */}
           <h1 className="mobile-hero-title text-foreground">
             Find Support Safely
           </h1>
           
-          {/* Subtitle - more breathing room */}
+          {/* Subtitle - honest about what the platform does */}
           <p className="mobile-hero-subtitle text-muted-foreground max-w-xl">
-            Project GLO connects you to verified partner organizations across Kenya.
+            Project GLO connects you to verified organizations offering shelter, legal aid, counseling, and employment support across Kenya.
           </p>
           
-          {/* PRIMARY CTA - larger and more dominant */}
-          <div className="w-full max-w-sm mt-2">
+          {/* Dual audience paths */}
+          <div className="w-full max-w-sm mt-2 space-y-3">
+            {/* For individuals seeking support */}
             <Button 
               asChild 
               size="lg" 
@@ -27,17 +28,17 @@ const MobileHero = () => {
             >
               <Link to="/services" className="flex items-center justify-center gap-3">
                 <Heart className="h-5 w-5" aria-hidden="true" />
-                <span>Get Support</span>
+                <span>I Need Support</span>
                 <ArrowRight className="h-5 w-5" aria-hidden="true" />
               </Link>
             </Button>
-            <p className="text-xs text-muted-foreground mt-3">
-              No login required · Confidential
+            <p className="text-xs text-muted-foreground">
+              Browse services anonymously · No login required
             </p>
           </div>
           
-          {/* Secondary CTAs - clearly subordinate */}
-          <div className="w-full max-w-sm flex flex-col sm:flex-row gap-3 mt-2">
+          {/* For organizations */}
+          <div className="w-full max-w-sm flex flex-col sm:flex-row gap-3">
             <Button 
               variant="outline" 
               asChild 
@@ -45,7 +46,7 @@ const MobileHero = () => {
             >
               <Link to="/partners" className="flex items-center justify-center gap-2">
                 <Handshake className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-                <span>Partner With Us</span>
+                <span>For Organizations</span>
               </Link>
             </Button>
             
@@ -56,15 +57,15 @@ const MobileHero = () => {
             >
               <Link to="/about" className="flex items-center justify-center gap-2">
                 <Info className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-                <span>Learn More</span>
+                <span>About GLO</span>
               </Link>
             </Button>
           </div>
           
-          {/* Trust Signal - muted icon */}
+          {/* Trust Signal */}
           <div className="flex items-center gap-2 text-xs text-muted-foreground mt-4">
             <Shield className="h-3.5 w-3.5 text-primary/60" aria-hidden="true" />
-            <span>Data encrypted · Partner-delivered services</span>
+            <span>Your data is encrypted · Services delivered by independent partners</span>
           </div>
         </div>
       </div>

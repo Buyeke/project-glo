@@ -9,19 +9,19 @@ const HowItWorksSteps = ({ variant = "default" }: HowItWorksStepsProps) => {
     {
       number: "1",
       title: "Share what you need",
-      description: "Chat or browse anonymously",
+      description: "Browse services or chat anonymously",
       icon: MessageCircle,
     },
     {
       number: "2",
       title: "Get matched",
-      description: "To verified partner organizations",
+      description: "We connect you to relevant partner organizations",
       icon: Compass,
     },
     {
       number: "3",
-      title: "Receive follow-up",
-      description: "From a trained support worker",
+      title: "Partner follows up",
+      description: "A partner organization contacts you directly",
       icon: UserCheck,
     },
   ];
