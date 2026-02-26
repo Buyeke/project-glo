@@ -4,6 +4,7 @@ import { useAIChatProcessor } from './useAIChatProcessor';
 import { useChatMessageProcessor } from './useChatMessageProcessor';
 import { useKnowledgeBase } from './useKnowledgeBase';
 import { useProactiveFollowups } from './useProactiveFollowups';
+import { useServiceMatching } from './useServiceMatching';
 import { detectLanguageWithContext } from '@/utils/enhancedLanguageDetection';
 import { formatEmergencyContactsForChat } from '@/utils/emergencyDetection';
 
@@ -14,6 +15,7 @@ export const useEnhancedChatMessageProcessor = (intents: Intent[], services: Ser
   const { processMessage: fallbackProcess } = useChatMessageProcessor(intents, services);
   const { searchKnowledge } = useKnowledgeBase();
   const { autoScheduleFollowUps } = useProactiveFollowups();
+  const { matchFromIntent } = useServiceMatching();
 
   const processMessage = async (
     userMessage: string, 
@@ -107,6 +109,30 @@ export const useEnhancedChatMessageProcessor = (intents: Intent[], services: Ser
         if (service.contact_phone) serviceInfo += `\n\nCall: ${service.contact_phone}`;
         if (service.contact_url) serviceInfo += `\nMore info: ${service.contact_url}`;
         botMsg.text += serviceInfo;
+      }
+
+      // Match to verified service providers
+      try {
+        const intentCategory = aiResult.analysis.intent || '';
+        const providerMatch = matchFromIntent(intentCategory, aiResult.analysis.urgency);
+        
+        if (providerMatch.providers.length > 0) {
+          botMsg.text += `\n\n**Verified Service Providers Near You:**`;
+          providerMatch.providers.slice(0, 2).forEach(match => {
+            botMsg.text += `\n\n🏢 **${match.provider.provider_name}** (${Math.round(match.matchScore)}% match)`;
+            if (match.provider.contact_info?.phone) {
+              botMsg.text += `\n📞 ${match.provider.contact_info.phone}`;
+            }
+            if (match.provider.contact_info?.email) {
+              botMsg.text += `\n📧 ${match.provider.contact_info.email}`;
+            }
+            if (match.provider.location_data?.address) {
+              botMsg.text += `\n📍 ${match.provider.location_data.address}`;
+            }
+          });
+        }
+      } catch (matchError) {
+        console.error('Provider matching failed:', matchError);
       }
 
       // Urgency indicators
