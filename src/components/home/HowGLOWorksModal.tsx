@@ -15,52 +15,48 @@ const HowGLOWorksModal = ({ trigger, defaultOpen = false }: HowGLOWorksModalProp
   const steps = [
     {
       number: 1,
-      title: "Chat or Explore Safely",
-      description: "Browse services anonymously or chat with our AI assistant in English, Swahili, or Sheng. No login required to start.",
+      title: "Chat or Browse Safely",
+      description: "Browse partner services anonymously or chat with our multilingual assistant in English, Swahili, or Sheng. No login required to start.",
       icon: MessageCircle,
       details: [
-        "24/7 AI-powered matching",
-        "Multilingual assistance",
-        "Completely anonymous browsing",
+        "Chat assistant available 24/7",
+        "English, Swahili, and Sheng support",
+        "Browse services without creating an account",
       ],
       color: "bg-blue-500",
     },
     {
       number: 2,
       title: "Get Matched to Partner Organizations",
-      description: "Based on your needs, our platform matches you with independent, verified organizations that provide shelter, legal aid, counseling, and employment support.",
+      description: "Based on your needs, our platform connects you with verified organizations that provide shelter, legal aid, counseling, and employment support.",
       icon: Users,
       details: [
-        "15+ partner organizations",
-        "Verified and independent providers",
-        "Personalized recommendations",
+        "Verified partner organizations",
+        "Services filtered by your needs",
+        "Guided matching based on your situation",
       ],
       color: "bg-purple-500",
     },
     {
       number: 3,
       title: "A Partner Organization Follows Up",
-      description: "Within 24 hours, a trained support worker from an independent partner organization will contact you directly.",
+      description: "After you request a referral, the partner organization will contact you directly to arrange support.",
       icon: Phone,
       details: [
-        "Human support within 24 hours",
+        "Direct contact from the partner",
         "Trauma-informed approach",
-        "Coordinated follow-up",
+        "Services delivered by the partner, not GLO",
       ],
       color: "bg-green-500",
     },
   ];
 
   const handleNext = () => {
-    if (activeStep < steps.length - 1) {
-      setActiveStep(activeStep + 1);
-    }
+    if (activeStep < steps.length - 1) setActiveStep(activeStep + 1);
   };
 
   const handlePrev = () => {
-    if (activeStep > 0) {
-      setActiveStep(activeStep - 1);
-    }
+    if (activeStep > 0) setActiveStep(activeStep - 1);
   };
 
   return (
@@ -79,7 +75,7 @@ const HowGLOWorksModal = ({ trigger, defaultOpen = false }: HowGLOWorksModalProp
             How GLO Works
           </DialogTitle>
           <p className="text-center text-muted-foreground">
-            Three simple steps to get the support you need
+            Three simple steps to get connected with support
           </p>
         </DialogHeader>
 
@@ -116,7 +112,7 @@ const HowGLOWorksModal = ({ trigger, defaultOpen = false }: HowGLOWorksModalProp
             ))}
           </div>
 
-          {/* Active step content with animation */}
+          {/* Active step content */}
           <div className="relative min-h-[280px]">
             {steps.map((step, index) => {
               const IconComponent = step.icon;
@@ -132,14 +128,9 @@ const HowGLOWorksModal = ({ trigger, defaultOpen = false }: HowGLOWorksModalProp
                   }`}
                 >
                   <div className="flex flex-col items-center text-center">
-                    {/* Icon with animated background */}
                     <div className="relative mb-6">
-                      <div
-                        className={`absolute inset-0 ${step.color} rounded-full blur-xl opacity-30 animate-pulse`}
-                      />
-                      <div
-                        className={`relative h-20 w-20 rounded-full ${step.color} flex items-center justify-center animate-scale-in`}
-                      >
+                      <div className={`absolute inset-0 ${step.color} rounded-full blur-xl opacity-30 animate-pulse`} />
+                      <div className={`relative h-20 w-20 rounded-full ${step.color} flex items-center justify-center animate-scale-in`}>
                         <IconComponent className="h-10 w-10 text-white" />
                       </div>
                     </div>
@@ -152,7 +143,6 @@ const HowGLOWorksModal = ({ trigger, defaultOpen = false }: HowGLOWorksModalProp
                       {step.description}
                     </p>
 
-                    {/* Details list */}
                     <div className="space-y-2 animate-fade-in">
                       {step.details.map((detail, i) => (
                         <div
@@ -160,9 +150,7 @@ const HowGLOWorksModal = ({ trigger, defaultOpen = false }: HowGLOWorksModalProp
                           className="flex items-center gap-2 text-sm text-muted-foreground"
                           style={{ animationDelay: `${i * 100}ms` }}
                         >
-                          <div
-                            className={`h-1.5 w-1.5 rounded-full ${step.color}`}
-                          />
+                          <div className={`h-1.5 w-1.5 rounded-full ${step.color}`} />
                           <span>{detail}</span>
                         </div>
                       ))}
@@ -173,7 +161,7 @@ const HowGLOWorksModal = ({ trigger, defaultOpen = false }: HowGLOWorksModalProp
             })}
           </div>
 
-          {/* Navigation buttons */}
+          {/* Navigation */}
           <div className="flex items-center justify-between mt-6">
             <Button
               variant="ghost"

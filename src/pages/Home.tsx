@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { ArrowRight, Briefcase } from "lucide-react";
 import { Link } from "react-router-dom";
 import SocialProofBar from "@/components/home/SocialProofBar";
@@ -18,29 +18,29 @@ const Home = () => {
       {/* Hero - Primary CTAs */}
       <MobileHero />
 
-      {/* How It Works - Consolidated */}
+      {/* How It Works */}
       <HowItWorksSteps />
 
-      {/* Features - Compact */}
+      {/* Features */}
       <FeaturesBenefits />
 
-      {/* Social Proof - Minimal */}
+      {/* Credibility Signals */}
       <SocialProofBar />
 
       {/* Support Quiz */}
       <section className="py-6 md:py-8 bg-muted/30">
         <div className="max-w-xl mx-auto px-4 sm:px-6">
           <h2 className="text-lg font-bold text-foreground text-center mb-1">
-            Find Partner Organizations
+            Find the Right Support
           </h2>
           <p className="text-sm text-muted-foreground text-center mb-4">
-            Answer a few questions to get matched
+            Answer a few questions and we'll suggest relevant services
           </p>
           <MobileSupportQuiz />
         </div>
       </section>
 
-      {/* For Employers - Compact */}
+      {/* For Employers */}
       <section className="py-6 md:py-8 bg-background">
         <div className="max-w-xl mx-auto px-4 sm:px-6">
           <Card className="p-4 border-primary/20">
@@ -65,14 +65,14 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Final CTA - Focused */}
+      {/* Final CTA */}
       <section className="py-6 md:py-8 bg-primary">
         <div className="max-w-xl mx-auto px-4 sm:px-6 text-center">
           <h2 className="text-lg font-bold text-primary-foreground mb-2">
             Ready to Connect?
           </h2>
           <p className="text-sm text-primary-foreground/90 mb-4">
-            AI-powered matching · Partner-delivered services
+            Browse services anonymously or explore partnership options
           </p>
           <div className="flex flex-col sm:flex-row gap-2 justify-center">
             <Button variant="secondary" size="sm" asChild>
@@ -87,7 +87,7 @@ const Home = () => {
               className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary" 
               asChild
             >
-              <Link to="/about">About GLO</Link>
+              <Link to="/partners">Partner With Us</Link>
             </Button>
           </div>
         </div>
