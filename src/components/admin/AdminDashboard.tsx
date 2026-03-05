@@ -49,14 +49,25 @@ const AdminDashboard = () => {
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({ format: 'csv' })
       });
 
       if (response.ok) {
-        const result = await response.json();
+        const csvText = await response.text();
+        const blob = new Blob([csvText], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        const timestamp = new Date().toISOString().split('T')[0];
+        link.download = `contact-submissions-${timestamp}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
         toast({
           title: "Export successful",
-          description: result.message || "Contact data exported successfully",
+          description: "CSV file downloaded",
         });
       } else {
         const error = await response.json();
