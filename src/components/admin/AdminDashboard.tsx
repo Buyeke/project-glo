@@ -16,7 +16,8 @@ import {
   AlertTriangle,
   Edit3,
   Handshake,
-  Clock
+  Clock,
+  ClipboardList
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
