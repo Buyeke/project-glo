@@ -1,10 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-}
+import {
+  corsHeaders, errorResponse, cachedJsonResponse, ErrorCode,
+} from '../_shared/edu-auth.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -12,9 +9,7 @@ Deno.serve(async (req) => {
   }
 
   if (req.method !== 'GET') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    return errorResponse(ErrorCode.METHOD_NOT_ALLOWED, 'Method not allowed', 405)
   }
 
   try {
@@ -29,9 +24,7 @@ Deno.serve(async (req) => {
 
     const validTypes = ['schema', 'examples', 'glossary']
     if (!validTypes.includes(docType)) {
-      return new Response(JSON.stringify({
-        error: `Invalid doc type. Valid types: ${validTypes.join(', ')}`
-      }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      return errorResponse(ErrorCode.VALIDATION_ERROR, `Invalid doc type. Valid types: ${validTypes.join(', ')}`, 400)
     }
 
     const { data: doc, error } = await adminClient
@@ -44,18 +37,13 @@ Deno.serve(async (req) => {
       .single()
 
     if (error || !doc) {
-      return new Response(JSON.stringify({ error: 'Documentation not found' }), {
-        status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+      return errorResponse(ErrorCode.NOT_FOUND, 'Documentation not found', 404)
     }
 
-    return new Response(JSON.stringify(doc), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    // Docs are highly cacheable — 5 minutes
+    return cachedJsonResponse(doc, 300)
   } catch (error) {
     console.error('education-docs error:', error)
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    return errorResponse(ErrorCode.INTERNAL_ERROR, 'Internal server error', 500)
   }
 })

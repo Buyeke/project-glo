@@ -1,95 +1,8 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-}
-
-async function authenticateEducationUser(req: Request) {
-  const adminClient = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-  )
-
-  const apiKey = req.headers.get('x-api-key')
-  if (apiKey) {
-    const encoder = new TextEncoder()
-    const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(apiKey))
-    const keyHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
-
-    const { data: student } = await adminClient
-      .from('edu_students')
-      .select('id, organization_id, semester_id, status, ethics_certified')
-      .eq('api_key_hash', keyHash)
-      .eq('status', 'active')
-      .single()
-
-    if (student) {
-      return { studentId: student.id, orgId: student.organization_id, semesterId: student.semester_id, role: 'student', adminClient }
-    }
-
-    const { data: keyRecord } = await adminClient
-      .from('organization_api_keys')
-      .select('organization_id')
-      .eq('key_hash', keyHash)
-      .eq('is_active', true)
-      .single()
-
-    if (keyRecord) {
-      const { data: org } = await adminClient
-        .from('organizations')
-        .select('id, tier')
-        .eq('id', keyRecord.organization_id)
-        .eq('tier', 'education')
-        .single()
-
-      if (org) return { studentId: null, orgId: org.id, semesterId: null, role: 'faculty', adminClient }
-    }
-  }
-
-  const authHeader = req.headers.get('Authorization')
-  if (!authHeader?.startsWith('Bearer ')) return null
-
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_ANON_KEY')!,
-    { global: { headers: { Authorization: authHeader } } }
-  )
-
-  const { data: claims, error } = await supabase.auth.getClaims(authHeader.replace('Bearer ', ''))
-  if (error || !claims?.claims?.sub) return null
-  const userId = claims.claims.sub as string
-
-  const { data: student } = await adminClient
-    .from('edu_students')
-    .select('id, organization_id, semester_id, status')
-    .eq('user_id', userId)
-    .eq('status', 'active')
-    .single()
-
-  if (student) return { studentId: student.id, orgId: student.organization_id, semesterId: student.semester_id, role: 'student', adminClient }
-
-  const { data: membership } = await adminClient
-    .from('organization_members')
-    .select('organization_id, role')
-    .eq('user_id', userId)
-    .in('role', ['owner', 'admin', 'faculty'])
-    .single()
-
-  if (membership) {
-    const { data: org } = await adminClient
-      .from('organizations')
-      .select('id, tier')
-      .eq('id', membership.organization_id)
-      .eq('tier', 'education')
-      .single()
-
-    if (org) return { studentId: null, orgId: org.id, semesterId: null, role: 'faculty', adminClient }
-  }
-
-  return null
-}
+import {
+  authenticateEducationRequest, corsHeaders,
+  errorResponse, jsonResponse, cachedJsonResponse, paginatedResponse, parsePagination,
+  ErrorCode, requireScope,
+} from '../_shared/edu-auth.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -97,46 +10,34 @@ Deno.serve(async (req) => {
   }
 
   if (req.method !== 'GET') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    return errorResponse(ErrorCode.METHOD_NOT_ALLOWED, 'Method not allowed', 405)
   }
 
   try {
-    const auth = await authenticateEducationUser(req)
-    if (!auth) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
-    }
+    const auth = await authenticateEducationRequest(req)
+    if (!auth) return errorResponse(ErrorCode.UNAUTHORIZED, 'Unauthorized', 401)
+
+    const scopeErr = requireScope(auth, 'education:read')
+    if (scopeErr) return scopeErr
 
     const url = new URL(req.url)
     const scope = url.searchParams.get('scope') || 'student'
     const format = url.searchParams.get('format')
 
-    // Student can only see own analytics
+    // Student analytics
     if (scope === 'student') {
       const studentId = url.searchParams.get('student_id') || auth.studentId
-      if (!studentId) {
-        return new Response(JSON.stringify({ error: 'student_id required for student scope' }), {
-          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
-      }
+      if (!studentId) return errorResponse(ErrorCode.VALIDATION_ERROR, 'student_id required for student scope', 400)
 
-      // Only allow students to see their own data, faculty can see any
       if (auth.role === 'student' && studentId !== auth.studentId) {
-        return new Response(JSON.stringify({ error: 'Cannot view other students\' analytics' }), {
-          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+        return errorResponse(ErrorCode.FORBIDDEN, 'Cannot view other students\' analytics', 403)
       }
 
-      // Total calls
       const { count: totalCalls } = await auth.adminClient
         .from('edu_api_usage')
         .select('id', { count: 'exact', head: true })
         .eq('student_id', studentId)
 
-      // Calls by endpoint
       const { data: endpointUsage } = await auth.adminClient
         .from('edu_api_usage')
         .select('endpoint, method, status_code, is_sandbox, created_at')
@@ -144,7 +45,6 @@ Deno.serve(async (req) => {
         .order('created_at', { ascending: false })
         .limit(500)
 
-      // Calculate metrics
       const endpoints: Record<string, number> = {}
       let errorCount = 0
       let sandboxCount = 0
@@ -175,25 +75,19 @@ Deno.serve(async (req) => {
         })
       }
 
-      return new Response(JSON.stringify(analytics), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+      return cachedJsonResponse(analytics, 30)
     }
 
     if (scope === 'cohort') {
       if (auth.role === 'student') {
-        return new Response(JSON.stringify({ error: 'Faculty role required for cohort analytics' }), {
-          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+        return errorResponse(ErrorCode.FORBIDDEN, 'Faculty role required for cohort analytics', 403)
       }
 
-      // Get all students in org
       const { data: students } = await auth.adminClient
         .from('edu_students')
         .select('id, name, student_id_external')
         .eq('organization_id', auth.orgId)
 
-      // Get usage counts per student
       const { data: usage } = await auth.adminClient
         .from('edu_api_usage')
         .select('student_id, endpoint, status_code, is_sandbox, created_at')
@@ -215,8 +109,7 @@ Deno.serve(async (req) => {
 
         if (u.status_code && u.status_code >= 400) {
           studentUsage[u.student_id].errors++
-          const errorKey = `${u.status_code}`
-          allErrors[errorKey] = (allErrors[errorKey] || 0) + 1
+          allErrors[`${u.status_code}`] = (allErrors[`${u.status_code}`] || 0) + 1
         }
       }
 
@@ -250,16 +143,12 @@ Deno.serve(async (req) => {
         })
       }
 
-      return new Response(JSON.stringify(cohortAnalytics), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+      return cachedJsonResponse(cohortAnalytics, 60)
     }
 
     if (scope === 'timeseries') {
       if (auth.role === 'student' && !auth.studentId) {
-        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+        return errorResponse(ErrorCode.FORBIDDEN, 'Unauthorized', 403)
       }
 
       const period = url.searchParams.get('period') || 'daily'
@@ -303,18 +192,12 @@ Deno.serve(async (req) => {
         .sort((a, b) => a[0].localeCompare(b[0]))
         .map(([date, data]) => ({ date, ...data }))
 
-      return new Response(JSON.stringify({ period, timeseries }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+      return cachedJsonResponse({ period, timeseries }, 30)
     }
 
-    return new Response(JSON.stringify({ error: 'Invalid scope. Use: student, cohort, timeseries' }), {
-      status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    return errorResponse(ErrorCode.VALIDATION_ERROR, 'Invalid scope. Use: student, cohort, timeseries', 400)
   } catch (error) {
     console.error('education-analytics error:', error)
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    return errorResponse(ErrorCode.INTERNAL_ERROR, 'Internal server error', 500)
   }
 })
