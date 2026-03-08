@@ -22,7 +22,16 @@ export const CRISIS_KEYWORDS = [
   'nataka kujitoa', 'nimechoka na life', 'kujiua',
 ];
 
-export const detectEmergency = (message: string): { isEmergency: boolean; isCrisis: boolean; urgencyLevel: string } => {
+export const detectEmergency = (input: string | Record<string, any>): boolean => {
+  // Convert input to searchable string
+  const text = typeof input === 'string' 
+    ? input.toLowerCase() 
+    : Object.values(input).map(v => String(v)).join(' ').toLowerCase();
+  
+  return EMERGENCY_KEYWORDS.some(keyword => text.includes(keyword));
+};
+
+export const detectEmergencyDetailed = (message: string): { isEmergency: boolean; isCrisis: boolean; urgencyLevel: string } => {
   const lowerMessage = message.toLowerCase();
   
   const isCrisis = CRISIS_KEYWORDS.some(keyword => lowerMessage.includes(keyword));
