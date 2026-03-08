@@ -226,6 +226,45 @@ export type Database = {
           },
         ]
       }
+      audit_trail: {
+        Row: {
+          action: string
+          changed_fields: string[] | null
+          created_at: string
+          id: string
+          ip_address: string | null
+          new_data: Json | null
+          old_data: Json | null
+          performed_by: string | null
+          record_id: string
+          table_name: string
+        }
+        Insert: {
+          action: string
+          changed_fields?: string[] | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          performed_by?: string | null
+          record_id: string
+          table_name: string
+        }
+        Update: {
+          action?: string
+          changed_fields?: string[] | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          performed_by?: string | null
+          record_id?: string
+          table_name?: string
+        }
+        Relationships: []
+      }
       blog_categories: {
         Row: {
           created_at: string | null
