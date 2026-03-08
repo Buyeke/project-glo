@@ -13,14 +13,13 @@ const MobileHero = () => {
             Find Support Safely
           </h1>
           
-          {/* Subtitle - honest about what the platform does */}
+          {/* Subtitle */}
           <p className="mobile-hero-subtitle text-muted-foreground max-w-xl">
             Project GLO connects you to verified organizations offering shelter, legal aid, counseling, and employment support across Kenya.
           </p>
           
           {/* Dual audience paths */}
           <div className="w-full max-w-sm mt-2 space-y-3">
-            {/* For individuals seeking support */}
             <Button 
               asChild 
               size="lg" 
@@ -57,7 +56,7 @@ const MobileHero = () => {
             >
               <Link to="/about" className="flex items-center justify-center gap-2">
                 <Info className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-                <span>About GLO</span>
+                <span>About Project GLO</span>
               </Link>
             </Button>
           </div>
@@ -65,7 +64,7 @@ const MobileHero = () => {
           {/* Trust Signal */}
           <div className="flex items-center gap-2 text-xs text-muted-foreground mt-4">
             <Shield className="h-3.5 w-3.5 text-primary/60" aria-hidden="true" />
-            <span>Your data is encrypted · Services delivered by independent partners</span>
+            <span>Kenya-registered · Data encrypted · Services by independent partners</span>
           </div>
         </div>
       </div>

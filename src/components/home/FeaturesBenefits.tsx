@@ -9,7 +9,7 @@ const FeaturesBenefits = () => {
     },
     {
       icon: Shield,
-      title: "Private",
+      title: "Private & Secure",
       description: "Encrypted, confidential",
     },
     {
@@ -19,8 +19,8 @@ const FeaturesBenefits = () => {
     },
     {
       icon: MessageCircle,
-      title: "Chat Support",
-      description: "AI assistant available 24/7",
+      title: "Multilingual Assistant",
+      description: "Guided support in 3 languages",
     },
   ];
 

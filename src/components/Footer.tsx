@@ -11,7 +11,7 @@ const Footer = () => {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button asChild>
               <Link to="/partners">
-                Become a Partner
+                Explore Partnership Options
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -32,7 +32,7 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-bold mb-3 text-primary">Project GLO</h3>
             <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-              An AI-powered coordination platform with trauma-informed chatbot in Sheng, Swahili, and English—connecting women in Kenya to verified partner organizations.
+              A coordination platform with a multilingual assistant in Sheng, Swahili, and English—connecting women in Kenya to verified partner organizations for shelter, legal aid, counseling, and employment support.
             </p>
             <div className="flex gap-2">
               <div className="flex items-center gap-1 px-2 py-1 bg-primary/5 rounded text-xs">
@@ -92,7 +92,6 @@ const Footer = () => {
 
         {/* Divider */}
         <div className="border-t border-border mt-8 pt-6">
-          {/* Bottom line: Legal + Policy links */}
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
             <p className="text-xs text-muted-foreground">
               © 2026 Glomera Operations Ltd. Project GLO is operated by Glomera Operations Ltd, a Kenya-registered social impact technology company.

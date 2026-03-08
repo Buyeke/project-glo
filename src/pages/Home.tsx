@@ -72,7 +72,7 @@ const Home = () => {
             Ready to Connect?
           </h2>
           <p className="text-sm text-primary-foreground/90 mb-4">
-            Browse services anonymously or explore partnership options
+            Browse partner services anonymously or explore how your organization can join
           </p>
           <div className="flex flex-col sm:flex-row gap-2 justify-center">
             <Button variant="secondary" size="sm" asChild>
@@ -87,7 +87,7 @@ const Home = () => {
               className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary" 
               asChild
             >
-              <Link to="/partners">Partner With Us</Link>
+              <Link to="/partners">Explore Partnership Options</Link>
             </Button>
           </div>
         </div>
