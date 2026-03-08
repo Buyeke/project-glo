@@ -28,6 +28,7 @@ import ContentManagement from './ContentManagement';
 import { AIPerformanceDashboard } from './AIPerformanceDashboard';
 import PartnerManagement from './PartnerManagement';
 import UserUsageTracker from './UserUsageTracker';
+import AuditTrailPanel from './AuditTrailPanel';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
