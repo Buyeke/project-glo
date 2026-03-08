@@ -4,9 +4,11 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatDistanceToNow } from 'date-fns';
-import { MessageSquare, Globe, Target, TrendingUp } from 'lucide-react';
+import { MessageSquare, Globe, Target, TrendingUp, Download } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 interface ChatInteraction {
   id: string;
