@@ -14,8 +14,8 @@ const QuickExitButton = () => {
     const setInitialPosition = () => {
       if (buttonRef.current) {
         const buttonWidth = buttonRef.current.offsetWidth || 120;
-        const initialX = window.innerWidth - buttonWidth - 20;
-        setPosition({ x: Math.max(0, initialX), y: 20 });
+        const initialX = Math.max(0, (window.innerWidth - buttonWidth) / 2);
+        setPosition({ x: initialX, y: 20 });
       }
     };
 
