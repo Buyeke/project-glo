@@ -147,7 +147,7 @@ const AdminDashboard = () => {
       <div className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <div className="overflow-x-auto -mx-4 px-4 pb-2">
-            <TabsList className="inline-flex w-auto min-w-full sm:w-full sm:grid sm:grid-cols-9">
+            <TabsList className="inline-flex w-auto min-w-full sm:w-full sm:grid sm:grid-cols-10">
               <TabsTrigger value="overview" className="whitespace-nowrap">Overview</TabsTrigger>
               <TabsTrigger value="content" className="whitespace-nowrap">Content</TabsTrigger>
               <TabsTrigger value="contacts" className="whitespace-nowrap">Contacts</TabsTrigger>
@@ -156,6 +156,7 @@ const AdminDashboard = () => {
               <TabsTrigger value="chat" className="whitespace-nowrap">Chat</TabsTrigger>
               <TabsTrigger value="ai-performance" className="whitespace-nowrap">AI</TabsTrigger>
               <TabsTrigger value="usage" className="whitespace-nowrap">Usage</TabsTrigger>
+              <TabsTrigger value="audit" className="whitespace-nowrap">Audit Trail</TabsTrigger>
               <TabsTrigger value="security" className="whitespace-nowrap">Security</TabsTrigger>
             </TabsList>
           </div>
