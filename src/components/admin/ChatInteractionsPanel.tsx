@@ -175,10 +175,18 @@ const ChatInteractionsPanel = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent Chat Interactions</CardTitle>
-          <CardDescription>
-            Review recent conversations to improve AI responses
-          </CardDescription>
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <CardTitle>Recent Chat Interactions</CardTitle>
+              <CardDescription>
+                Review recent conversations to improve AI responses
+              </CardDescription>
+            </div>
+            <Button onClick={exportChatLogs} variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Export CSV
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-96">
