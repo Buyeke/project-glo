@@ -64,7 +64,6 @@ export const useEnhancedChatMessageProcessor = (intents: Intent[], services: Ser
       try {
         aiResult = await tryAICall();
       } catch (firstError: any) {
-        // Retry once after 2s for transient failures
         const isTransient = firstError?.message?.includes('503') || 
                            firstError?.message?.includes('timeout') ||
                            firstError?.message?.includes('gateway error');
@@ -79,19 +78,10 @@ export const useEnhancedChatMessageProcessor = (intents: Intent[], services: Ser
 
       console.log('AI processing with RAG successful:', aiResult);
 
-      let enhancedResponse = aiResult.response;
-      
-      // Add relevant knowledge if found
-      if (knowledgeResults.length > 0 && aiResult.analysis.confidence > 0.7) {
-        const relevantKnowledge = knowledgeResults[0];
-        if (relevantKnowledge.relevance_score && relevantKnowledge.relevance_score > 0.8) {
-          enhancedResponse += `\n\n**Additional Information:**\n${relevantKnowledge.content}`;
-        }
-      }
-
+      // Use the AI response as-is — no bold headers, no emoji decoration
       const botMsg: ChatMessage = {
         id: messages.length + 2,
-        text: enhancedResponse,
+        text: aiResult.response,
         isBot: true,
         language: detectedLanguage,
         intent: aiResult.analysis.intent,
@@ -99,35 +89,29 @@ export const useEnhancedChatMessageProcessor = (intents: Intent[], services: Ser
         matchedService: aiResult.matchedServices[0]?.id,
       };
 
-      // Add service information
+      // Append matched service contact info (plain text, no formatting)
       if (aiResult.matchedServices.length > 0) {
         const service = aiResult.matchedServices[0];
-        let serviceInfo = `\n\n${service.title}\n${service.description}`;
-        if (service.key_features && Array.isArray(service.key_features)) {
-          serviceInfo += `\n\nKey Features:\n${service.key_features.map((f: string) => `• ${f}`).join('\n')}`;
-        }
-        if (service.contact_phone) serviceInfo += `\n\nCall: ${service.contact_phone}`;
+        let serviceInfo = `\n\n${service.title}`;
+        if (service.contact_phone) serviceInfo += `\nCall: ${service.contact_phone}`;
         if (service.contact_url) serviceInfo += `\nMore info: ${service.contact_url}`;
         botMsg.text += serviceInfo;
       }
 
-      // Match to verified service providers
+      // Append provider contacts (plain text, no emojis or bold)
       try {
         const intentCategory = aiResult.analysis.intent || '';
         const providerMatch = matchFromIntent(intentCategory, aiResult.analysis.urgency);
         
         if (providerMatch.providers.length > 0) {
-          botMsg.text += `\n\n**Verified Service Providers Near You:**`;
+          botMsg.text += `\n\nRelevant organizations:`;
           providerMatch.providers.slice(0, 2).forEach(match => {
-            botMsg.text += `\n\n🏢 **${match.provider.provider_name}** (${Math.round(match.matchScore)}% match)`;
+            botMsg.text += `\n\n${match.provider.provider_name}`;
             if (match.provider.contact_info?.phone) {
-              botMsg.text += `\n📞 ${match.provider.contact_info.phone}`;
-            }
-            if (match.provider.contact_info?.email) {
-              botMsg.text += `\n📧 ${match.provider.contact_info.email}`;
+              botMsg.text += ` - ${match.provider.contact_info.phone}`;
             }
             if (match.provider.location_data?.address) {
-              botMsg.text += `\n📍 ${match.provider.location_data.address}`;
+              botMsg.text += ` (${match.provider.location_data.address})`;
             }
           });
         }
@@ -135,21 +119,13 @@ export const useEnhancedChatMessageProcessor = (intents: Intent[], services: Ser
         console.error('Provider matching failed:', matchError);
       }
 
-      // Urgency indicators
-      if (aiResult.analysis.urgency === 'critical') {
-        botMsg.text = `**URGENT SUPPORT NEEDED**\n\n${botMsg.text}`;
+      // Append emergency contacts only for critical/safety situations
+      if (aiResult.analysis.urgency === 'critical' || aiResult.analysis.safety_concerns) {
         botMsg.text += formatEmergencyContactsForChat();
-      } else if (aiResult.analysis.urgency === 'high') {
-        botMsg.text = `**Priority Support**\n\n${botMsg.text}`;
       }
 
       if (aiResult.analysis.requires_human) {
-        botMsg.text += `\n\n**A human counselor will be notified to provide additional support.**`;
-      }
-
-      // Append emergency contacts for safety concerns
-      if (aiResult.analysis.safety_concerns && aiResult.analysis.urgency !== 'critical') {
-        botMsg.text += formatEmergencyContactsForChat();
+        botMsg.text += `\n\nA counselor will be notified to follow up with you.`;
       }
 
       // Schedule follow-ups
@@ -169,8 +145,6 @@ export const useEnhancedChatMessageProcessor = (intents: Intent[], services: Ser
 
     } catch (error) {
       console.error('AI processing failed after retry, using fallback with knowledge:', error);
-      
-      // Fallback with knowledge context
       return await fallbackProcess(userMessage, messages, forcedLanguage, knowledgeContext);
     }
   };

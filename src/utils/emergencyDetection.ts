@@ -1,91 +1,61 @@
+// Emergency detection utilities
 
-// Emergency detection utility
-export const detectEmergency = (responses: Record<string, any>, messageText?: string): boolean => {
-  const emergencyKeywords = [
-    // English
-    'emergency', 'urgent', 'help now', 'crisis', 'danger', 'abuse', 'violence', 
-    'hurt', 'beaten', 'assault', 'rape', 'attack', 'threat', 'bleeding', 
-    'unconscious', 'overdose', 'suicide', 'missing child', 'kidnapped',
-    
-    // Swahili
-    'dharura', 'haraka', 'msaada sasa', 'hatari', 'unyanyasaji', 'jeruhi',
-    'kupigwa', 'udhalimu', 'msaada wa haraka',
-    
-    // Arabic
-    'طوارئ', 'عاجل', 'مساعدة الآن', 'خطر', 'إساءة', 'عنف', 'اعتداء',
-    
-    // Sheng
-    'emergency', 'haraka', 'help sasa', 'danger', 'kudhulumiwa', 'kupigwa'
-  ];
+export interface EmergencyService {
+  name: string;
+  number: string;
+  altNumber?: string;
+  description: string;
+}
 
-  // Check message text for emergency keywords
-  if (messageText) {
-    const lowerText = messageText.toLowerCase();
-    const hasEmergencyKeyword = emergencyKeywords.some(keyword => 
-      lowerText.includes(keyword.toLowerCase())
-    );
-    if (hasEmergencyKeyword) return true;
-  }
+export const EMERGENCY_KEYWORDS = [
+  'emergency', 'help me', 'danger', 'hurt', 'abuse', 'violence',
+  'msaada', 'hatari', 'kupigwa', 'dharura',
+  'nimebanwa', 'kupigwa na msee', 'nimepotea', 'nimechoka na life',
+  'nataka kujitoa', 'nimefukuzwa', 'nimepigwa vibaya',
+  'nataka kuhepa', 'nimefungiwa', 'niko kwa lockdown',
+  'nimebebwa kwa nguvu',
+  'suicide', 'kill myself', 'end my life', 'die',
+];
 
-  // Check assessment responses for emergency indicators
-  const emergencyResponses = [
-    'immediate_danger',
-    'physical_abuse',
-    'sexual_assault',
-    'medical_emergency',
-    'missing_child',
-    'suicidal_thoughts',
-    'overdose',
-    'domestic_violence',
-    'human_trafficking'
-  ];
+export const CRISIS_KEYWORDS = [
+  'suicide', 'kill myself', 'end my life', 'die', 'want to die',
+  'nataka kujitoa', 'nimechoka na life', 'kujiua',
+];
 
-  for (const [key, value] of Object.entries(responses)) {
-    if (typeof value === 'string') {
-      const lowerValue = value.toLowerCase();
-      if (emergencyResponses.some(emergency => lowerValue.includes(emergency))) {
-        return true;
-      }
-      if (emergencyKeywords.some(keyword => lowerValue.includes(keyword.toLowerCase()))) {
-        return true;
-      }
-    }
-    
-    // Check for high urgency indicators
-    if (key.includes('urgency') && (value === 'immediate' || value === 'critical')) {
-      return true;
-    }
-    
-    // Check for safety-related boolean responses
-    if (key.includes('safe') && value === false) {
-      return true;
-    }
-  }
-
-  return false;
+export const detectEmergency = (message: string): { isEmergency: boolean; isCrisis: boolean; urgencyLevel: string } => {
+  const lowerMessage = message.toLowerCase();
+  
+  const isCrisis = CRISIS_KEYWORDS.some(keyword => lowerMessage.includes(keyword));
+  const isEmergency = isCrisis || EMERGENCY_KEYWORDS.some(keyword => lowerMessage.includes(keyword));
+  
+  let urgencyLevel = 'low';
+  if (isCrisis) urgencyLevel = 'critical';
+  else if (isEmergency) urgencyLevel = 'high';
+  
+  return { isEmergency, isCrisis, urgencyLevel };
 };
 
-export const getEmergencyServices = () => [
+export const getEmergencyServices = (): EmergencyService[] => [
   {
     name: "Kenya Police",
     number: "999",
     altNumber: "112",
-    description: "Immediate emergency response (Nationwide)"
+    description: "Emergency police response (Nationwide)"
   },
   {
     name: "Childline Kenya",
     number: "116",
-    description: "Child protection and support (Nationwide)"
+    description: "Child protection helpline (Nationwide)"
   },
   {
-    name: "GBV Hotline (Healthcare Assistance Kenya)",
+    name: "GBV Hotline",
     number: "1195",
-    description: "Gender-based violence support (Nationwide)"
+    description: "Gender-Based Violence helpline (Healthcare Assistance Kenya)"
   },
   {
     name: "Gender Violence Recovery Centre (GVRC)",
     number: "0709 319 000",
-    description: "GBV recovery services (Nairobi)"
+    description: "Comprehensive GBV support (Nairobi)"
   },
   {
     name: "FIDA Kenya (Legal Aid)",
@@ -98,7 +68,7 @@ export const formatEmergencyContactsForChat = (): string => {
   const contacts = getEmergencyServices();
   const lines = contacts.map(c => {
     const numbers = c.altNumber ? `${c.number} / ${c.altNumber}` : c.number;
-    return `- ${c.name}: ${numbers}`;
+    return `${c.name}: ${numbers}`;
   });
-  return `\n\nIMPORTANT EMERGENCY CONTACTS:\n${lines.join('\n')}\n\nCall any of these numbers if you need immediate help.`;
+  return `\n\nEmergency contacts:\n${lines.join('\n')}`;
 };
