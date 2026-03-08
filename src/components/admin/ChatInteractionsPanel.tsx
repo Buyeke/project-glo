@@ -85,6 +85,44 @@ const ChatInteractionsPanel = () => {
     return <div className="p-4">Loading chat interactions...</div>;
   }
 
+  const exportChatLogs = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('chat_interactions')
+        .select('id, created_at, user_id, detected_language, original_message, response, matched_intent, matched_service, confidence_score, urgency_level, emotional_state, safety_concerns, requires_human_intervention')
+        .order('created_at', { ascending: false })
+        .limit(10000);
+
+      if (error) throw error;
+      if (!data?.length) {
+        toast({ title: 'No data to export' });
+        return;
+      }
+
+      const headers = ['Timestamp', 'User ID', 'Language', 'Message', 'Response', 'Intent', 'Service', 'Confidence', 'Urgency', 'Emotional State', 'Safety Concern', 'Needs Human'];
+      const esc = (v: any) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+      const rows = data.map(r => [
+        r.created_at, r.user_id || 'anonymous', r.detected_language, r.original_message, r.response,
+        r.matched_intent, r.matched_service, r.confidence_score, r.urgency_level, r.emotional_state,
+        r.safety_concerns ? 'Yes' : 'No', r.requires_human_intervention ? 'Yes' : 'No',
+      ].map(esc).join(','));
+
+      const csv = [headers.map(esc).join(','), ...rows].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `chatbot-logs-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast({ title: 'Export successful', description: 'Chat logs CSV downloaded' });
+    } catch (err: any) {
+      toast({ title: 'Export failed', description: err.message, variant: 'destructive' });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
