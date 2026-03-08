@@ -135,6 +135,9 @@ verify_jwt = false
 [functions.paystack-invoice-init]
 verify_jwt = true
 
+[functions.audit-trail-export]
+verify_jwt = false
+
 [inbucket]
 enabled = true
 port = 54324

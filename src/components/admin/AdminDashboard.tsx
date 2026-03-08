@@ -305,6 +305,10 @@ const AdminDashboard = () => {
             <UserUsageTracker />
           </TabsContent>
 
+          <TabsContent value="audit">
+            <AuditTrailPanel />
+          </TabsContent>
+
           <TabsContent value="security">
             <SecurityPanel />
           </TabsContent>
