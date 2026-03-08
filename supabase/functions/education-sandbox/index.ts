@@ -1,10 +1,9 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-}
+import {
+  authenticateEducationRequest, corsHeaders,
+  errorResponse, jsonResponse, paginatedResponse, parsePagination,
+  ErrorCode, requireScope,
+} from '../_shared/edu-auth.ts'
 
 // Kenyan counties and subcounties for realistic data
 const counties = ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Kiambu', 'Machakos', 'Kajiado', 'Uasin Gishu', 'Nyeri', 'Kilifi']
@@ -21,7 +20,6 @@ const statuses = ['open', 'in_progress', 'pending_review', 'closed', 'referred']
 const noteTypes = ['assessment', 'follow_up', 'referral', 'progress', 'closure']
 const languages = ['en', 'sw', 'sheng']
 
-// Multilingual content templates
 const caseDescriptions: Record<string, string[]> = {
   en: [
     'Client seeking shelter after domestic incident. Referred by community health worker.',
@@ -120,114 +118,16 @@ function generateSyntheticNote(lang: string, caseId: string, index: number) {
 }
 
 function generateSyntheticIntake(lang: string, index: number) {
-  const county = randomItem(counties)
   return {
     submission_id: `INTAKE-${String(index + 1).padStart(4, '0')}`,
     form_type: randomItem(['general_intake', 'emergency_referral', 'self_referral', 'community_referral']),
     status: randomItem(['new', 'reviewed', 'assigned', 'completed']),
     priority: randomItem(priorities),
-    county,
+    county: randomItem(counties),
     responses_summary: randomItem(caseDescriptions[lang] || caseDescriptions.en),
     created_at: randomDate(new Date('2025-01-01'), new Date('2026-02-15')),
     anonymized: true,
   }
-}
-
-async function authenticateEducationUser(req: Request) {
-  const adminClient = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-  )
-
-  const apiKey = req.headers.get('x-api-key')
-  if (apiKey) {
-    const encoder = new TextEncoder()
-    const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(apiKey))
-    const keyHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
-
-    // Check student key
-    const { data: student } = await adminClient
-      .from('edu_students')
-      .select('id, organization_id, ethics_certified, status')
-      .eq('api_key_hash', keyHash)
-      .eq('status', 'active')
-      .single()
-
-    if (student) {
-      return { studentId: student.id, orgId: student.organization_id, role: 'student', ethicsCertified: student.ethics_certified, adminClient }
-    }
-
-    // Check org key
-    const { data: keyRecord } = await adminClient
-      .from('organization_api_keys')
-      .select('organization_id')
-      .eq('key_hash', keyHash)
-      .eq('is_active', true)
-      .single()
-
-    if (keyRecord) {
-      const { data: org } = await adminClient
-        .from('organizations')
-        .select('id, tier')
-        .eq('id', keyRecord.organization_id)
-        .eq('tier', 'education')
-        .single()
-
-      if (org) {
-        return { studentId: null, orgId: org.id, role: 'faculty', ethicsCertified: true, adminClient }
-      }
-    }
-  }
-
-  // JWT auth
-  const authHeader = req.headers.get('Authorization')
-  if (!authHeader?.startsWith('Bearer ')) return null
-
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_ANON_KEY')!,
-    { global: { headers: { Authorization: authHeader } } }
-  )
-
-  const { data: claims, error } = await supabase.auth.getClaims(authHeader.replace('Bearer ', ''))
-  if (error || !claims?.claims?.sub) return null
-
-  const userId = claims.claims.sub as string
-
-  // Check if student
-  const { data: student } = await adminClient
-    .from('edu_students')
-    .select('id, organization_id, ethics_certified, status')
-    .eq('user_id', userId)
-    .eq('status', 'active')
-    .single()
-
-  if (student) {
-    return { studentId: student.id, orgId: student.organization_id, role: 'student', ethicsCertified: student.ethics_certified, adminClient }
-  }
-
-  // Check if faculty
-  const { data: membership } = await adminClient
-    .from('organization_members')
-    .select('organization_id, role')
-    .eq('user_id', userId)
-    .in('role', ['owner', 'admin', 'faculty'])
-    .single()
-
-  if (membership) {
-    const { data: org } = await adminClient
-      .from('organizations')
-      .select('id, tier')
-      .eq('id', membership.organization_id)
-      .eq('tier', 'education')
-      .single()
-
-    if (org) {
-      return { studentId: null, orgId: org.id, role: 'faculty', ethicsCertified: true, adminClient }
-    }
-  }
-
-  return null
 }
 
 Deno.serve(async (req) => {
@@ -236,37 +136,28 @@ Deno.serve(async (req) => {
   }
 
   if (req.method !== 'GET') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    return errorResponse(ErrorCode.METHOD_NOT_ALLOWED, 'Method not allowed', 405)
   }
 
   try {
-    const auth = await authenticateEducationUser(req)
-    if (!auth) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
-    }
+    const auth = await authenticateEducationRequest(req)
+    if (!auth) return errorResponse(ErrorCode.UNAUTHORIZED, 'Unauthorized', 401)
 
-    // Sandbox is accessible even without ethics certification
+    const scopeErr = requireScope(auth, 'sandbox:read')
+    if (scopeErr) return scopeErr
+
     const url = new URL(req.url)
     const dataType = url.searchParams.get('type') || 'cases'
     const lang = url.searchParams.get('lang') || 'en'
-    const page = parseInt(url.searchParams.get('page') || '1')
-    const limit = Math.min(parseInt(url.searchParams.get('limit') || '50'), 100)
     const category = url.searchParams.get('category')
+    const pagination = parsePagination(url, 50, 100)
 
     if (!['cases', 'notes', 'intake'].includes(dataType)) {
-      return new Response(JSON.stringify({ error: 'Invalid type. Use: cases, notes, intake' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+      return errorResponse(ErrorCode.VALIDATION_ERROR, 'Invalid type. Use: cases, notes, intake', 400)
     }
 
     if (!languages.includes(lang)) {
-      return new Response(JSON.stringify({ error: `Invalid language. Use: ${languages.join(', ')}` }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+      return errorResponse(ErrorCode.VALIDATION_ERROR, `Invalid language. Use: ${languages.join(', ')}`, 400)
     }
 
     // Check for pre-generated sandbox data in DB first
@@ -276,88 +167,66 @@ Deno.serve(async (req) => {
       .eq('data_type', dataType)
       .eq('language', lang)
       .or(`organization_id.eq.${auth.orgId},organization_id.is.null`)
-      .limit(limit)
-      .range((page - 1) * limit, page * limit - 1)
+      .limit(pagination.limit)
+      .range(pagination.offset, pagination.offset + pagination.limit - 1)
 
     if (storedData && storedData.length > 0) {
       const records = storedData.map(d => ({ ...d.content as Record<string, unknown>, anonymized: true }))
 
-      // Update last_active_at for student
       if (auth.studentId) {
-        await auth.adminClient
-          .from('edu_students')
-          .update({ last_active_at: new Date().toISOString() })
-          .eq('id', auth.studentId)
+        await Promise.all([
+          auth.adminClient.from('edu_students').update({ last_active_at: new Date().toISOString() }).eq('id', auth.studentId),
+          auth.adminClient.from('edu_api_usage').insert({
+            organization_id: auth.orgId,
+            student_id: auth.studentId,
+            endpoint: `/education/sandbox?type=${dataType}`,
+            method: 'GET',
+            status_code: 200,
+            is_sandbox: true,
+          }),
+        ])
+      }
 
-        // Log API usage
-        await auth.adminClient.from('edu_api_usage').insert({
+      return paginatedResponse(records, records.length, pagination, { sandbox: true, anonymized: true })
+    }
+
+    // Generate synthetic data on-the-fly
+    const totalRecords = dataType === 'cases' ? 500 : 300
+    let records: unknown[] = []
+
+    if (dataType === 'cases') {
+      records = Array.from({ length: Math.min(pagination.limit, totalRecords - pagination.offset) }, (_, i) => {
+        const c = generateSyntheticCase(lang, pagination.offset + i)
+        return category ? (c.category === category ? c : null) : c
+      }).filter(Boolean)
+    } else if (dataType === 'notes') {
+      const caseId = url.searchParams.get('case_id') || `CASE-${String(Math.floor(Math.random() * 500) + 1).padStart(4, '0')}`
+      records = Array.from({ length: Math.min(pagination.limit, 50) }, (_, i) =>
+        generateSyntheticNote(lang, caseId, pagination.offset + i)
+      )
+    } else if (dataType === 'intake') {
+      records = Array.from({ length: Math.min(pagination.limit, totalRecords - pagination.offset) }, (_, i) =>
+        generateSyntheticIntake(lang, pagination.offset + i)
+      )
+    }
+
+    if (auth.studentId) {
+      await Promise.all([
+        auth.adminClient.from('edu_students').update({ last_active_at: new Date().toISOString() }).eq('id', auth.studentId),
+        auth.adminClient.from('edu_api_usage').insert({
           organization_id: auth.orgId,
           student_id: auth.studentId,
           endpoint: `/education/sandbox?type=${dataType}`,
           method: 'GET',
           status_code: 200,
           is_sandbox: true,
-        })
-      }
-
-      return new Response(JSON.stringify({
-        data: records,
-        pagination: { page, limit, total: records.length },
-        sandbox: true,
-        anonymized: true,
-      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        }),
+      ])
     }
 
-    // Generate synthetic data on-the-fly
-    const totalRecords = dataType === 'cases' ? 500 : 300
-    const startIdx = (page - 1) * limit
-    let records: unknown[] = []
-
-    if (dataType === 'cases') {
-      records = Array.from({ length: Math.min(limit, totalRecords - startIdx) }, (_, i) => {
-        const c = generateSyntheticCase(lang, startIdx + i)
-        return category ? (c.category === category ? c : null) : c
-      }).filter(Boolean)
-    } else if (dataType === 'notes') {
-      const caseId = url.searchParams.get('case_id') || `CASE-${String(Math.floor(Math.random() * 500) + 1).padStart(4, '0')}`
-      records = Array.from({ length: Math.min(limit, 50) }, (_, i) =>
-        generateSyntheticNote(lang, caseId, startIdx + i)
-      )
-    } else if (dataType === 'intake') {
-      records = Array.from({ length: Math.min(limit, totalRecords - startIdx) }, (_, i) =>
-        generateSyntheticIntake(lang, startIdx + i)
-      )
-    }
-
-    // Update last_active_at and log for students
-    if (auth.studentId) {
-      await auth.adminClient
-        .from('edu_students')
-        .update({ last_active_at: new Date().toISOString() })
-        .eq('id', auth.studentId)
-
-      await auth.adminClient.from('edu_api_usage').insert({
-        organization_id: auth.orgId,
-        student_id: auth.studentId,
-        endpoint: `/education/sandbox?type=${dataType}`,
-        method: 'GET',
-        status_code: 200,
-        is_sandbox: true,
-      })
-    }
-
-    return new Response(JSON.stringify({
-      data: records,
-      pagination: { page, limit, total: totalRecords },
-      sandbox: true,
-      anonymized: true,
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    return paginatedResponse(records as Record<string, unknown>[], totalRecords, pagination, { sandbox: true, anonymized: true })
   } catch (error) {
     console.error('education-sandbox error:', error)
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    return errorResponse(ErrorCode.INTERNAL_ERROR, 'Internal server error', 500)
   }
 })

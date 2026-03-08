@@ -1,10 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-}
+import {
+  corsHeaders, errorResponse, jsonResponse, ErrorCode,
+} from '../_shared/edu-auth.ts'
 
 // HMAC-SHA256 consistent hashing for anonymization
 async function generateHMAC(value: string, salt: string): Promise<string> {
@@ -17,7 +14,6 @@ async function generateHMAC(value: string, salt: string): Promise<string> {
   return Array.from(new Uint8Array(signature)).map(b => b.toString(16).padStart(2, '0')).join('')
 }
 
-// Build session-scoped alias map using HMAC
 class AnonymizationContext {
   private salt: string
   private nameCounter = 0
@@ -27,14 +23,11 @@ class AnonymizationContext {
   private nameLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
   constructor(studentId: string, serverSecret: string) {
-    // Per-session salt derived from student ID + server secret
     this.salt = `${studentId}:${serverSecret}:${Date.now()}`
   }
 
   private getNextAlias(prefix: string, counter: number): string {
-    if (counter < 26) {
-      return `${prefix}-${this.nameLetters[counter]}`
-    }
+    if (counter < 26) return `${prefix}-${this.nameLetters[counter]}`
     return `${prefix}-${this.nameLetters[Math.floor(counter / 26) % 26]}${this.nameLetters[counter % 26]}`
   }
 
@@ -67,11 +60,8 @@ class AnonymizationContext {
 
   generalizeAddress(address: string): string {
     if (!address) return address
-    // Extract county/subcounty patterns common in Kenya
     const parts = address.split(',').map(p => p.trim())
-    if (parts.length >= 2) {
-      return parts.slice(-2).join(', ')
-    }
+    if (parts.length >= 2) return parts.slice(-2).join(', ')
     return parts[parts.length - 1] || 'Undisclosed Location'
   }
 
@@ -80,30 +70,21 @@ class AnonymizationContext {
   }
 }
 
-// Anonymize a single record
-async function anonymizeRecord(
-  record: Record<string, unknown>,
-  ctx: AnonymizationContext
-): Promise<Record<string, unknown>> {
+async function anonymizeRecord(record: Record<string, unknown>, ctx: AnonymizationContext): Promise<Record<string, unknown>> {
   const result = { ...record }
 
-  // Strip PII fields
-  const piiFields = ['phone', 'phone_number', 'contact_phone', 'email', 'contact_email',
-    'donor_email', 'applicant_email', 'submitter_contact']
+  const piiFields = ['phone', 'phone_number', 'contact_phone', 'email', 'contact_email', 'donor_email', 'applicant_email', 'submitter_contact']
   for (const field of piiFields) {
     if (result[field]) result[field] = '[REDACTED]'
   }
 
-  // Anonymize name fields
-  const nameFields = ['name', 'full_name', 'client_name', 'donor_name', 'applicant_name',
-    'submitter_name', 'contact_person', 'assigned_to']
+  const nameFields = ['name', 'full_name', 'client_name', 'donor_name', 'applicant_name', 'submitter_name', 'contact_person', 'assigned_to']
   for (const field of nameFields) {
     if (result[field] && typeof result[field] === 'string') {
       result[field] = await ctx.aliasName(result[field] as string)
     }
   }
 
-  // Anonymize org/provider names
   const orgFields = ['organization_name', 'provider_name', 'company_name']
   for (const field of orgFields) {
     if (result[field] && typeof result[field] === 'string') {
@@ -111,7 +92,6 @@ async function anonymizeRecord(
     }
   }
 
-  // Anonymize case IDs and worker IDs
   if (result.case_number && typeof result.case_number === 'string') {
     result.case_number = await ctx.aliasCaseId(result.case_number as string)
   }
@@ -120,7 +100,6 @@ async function anonymizeRecord(
   if (result.user_id) result.user_id = '[REDACTED]'
   if (result.owner_user_id) result.owner_user_id = '[REDACTED]'
 
-  // Generalize addresses
   const addressFields = ['location', 'address']
   for (const field of addressFields) {
     if (result[field] && typeof result[field] === 'string') {
@@ -128,7 +107,6 @@ async function anonymizeRecord(
     }
   }
 
-  // Anonymize nested content in JSONB
   if (result.content && typeof result.content === 'object') {
     result.content = await anonymizeRecord(result.content as Record<string, unknown>, ctx)
   }
@@ -143,11 +121,7 @@ async function anonymizeRecord(
   return result
 }
 
-// Anonymize an array of records
-async function anonymizeRecords(
-  records: Record<string, unknown>[],
-  ctx: AnonymizationContext
-): Promise<Record<string, unknown>[]> {
+async function anonymizeRecords(records: Record<string, unknown>[], ctx: AnonymizationContext): Promise<Record<string, unknown>[]> {
   return Promise.all(records.map(r => anonymizeRecord(r, ctx)))
 }
 
@@ -157,9 +131,7 @@ Deno.serve(async (req) => {
   }
 
   if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed. POST with data to anonymize.' }), {
-      status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    return errorResponse(ErrorCode.METHOD_NOT_ALLOWED, 'Method not allowed. POST with data to anonymize.', 405)
   }
 
   try {
@@ -171,9 +143,7 @@ Deno.serve(async (req) => {
     const { student_id, organization_id, endpoint, data } = await req.json()
 
     if (!student_id || !data) {
-      return new Response(JSON.stringify({ error: 'student_id and data required' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+      return errorResponse(ErrorCode.VALIDATION_ERROR, 'student_id and data required', 400)
     }
 
     const serverSecret = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || 'default-secret'
@@ -188,7 +158,6 @@ Deno.serve(async (req) => {
       anonymized = data
     }
 
-    // Log anonymization event
     if (organization_id) {
       await adminClient.from('edu_anonymization_log').insert({
         organization_id,
@@ -198,13 +167,9 @@ Deno.serve(async (req) => {
       })
     }
 
-    return new Response(JSON.stringify({ data: anonymized, anonymized: true }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    return jsonResponse({ data: anonymized, anonymized: true })
   } catch (error) {
     console.error('education-anonymize error:', error)
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    return errorResponse(ErrorCode.INTERNAL_ERROR, 'Internal server error', 500)
   }
 })
