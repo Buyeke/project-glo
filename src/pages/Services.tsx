@@ -69,7 +69,6 @@ const Services = () => {
       if (error) throw error;
       
       if (data) {
-        // Transform the data to match our Service interface
         const transformedServices = data.map(service => ({
           ...service,
           key_features: Array.isArray(service.key_features) ? service.key_features : []
@@ -120,7 +119,7 @@ const Services = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
-    setBookingSuccess(`Your session has been booked for ${formattedDate}. We'll send you a personalized meeting link within 24 hours.`);
+    setBookingSuccess(`Your referral request has been submitted for ${formattedDate}. The partner organization will follow up with next steps.`);
     setTimeout(() => setBookingSuccess(null), 5000);
   };
 
@@ -169,7 +168,7 @@ const Services = () => {
             </p>
           </div>
           <p className="text-muted-foreground text-sm">
-            Once your request is confirmed, the partner organization will send you a personalized meeting link via email or WhatsApp within 24 hours.
+            Once your request is confirmed, the partner organization will follow up with next steps via email or WhatsApp.
           </p>
         </div>
 
@@ -290,7 +289,7 @@ const Services = () => {
           })}
         </div>
 
-        {/* Privacy Note - More prominent */}
+        {/* Privacy Note */}
         <TrustBadge variant="card" className="mb-8 max-w-2xl mx-auto" />
 
         {/* Service Disclaimer */}

@@ -24,9 +24,9 @@ export const ChatBotHeader = ({
       <div className="flex justify-between items-center">
         <CardTitle className="text-sm flex items-center gap-2">
           <Globe className="h-4 w-4" />
-          Glo AI Assistant
+          GLO Multilingual Assistant
           <Badge variant="secondary" className="text-xs bg-primary-foreground/20 text-primary-foreground">
-            Available 24/7
+            Always On
           </Badge>
         </CardTitle>
         <div className="flex items-center gap-2">

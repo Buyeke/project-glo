@@ -26,12 +26,12 @@ const Partners = () => {
 
   // CMS content with fallbacks
   const heroTitle = useContentValue('partners_hero_title', { text: 'For Partners & Collaborators' })?.text;
-  const heroSubtitle = useContentValue('partners_hero_subtitle', { text: 'Join the GLO coordination network operated by Glomera Operations Ltd. Partner with us to reach women across Kenya through secure, dignified referrals.' })?.text;
+  const heroSubtitle = useContentValue('partners_hero_subtitle', { text: 'Join the Project GLO coordination network operated by Glomera Operations Ltd. Partner with us to reach women across Kenya through secure, dignified referrals.' })?.text;
   const contactEmail = useContentValue('partners_contact_email', { text: 'founder@projectglo.org' })?.text;
 
   const ngoCard = useContentValue('partners_ngo_card', {
     title: "NGO & Service Providers",
-    description: "Join the GLO coordination network. Get platform access to manage referrals, track cases, and measure impact. Platform subscriptions from $2,000/month (Pilot) to $10,000/month (Premium).",
+    description: "Join the Project GLO coordination network. Get platform access to manage referrals, track cases, and measure impact. Platform subscriptions from $2,000/month (Pilot) to $10,000/month (Premium).",
     links: [{ label: "View Full Pricing", href: "/partner-register" }, { label: "Get in Touch", href: "/contact" }]
   });
   const corporateCard = useContentValue('partners_corporate_card', {
@@ -41,7 +41,7 @@ const Partners = () => {
   });
   const academicCard = useContentValue('partners_academic_card', {
     title: "Research & Academic",
-    description: "Collaborate on research exploring AI, social justice, and community empowerment. Institutional API access from $2,000/month.",
+    description: "Collaborate on research exploring multilingual technology, social justice, and community empowerment. Institutional API access from $2,000/month.",
     links: [{ label: "Apply Now", href: "/partner-register" }]
   });
 
@@ -50,17 +50,17 @@ const Partners = () => {
   const currentPartners = useContentValue('partners_current_partners', {
     items: [
       { name: "OBREAL", location: "Spain", description: "International research collaboration" },
-      { name: "OBREAL & AAU Youth Incubator", location: "2024/2025 Cohort", description: "Innovation incubator program" }
+      { name: "OBREAL & AAU Youth Incubator", location: "2024/2025 · 2025/2026 Cohorts", description: "Innovation incubator program" }
     ]
   })?.items || [];
 
   const benefits = useContentValue('partners_benefits', {
     items: [
-      "Direct impact on vulnerable communities",
-      "Transparent reporting and metrics",
-      "Collaboration with AI-for-good initiatives",
-      "Recognition and visibility",
-      "Access to community insights",
+      "Coordinated referrals to your organization",
+      "Case management and intake tools",
+      "Transparent reporting and impact metrics",
+      "Multilingual outreach to underserved communities",
+      "Access to anonymized community insights",
       "Joint research opportunities",
     ]
   })?.items || [];
@@ -125,7 +125,7 @@ const Partners = () => {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">Platform Access & Partnerships</h2>
             <p className="text-lg text-muted-foreground">
-              Join the GLO coordination network with platform subscriptions or sponsorship opportunities
+              Join the Project GLO coordination network with platform subscriptions or sponsorship opportunities
             </p>
           </div>
 
@@ -182,7 +182,7 @@ const Partners = () => {
       <section className="py-16 bg-muted/30">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">Why Partner With Us</h2>
+            <h2 className="text-3xl font-bold text-foreground mb-4">Why Partner With Project GLO</h2>
           </div>
           
           <div className="grid md:grid-cols-2 gap-4">
