@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowRight, Briefcase } from "lucide-react";
 import { Link } from "react-router-dom";
-import SocialProofBar from "@/components/home/SocialProofBar";
 import FeaturesBenefits from "@/components/home/FeaturesBenefits";
 import MobileSupportQuiz from "@/components/quiz/MobileSupportQuiz";
 import MobileHero from "@/components/home/MobileHero";
@@ -21,11 +20,8 @@ const Home = () => {
       {/* How It Works */}
       <HowItWorksSteps />
 
-      {/* Features */}
+      {/* Features + Credibility (merged) */}
       <FeaturesBenefits />
-
-      {/* Credibility Signals */}
-      <SocialProofBar />
 
       {/* Support Quiz */}
       <section className="py-6 md:py-8 bg-muted/30">
@@ -72,7 +68,7 @@ const Home = () => {
             Ready to Connect?
           </h2>
           <p className="text-sm text-primary-foreground/90 mb-4">
-            Browse partner services anonymously or explore how your organization can join
+            Explore partner services or find out how your organization can join
           </p>
           <div className="flex flex-col sm:flex-row gap-2 justify-center">
             <Button variant="secondary" size="sm" asChild>
