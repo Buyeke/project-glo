@@ -1,90 +1,8 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-}
-
-// Shared auth helper: validates API key or JWT, returns org context
-async function authenticateRequest(req: Request) {
-  const adminClient = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-  )
-
-  // Try API key auth first
-  const apiKey = req.headers.get('x-api-key')
-  if (apiKey) {
-    const encoder = new TextEncoder()
-    const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(apiKey))
-    const keyHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
-
-    const { data: keyRecord } = await adminClient
-      .from('organization_api_keys')
-      .select('organization_id, scopes')
-      .eq('key_hash', keyHash)
-      .eq('is_active', true)
-      .single()
-
-    if (keyRecord) {
-      // Verify org is education tier
-      const { data: org } = await adminClient
-        .from('organizations')
-        .select('id, tier, settings')
-        .eq('id', keyRecord.organization_id)
-        .eq('tier', 'education')
-        .single()
-
-      if (org) {
-        return { orgId: org.id, org, role: 'api_key', userId: null, adminClient }
-      }
-    }
-  }
-
-  // Fall back to JWT auth
-  const authHeader = req.headers.get('Authorization')
-  if (!authHeader?.startsWith('Bearer ')) {
-    return null
-  }
-
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_ANON_KEY')!,
-    { global: { headers: { Authorization: authHeader } } }
-  )
-
-  const { data: claims, error } = await supabase.auth.getClaims(
-    authHeader.replace('Bearer ', '')
-  )
-  if (error || !claims?.claims?.sub) return null
-
-  const userId = claims.claims.sub as string
-
-  // Find user's education org membership
-  const { data: membership } = await adminClient
-    .from('organization_members')
-    .select('organization_id, role')
-    .eq('user_id', userId)
-    .single()
-
-  if (!membership) return null
-
-  const { data: org } = await adminClient
-    .from('organizations')
-    .select('id, tier, settings')
-    .eq('id', membership.organization_id)
-    .eq('tier', 'education')
-    .single()
-
-  if (!org) return null
-
-  return { orgId: org.id, org, role: membership.role, userId, adminClient }
-}
-
-function requireFacultyRole(role: string) {
-  return ['owner', 'admin', 'faculty'].includes(role)
-}
+import {
+  authenticateEducationRequest, corsHeaders, isFaculty,
+  errorResponse, jsonResponse, paginatedResponse, parsePagination,
+  ErrorCode, requireScope, logAuditEvent, hashApiKey,
+} from '../_shared/edu-auth.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -92,18 +10,13 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const auth = await authenticateRequest(req)
-    if (!auth) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
-    }
+    const auth = await authenticateEducationRequest(req)
+    if (!auth) return errorResponse(ErrorCode.UNAUTHORIZED, 'Unauthorized', 401)
 
-    if (!requireFacultyRole(auth.role)) {
-      return new Response(JSON.stringify({ error: 'Faculty role required' }), {
-        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
-    }
+    if (!isFaculty(auth.role)) return errorResponse(ErrorCode.FORBIDDEN, 'Faculty role required', 403)
+
+    const scopeErr = requireScope(auth, 'education:read')
+    if (scopeErr) return scopeErr
 
     const url = new URL(req.url)
     const action = url.searchParams.get('action')
@@ -117,7 +30,6 @@ Deno.serve(async (req) => {
           .eq('organization_id', auth.orgId)
           .order('name')
 
-        // CSV format
         const header = 'student_id,name,email,status,ethics_certified,last_active_at,created_at'
         const rows = (students || []).map(s =>
           `${s.student_id_external},${s.name},${s.email},${s.status},${s.ethics_certified},${s.last_active_at || ''},${s.created_at}`
@@ -133,40 +45,46 @@ Deno.serve(async (req) => {
         })
       }
 
-      // Default: list students
+      // Default: list with pagination
+      const pagination = parsePagination(url)
       const semesterId = url.searchParams.get('semester_id')
+
+      let countQuery = auth.adminClient
+        .from('edu_students')
+        .select('id', { count: 'exact', head: true })
+        .eq('organization_id', auth.orgId)
+
       let query = auth.adminClient
         .from('edu_students')
         .select('*')
         .eq('organization_id', auth.orgId)
         .order('name')
+        .range(pagination.offset, pagination.offset + pagination.limit - 1)
 
       if (semesterId) {
         query = query.eq('semester_id', semesterId)
+        countQuery = countQuery.eq('semester_id', semesterId)
       }
 
-      const { data: students, error } = await query
+      const [{ data: students, error }, { count }] = await Promise.all([query, countQuery])
       if (error) throw error
 
-      return new Response(JSON.stringify({ students: students || [] }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+      return paginatedResponse(students || [], count || 0, pagination)
     }
 
     // POST actions
     if (req.method === 'POST') {
+      const writeErr = requireScope(auth, 'education:write')
+      if (writeErr) return writeErr
+
       const body = await req.json()
 
       if (action === 'import') {
-        // Bulk import students
         const { students, semester_id } = body
         if (!students || !Array.isArray(students) || !semester_id) {
-          return new Response(JSON.stringify({ error: 'Required: students array and semester_id' }), {
-            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
+          return errorResponse(ErrorCode.VALIDATION_ERROR, 'Required: students array and semester_id', 400)
         }
 
-        // Check capacity
         const { data: semester } = await auth.adminClient
           .from('edu_semesters')
           .select('student_capacity')
@@ -174,11 +92,7 @@ Deno.serve(async (req) => {
           .eq('organization_id', auth.orgId)
           .single()
 
-        if (!semester) {
-          return new Response(JSON.stringify({ error: 'Semester not found' }), {
-            status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
-        }
+        if (!semester) return errorResponse(ErrorCode.NOT_FOUND, 'Semester not found', 404)
 
         const { count: existingCount } = await auth.adminClient
           .from('edu_students')
@@ -186,18 +100,15 @@ Deno.serve(async (req) => {
           .eq('semester_id', semester_id)
 
         if ((existingCount || 0) + students.length > semester.student_capacity) {
-          return new Response(JSON.stringify({
-            error: `Capacity exceeded. Capacity: ${semester.student_capacity}, current: ${existingCount}, importing: ${students.length}`
-          }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+          return errorResponse(ErrorCode.CAPACITY_EXCEEDED,
+            `Capacity exceeded. Capacity: ${semester.student_capacity}, current: ${existingCount}, importing: ${students.length}`,
+            400,
+            { capacity: semester.student_capacity, current: existingCount, importing: students.length }
+          )
         }
 
-        // Generate shared cohort API key hash
         const cohortKey = `glo_stu_${crypto.randomUUID().replace(/-/g, '')}`
-        const encoder = new TextEncoder()
-        const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(cohortKey))
-        const keyHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
-
-        const importResults = { imported: 0, errors: [] as string[] }
+        const keyHash = await hashApiKey(cohortKey)
 
         const studentRows = students.map((s: { student_id: string; name: string; email: string }) => ({
           organization_id: auth.orgId,
@@ -217,75 +128,44 @@ Deno.serve(async (req) => {
           .select()
 
         if (insertError) {
-          importResults.errors.push(insertError.message)
-        } else {
-          importResults.imported = inserted?.length || 0
+          return errorResponse(ErrorCode.INTERNAL_ERROR, insertError.message, 500)
         }
 
-        return new Response(JSON.stringify({
-          ...importResults,
+        await logAuditEvent(auth.adminClient, auth.orgId, 'students', 'bulk_import', semester_id, auth.userId, {
+          count: inserted?.length || 0,
+        })
+
+        return jsonResponse({
+          imported: inserted?.length || 0,
           cohort_api_key: cohortKey,
           message: 'Save the cohort API key — it will not be shown again.',
-        }), {
-          status: 201,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+        }, 201)
       }
 
-      if (action === 'suspend') {
+      if (action === 'suspend' || action === 'reactivate') {
         const { student_id } = body
-        if (!student_id) {
-          return new Response(JSON.stringify({ error: 'student_id required' }), {
-            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
-        }
+        if (!student_id) return errorResponse(ErrorCode.VALIDATION_ERROR, 'student_id required', 400)
 
+        const newStatus = action === 'suspend' ? 'suspended' : 'active'
         const { error } = await auth.adminClient
           .from('edu_students')
-          .update({ status: 'suspended', updated_at: new Date().toISOString() })
+          .update({ status: newStatus, updated_at: new Date().toISOString() })
           .eq('id', student_id)
           .eq('organization_id', auth.orgId)
 
         if (error) throw error
 
-        return new Response(JSON.stringify({ success: true, status: 'suspended' }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+        await logAuditEvent(auth.adminClient, auth.orgId, 'student', action, student_id, auth.userId)
+
+        return jsonResponse({ success: true, status: newStatus })
       }
 
-      if (action === 'reactivate') {
-        const { student_id } = body
-        if (!student_id) {
-          return new Response(JSON.stringify({ error: 'student_id required' }), {
-            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
-        }
-
-        const { error } = await auth.adminClient
-          .from('edu_students')
-          .update({ status: 'active', updated_at: new Date().toISOString() })
-          .eq('id', student_id)
-          .eq('organization_id', auth.orgId)
-
-        if (error) throw error
-
-        return new Response(JSON.stringify({ success: true, status: 'active' }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
-      }
-
-      return new Response(JSON.stringify({ error: 'Unknown action' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+      return errorResponse(ErrorCode.VALIDATION_ERROR, 'Unknown action', 400)
     }
 
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    return errorResponse(ErrorCode.METHOD_NOT_ALLOWED, 'Method not allowed', 405)
   } catch (error) {
     console.error('education-students error:', error)
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    return errorResponse(ErrorCode.INTERNAL_ERROR, 'Internal server error', 500)
   }
 })

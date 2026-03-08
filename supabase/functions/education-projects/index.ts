@@ -1,103 +1,8 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
-}
-
-async function authenticateRequest(req: Request) {
-  const adminClient = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-  )
-
-  const apiKey = req.headers.get('x-api-key')
-  if (apiKey) {
-    const encoder = new TextEncoder()
-    const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(apiKey))
-    const keyHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
-
-    const { data: keyRecord } = await adminClient
-      .from('organization_api_keys')
-      .select('organization_id, scopes')
-      .eq('key_hash', keyHash)
-      .eq('is_active', true)
-      .single()
-
-    if (keyRecord) {
-      const { data: org } = await adminClient
-        .from('organizations')
-        .select('id, tier, settings')
-        .eq('id', keyRecord.organization_id)
-        .eq('tier', 'education')
-        .single()
-
-      if (org) {
-        // Try to find the student associated with this API key
-        const { data: student } = await adminClient
-          .from('edu_students')
-          .select('id, role, status, organization_id')
-          .eq('api_key_hash', keyHash)
-          .eq('status', 'active')
-          .single()
-
-        return {
-          orgId: org.id, org, role: 'student',
-          userId: null, studentId: student?.id || null, adminClient
-        }
-      }
-    }
-  }
-
-  const authHeader = req.headers.get('Authorization')
-  if (!authHeader?.startsWith('Bearer ')) return null
-
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_ANON_KEY')!,
-    { global: { headers: { Authorization: authHeader } } }
-  )
-
-  const { data: claims, error } = await supabase.auth.getClaims(authHeader.replace('Bearer ', ''))
-  if (error || !claims?.claims?.sub) return null
-
-  const userId = claims.claims.sub as string
-
-  const { data: membership } = await adminClient
-    .from('organization_members')
-    .select('organization_id, role')
-    .eq('user_id', userId)
-    .single()
-
-  if (!membership) return null
-
-  const { data: org } = await adminClient
-    .from('organizations')
-    .select('id, tier, settings')
-    .eq('id', membership.organization_id)
-    .eq('tier', 'education')
-    .single()
-
-  if (!org) return null
-
-  // Check if user is also a student
-  const { data: student } = await adminClient
-    .from('edu_students')
-    .select('id')
-    .eq('user_id', userId)
-    .eq('organization_id', org.id)
-    .single()
-
-  return {
-    orgId: org.id, org, role: membership.role,
-    userId, studentId: student?.id || null, adminClient
-  }
-}
-
-function isFaculty(role: string) {
-  return ['owner', 'admin', 'faculty'].includes(role)
-}
+import {
+  authenticateEducationRequest, corsHeaders, isFaculty,
+  errorResponse, jsonResponse, paginatedResponse, parsePagination,
+  ErrorCode, requireScope, logAuditEvent,
+} from '../_shared/edu-auth.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -105,49 +10,56 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const auth = await authenticateRequest(req)
-    if (!auth) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
-    }
+    const auth = await authenticateEducationRequest(req)
+    if (!auth) return errorResponse(ErrorCode.UNAUTHORIZED, 'Unauthorized', 401)
 
     const url = new URL(req.url)
     const action = url.searchParams.get('action')
 
     // --- GET actions ---
     if (req.method === 'GET') {
-      // List projects (faculty sees all, student sees own)
+      const scopeErr = requireScope(auth, 'education:read')
+      if (scopeErr) return scopeErr
+
       if (action === 'list' || !action) {
+        const pagination = parsePagination(url)
+
+        let countQuery = auth.adminClient
+          .from('edu_projects')
+          .select('id', { count: 'exact', head: true })
+          .eq('organization_id', auth.orgId)
+
         let query = auth.adminClient
           .from('edu_projects')
           .select('*, edu_students(name, student_id_external), edu_assignments(title)')
           .eq('organization_id', auth.orgId)
           .order('updated_at', { ascending: false })
+          .range(pagination.offset, pagination.offset + pagination.limit - 1)
 
         if (!isFaculty(auth.role) && auth.studentId) {
           query = query.eq('student_id', auth.studentId)
+          countQuery = countQuery.eq('student_id', auth.studentId)
         }
 
         const statusFilter = url.searchParams.get('status')
-        if (statusFilter) query = query.eq('status', statusFilter)
+        if (statusFilter) {
+          query = query.eq('status', statusFilter)
+          countQuery = countQuery.eq('status', statusFilter)
+        }
 
-        const { data, error } = await query
-        if (error) throw error
+        const assignmentFilter = url.searchParams.get('assignment_id')
+        if (assignmentFilter) {
+          query = query.eq('assignment_id', assignmentFilter)
+          countQuery = countQuery.eq('assignment_id', assignmentFilter)
+        }
 
-        return new Response(JSON.stringify({ projects: data || [] }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+        const [{ data }, { count }] = await Promise.all([query, countQuery])
+        return paginatedResponse(data || [], count || 0, pagination)
       }
 
-      // Get single project
       if (action === 'detail') {
         const projectId = url.searchParams.get('project_id')
-        if (!projectId) {
-          return new Response(JSON.stringify({ error: 'project_id required' }), {
-            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
-        }
+        if (!projectId) return errorResponse(ErrorCode.VALIDATION_ERROR, 'project_id required', 400)
 
         let query = auth.adminClient
           .from('edu_projects')
@@ -160,20 +72,12 @@ Deno.serve(async (req) => {
         }
 
         const { data, error } = await query.single()
-        if (error || !data) {
-          return new Response(JSON.stringify({ error: 'Project not found' }), {
-            status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
-        }
+        if (error || !data) return errorResponse(ErrorCode.NOT_FOUND, 'Project not found', 404)
 
-        return new Response(JSON.stringify(data), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+        return jsonResponse(data)
       }
 
-      return new Response(JSON.stringify({ error: 'Unknown GET action' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+      return errorResponse(ErrorCode.VALIDATION_ERROR, 'Unknown GET action', 400)
     }
 
     // --- POST actions ---
@@ -182,18 +86,13 @@ Deno.serve(async (req) => {
 
       // Create project (student)
       if (action === 'create') {
-        if (!auth.studentId) {
-          return new Response(JSON.stringify({ error: 'Student identity required' }), {
-            status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
-        }
+        const scopeErr = requireScope(auth, 'projects:write')
+        if (scopeErr) return scopeErr
+
+        if (!auth.studentId) return errorResponse(ErrorCode.FORBIDDEN, 'Student identity required', 403)
 
         const { title, description, type, assignment_id, repo_url } = body
-        if (!title) {
-          return new Response(JSON.stringify({ error: 'title required' }), {
-            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
-        }
+        if (!title) return errorResponse(ErrorCode.VALIDATION_ERROR, 'title required', 400)
 
         const { data, error } = await auth.adminClient
           .from('edu_projects')
@@ -212,22 +111,18 @@ Deno.serve(async (req) => {
 
         if (error) throw error
 
-        return new Response(JSON.stringify(data), {
-          status: 201, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+        await logAuditEvent(auth.adminClient, auth.orgId, 'project', 'created', data.id, auth.userId, { title })
+
+        return jsonResponse(data, 201)
       }
 
       // Submit project (student)
       if (action === 'submit') {
         const { project_id } = body
-        if (!project_id) {
-          return new Response(JSON.stringify({ error: 'project_id required' }), {
-            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
-        }
+        if (!project_id) return errorResponse(ErrorCode.VALIDATION_ERROR, 'project_id required', 400)
 
-        const filter: any = { id: project_id, organization_id: auth.orgId }
-        if (!isFaculty(auth.role)) filter.student_id = auth.studentId
+        const filter: Record<string, string> = { id: project_id, organization_id: auth.orgId }
+        if (!isFaculty(auth.role)) filter.student_id = auth.studentId!
 
         const { error } = await auth.adminClient
           .from('edu_projects')
@@ -236,30 +131,25 @@ Deno.serve(async (req) => {
 
         if (error) throw error
 
-        return new Response(JSON.stringify({ success: true, status: 'submitted' }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+        await logAuditEvent(auth.adminClient, auth.orgId, 'project', 'submitted', project_id, auth.userId)
+
+        return jsonResponse({ success: true, status: 'submitted' })
       }
 
-      // Review project (faculty)
+      // Review single project (faculty)
       if (action === 'review') {
-        if (!isFaculty(auth.role)) {
-          return new Response(JSON.stringify({ error: 'Faculty role required' }), {
-            status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
-        }
+        if (!isFaculty(auth.role)) return errorResponse(ErrorCode.FORBIDDEN, 'Faculty role required', 403)
+
+        const writeErr = requireScope(auth, 'education:write')
+        if (writeErr) return writeErr
 
         const { project_id, grade, faculty_comments, status } = body
-        if (!project_id) {
-          return new Response(JSON.stringify({ error: 'project_id required' }), {
-            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
-        }
+        if (!project_id) return errorResponse(ErrorCode.VALIDATION_ERROR, 'project_id required', 400)
 
-        const updates: any = { updated_at: new Date().toISOString(), reviewed_at: new Date().toISOString() }
+        const updates: Record<string, unknown> = { updated_at: new Date().toISOString(), reviewed_at: new Date().toISOString() }
         if (grade) updates.grade = grade
         if (faculty_comments) updates.faculty_comments = faculty_comments
-        if (status) updates.status = status // e.g. 'reviewed', 'returned'
+        if (status) updates.status = status
 
         const { error } = await auth.adminClient
           .from('edu_projects')
@@ -269,31 +159,88 @@ Deno.serve(async (req) => {
 
         if (error) throw error
 
-        return new Response(JSON.stringify({ success: true }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        await logAuditEvent(auth.adminClient, auth.orgId, 'project', 'reviewed', project_id, auth.userId, { grade, status })
+
+        return jsonResponse({ success: true })
+      }
+
+      // Batch review/grade (faculty)
+      if (action === 'batch-review') {
+        if (!isFaculty(auth.role)) return errorResponse(ErrorCode.FORBIDDEN, 'Faculty role required', 403)
+
+        const writeErr = requireScope(auth, 'education:write')
+        if (writeErr) return writeErr
+
+        const { reviews } = body
+        if (!reviews || !Array.isArray(reviews) || reviews.length === 0) {
+          return errorResponse(ErrorCode.VALIDATION_ERROR, 'reviews array required', 400)
+        }
+
+        if (reviews.length > 50) {
+          return errorResponse(ErrorCode.VALIDATION_ERROR, 'Maximum 50 reviews per batch', 400)
+        }
+
+        const results: { project_id: string; success: boolean; error?: string }[] = []
+
+        for (const review of reviews) {
+          const { project_id, grade, faculty_comments, status } = review
+          if (!project_id) {
+            results.push({ project_id: 'unknown', success: false, error: 'project_id required' })
+            continue
+          }
+
+          const updates: Record<string, unknown> = {
+            updated_at: new Date().toISOString(),
+            reviewed_at: new Date().toISOString(),
+          }
+          if (grade) updates.grade = grade
+          if (faculty_comments) updates.faculty_comments = faculty_comments
+          if (status) updates.status = status || 'reviewed'
+
+          const { error } = await auth.adminClient
+            .from('edu_projects')
+            .update(updates)
+            .eq('id', project_id)
+            .eq('organization_id', auth.orgId)
+
+          if (error) {
+            results.push({ project_id, success: false, error: error.message })
+          } else {
+            results.push({ project_id, success: true })
+          }
+        }
+
+        await logAuditEvent(auth.adminClient, auth.orgId, 'project', 'batch_reviewed', undefined, auth.userId, {
+          total: reviews.length,
+          succeeded: results.filter(r => r.success).length,
+        })
+
+        return jsonResponse({
+          results,
+          summary: {
+            total: results.length,
+            succeeded: results.filter(r => r.success).length,
+            failed: results.filter(r => !r.success).length,
+          },
         })
       }
 
       // Update project metadata (student updates draft)
       if (action === 'update') {
         const { project_id, title, description, repo_url, endpoints_used, datasets_used } = body
-        if (!project_id) {
-          return new Response(JSON.stringify({ error: 'project_id required' }), {
-            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
-        }
+        if (!project_id) return errorResponse(ErrorCode.VALIDATION_ERROR, 'project_id required', 400)
 
-        const updates: any = { updated_at: new Date().toISOString() }
+        const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
         if (title) updates.title = title
         if (description !== undefined) updates.description = description
         if (repo_url !== undefined) updates.repo_url = repo_url
         if (endpoints_used) updates.endpoints_used = endpoints_used
         if (datasets_used) updates.datasets_used = datasets_used
 
-        const filter: any = { id: project_id, organization_id: auth.orgId }
+        const filter: Record<string, string> = { id: project_id, organization_id: auth.orgId }
         if (!isFaculty(auth.role)) {
-          filter.student_id = auth.studentId
-          filter.status = 'draft' // students can only update drafts
+          filter.student_id = auth.studentId!
+          filter.status = 'draft'
         }
 
         const { error } = await auth.adminClient
@@ -303,23 +250,15 @@ Deno.serve(async (req) => {
 
         if (error) throw error
 
-        return new Response(JSON.stringify({ success: true }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+        return jsonResponse({ success: true })
       }
 
-      return new Response(JSON.stringify({ error: 'Unknown action' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+      return errorResponse(ErrorCode.VALIDATION_ERROR, 'Unknown action', 400)
     }
 
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    return errorResponse(ErrorCode.METHOD_NOT_ALLOWED, 'Method not allowed', 405)
   } catch (error) {
     console.error('education-projects error:', error)
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    return errorResponse(ErrorCode.INTERNAL_ERROR, 'Internal server error', 500)
   }
 })

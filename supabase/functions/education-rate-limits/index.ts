@@ -1,84 +1,8 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-}
-
-async function authenticateFaculty(req: Request) {
-  const adminClient = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-  )
-
-  // API key auth
-  const apiKey = req.headers.get('x-api-key')
-  if (apiKey) {
-    const encoder = new TextEncoder()
-    const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(apiKey))
-    const keyHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
-
-    const { data: keyRecord } = await adminClient
-      .from('organization_api_keys')
-      .select('organization_id, scopes')
-      .eq('key_hash', keyHash)
-      .eq('is_active', true)
-      .single()
-
-    if (keyRecord) {
-      const { data: org } = await adminClient
-        .from('organizations')
-        .select('id, tier, settings')
-        .eq('id', keyRecord.organization_id)
-        .eq('tier', 'education')
-        .single()
-
-      if (org) {
-        // API key callers need education:admin scope for rate limit management
-        const scopes = keyRecord.scopes as string[]
-        if (!scopes.includes('education:admin')) {
-          return null // Student keys can't manage rate limits
-        }
-        return { orgId: org.id, org, adminClient }
-      }
-    }
-  }
-
-  // JWT auth
-  const authHeader = req.headers.get('Authorization')
-  if (!authHeader?.startsWith('Bearer ')) return null
-
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_ANON_KEY')!,
-    { global: { headers: { Authorization: authHeader } } }
-  )
-
-  const { data: claims, error } = await supabase.auth.getClaims(authHeader.replace('Bearer ', ''))
-  if (error || !claims?.claims?.sub) return null
-
-  const userId = claims.claims.sub as string
-
-  const { data: membership } = await adminClient
-    .from('organization_members')
-    .select('organization_id, role')
-    .eq('user_id', userId)
-    .in('role', ['owner', 'admin', 'faculty'])
-    .single()
-
-  if (!membership) return null
-
-  const { data: org } = await adminClient
-    .from('organizations')
-    .select('id, tier, settings')
-    .eq('id', membership.organization_id)
-    .eq('tier', 'education')
-    .single()
-
-  if (!org) return null
-  return { orgId: org.id, org, adminClient }
-}
+import {
+  authenticateEducationRequest, corsHeaders,
+  errorResponse, jsonResponse, cachedJsonResponse,
+  ErrorCode, requireScope, logAuditEvent,
+} from '../_shared/edu-auth.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -86,17 +10,20 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const auth = await authenticateFaculty(req)
-    if (!auth) {
-      return new Response(JSON.stringify({ error: 'Unauthorized. Faculty role required.' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+    const auth = await authenticateEducationRequest(req)
+    if (!auth) return errorResponse(ErrorCode.UNAUTHORIZED, 'Unauthorized. Faculty role required.', 401)
+
+    // Only faculty/admin for rate limit management
+    const scopeErr = requireScope(auth, 'education:admin')
+    if (scopeErr) return scopeErr
+
+    if (!['owner', 'admin', 'faculty'].includes(auth.role) && auth.role !== 'api_key') {
+      return errorResponse(ErrorCode.FORBIDDEN, 'Faculty role required', 403)
     }
 
     const url = new URL(req.url)
     const action = url.searchParams.get('action')
 
-    // GET actions
     if (req.method === 'GET') {
       if (action === 'current') {
         const { data: semester } = await auth.adminClient
@@ -108,25 +35,15 @@ Deno.serve(async (req) => {
           .limit(1)
           .single()
 
-        if (!semester) {
-          return new Response(JSON.stringify({ error: 'No active semester found' }), {
-            status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
-        }
+        if (!semester) return errorResponse(ErrorCode.NOT_FOUND, 'No active semester found', 404)
 
-        // Get student overrides
         const { data: overrides } = await auth.adminClient
           .from('edu_students')
           .select('id, name, student_id_external, rate_limit_override')
           .eq('semester_id', semester.id)
           .not('rate_limit_override', 'is', null)
 
-        return new Response(JSON.stringify({
-          semester,
-          student_overrides: overrides || [],
-        }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+        return cachedJsonResponse({ semester, student_overrides: overrides || [] }, 30)
       }
 
       if (action === 'list-semesters') {
@@ -136,34 +53,24 @@ Deno.serve(async (req) => {
           .eq('organization_id', auth.orgId)
           .order('start_date', { ascending: false })
 
-        return new Response(JSON.stringify({ semesters: semesters || [] }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+        return cachedJsonResponse({ semesters: semesters || [] }, 60)
       }
 
-      return new Response(JSON.stringify({ error: 'Unknown action. Use: current, list-semesters' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+      return errorResponse(ErrorCode.VALIDATION_ERROR, 'Unknown action. Use: current, list-semesters', 400)
     }
 
-    // POST actions
     if (req.method === 'POST') {
       const body = await req.json()
 
       if (action === 'update-semester') {
         const { semester_id, rate_limit_normal, rate_limit_assignment, rate_limit_off_semester } = body
-        if (!semester_id) {
-          return new Response(JSON.stringify({ error: 'semester_id required' }), {
-            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
-        }
+        if (!semester_id) return errorResponse(ErrorCode.VALIDATION_ERROR, 'semester_id required', 400)
 
         const settings: Record<string, number> = {}
         if (rate_limit_normal !== undefined) settings.rate_limit_normal = rate_limit_normal
         if (rate_limit_assignment !== undefined) settings.rate_limit_assignment = rate_limit_assignment
         if (rate_limit_off_semester !== undefined) settings.rate_limit_off_semester = rate_limit_off_semester
 
-        // Merge with existing settings
         const { data: existing } = await auth.adminClient
           .from('edu_semesters')
           .select('settings')
@@ -171,11 +78,7 @@ Deno.serve(async (req) => {
           .eq('organization_id', auth.orgId)
           .single()
 
-        if (!existing) {
-          return new Response(JSON.stringify({ error: 'Semester not found' }), {
-            status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
-        }
+        if (!existing) return errorResponse(ErrorCode.NOT_FOUND, 'Semester not found', 404)
 
         const mergedSettings = { ...(existing.settings as Record<string, unknown>), ...settings }
 
@@ -187,17 +90,15 @@ Deno.serve(async (req) => {
 
         if (error) throw error
 
-        return new Response(JSON.stringify({ success: true, settings: mergedSettings }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+        await logAuditEvent(auth.adminClient, auth.orgId, 'semester', 'rate_limits_updated', semester_id, auth.userId, settings)
+
+        return jsonResponse({ success: true, settings: mergedSettings })
       }
 
       if (action === 'student-override') {
         const { student_id, daily_limit } = body
         if (!student_id || daily_limit === undefined) {
-          return new Response(JSON.stringify({ error: 'student_id and daily_limit required' }), {
-            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
+          return errorResponse(ErrorCode.VALIDATION_ERROR, 'student_id and daily_limit required', 400)
         }
 
         const { error } = await auth.adminClient
@@ -208,18 +109,14 @@ Deno.serve(async (req) => {
 
         if (error) throw error
 
-        return new Response(JSON.stringify({ success: true, student_id, rate_limit_override: daily_limit }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+        await logAuditEvent(auth.adminClient, auth.orgId, 'student', 'rate_limit_override', student_id, auth.userId, { daily_limit })
+
+        return jsonResponse({ success: true, student_id, rate_limit_override: daily_limit })
       }
 
       if (action === 'clear-override') {
         const { student_id } = body
-        if (!student_id) {
-          return new Response(JSON.stringify({ error: 'student_id required' }), {
-            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
-        }
+        if (!student_id) return errorResponse(ErrorCode.VALIDATION_ERROR, 'student_id required', 400)
 
         const { error } = await auth.adminClient
           .from('edu_students')
@@ -229,17 +126,15 @@ Deno.serve(async (req) => {
 
         if (error) throw error
 
-        return new Response(JSON.stringify({ success: true, student_id, rate_limit_override: null }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+        await logAuditEvent(auth.adminClient, auth.orgId, 'student', 'rate_limit_override_cleared', student_id, auth.userId)
+
+        return jsonResponse({ success: true, student_id, rate_limit_override: null })
       }
 
       if (action === 'create-semester') {
         const { name, start_date, end_date, student_capacity = 40, rate_limit_normal = 100, rate_limit_assignment = 500, rate_limit_off_semester = 0 } = body
         if (!name || !start_date || !end_date) {
-          return new Response(JSON.stringify({ error: 'name, start_date, end_date required' }), {
-            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
+          return errorResponse(ErrorCode.VALIDATION_ERROR, 'name, start_date, end_date required', 400)
         }
 
         const { data: semester, error } = await auth.adminClient
@@ -257,24 +152,17 @@ Deno.serve(async (req) => {
 
         if (error) throw error
 
-        return new Response(JSON.stringify({ success: true, semester }), {
-          status: 201,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+        await logAuditEvent(auth.adminClient, auth.orgId, 'semester', 'created', semester.id, auth.userId, { name })
+
+        return jsonResponse({ success: true, semester }, 201)
       }
 
-      return new Response(JSON.stringify({ error: 'Unknown action' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+      return errorResponse(ErrorCode.VALIDATION_ERROR, 'Unknown action', 400)
     }
 
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    return errorResponse(ErrorCode.METHOD_NOT_ALLOWED, 'Method not allowed', 405)
   } catch (error) {
     console.error('education-rate-limits error:', error)
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    return errorResponse(ErrorCode.INTERNAL_ERROR, 'Internal server error', 500)
   }
 })

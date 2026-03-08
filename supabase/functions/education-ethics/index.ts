@@ -1,61 +1,8 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-}
-
-async function authenticateStudent(req: Request) {
-  const adminClient = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-  )
-
-  const apiKey = req.headers.get('x-api-key')
-  if (apiKey) {
-    const encoder = new TextEncoder()
-    const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(apiKey))
-    const keyHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
-
-    // Find student by API key hash
-    const { data: student } = await adminClient
-      .from('edu_students')
-      .select('*, edu_semesters!inner(organization_id, settings)')
-      .eq('api_key_hash', keyHash)
-      .eq('status', 'active')
-      .single()
-
-    if (student) {
-      return { student, adminClient }
-    }
-  }
-
-  // JWT auth fallback
-  const authHeader = req.headers.get('Authorization')
-  if (!authHeader?.startsWith('Bearer ')) return null
-
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_ANON_KEY')!,
-    { global: { headers: { Authorization: authHeader } } }
-  )
-
-  const { data: claims, error } = await supabase.auth.getClaims(authHeader.replace('Bearer ', ''))
-  if (error || !claims?.claims?.sub) return null
-
-  const userId = claims.claims.sub as string
-
-  const { data: student } = await adminClient
-    .from('edu_students')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('status', 'active')
-    .single()
-
-  if (!student) return null
-  return { student, adminClient }
-}
+import {
+  authenticateEducationRequest, corsHeaders,
+  errorResponse, jsonResponse,
+  ErrorCode,
+} from '../_shared/edu-auth.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -63,58 +10,56 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const auth = await authenticateStudent(req)
-    if (!auth) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
-    }
-
-    const { student, adminClient } = auth
+    const auth = await authenticateEducationRequest(req)
+    if (!auth) return errorResponse(ErrorCode.UNAUTHORIZED, 'Unauthorized', 401)
 
     // GET: check ethics status
     if (req.method === 'GET') {
-      return new Response(JSON.stringify({
+      if (!auth.studentId) return errorResponse(ErrorCode.FORBIDDEN, 'Student identity required', 403)
+
+      const { data: student } = await auth.adminClient
+        .from('edu_students')
+        .select('id, ethics_certified, ethics_certified_at, ethics_cert_id, ethics_quiz_score')
+        .eq('id', auth.studentId)
+        .single()
+
+      if (!student) return errorResponse(ErrorCode.NOT_FOUND, 'Student not found', 404)
+
+      return jsonResponse({
         student_id: student.id,
         ethics_certified: student.ethics_certified,
         ethics_certified_at: student.ethics_certified_at,
         ethics_cert_id: student.ethics_cert_id,
         ethics_quiz_score: student.ethics_quiz_score,
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
     // POST: submit ethics certification
     if (req.method === 'POST') {
+      if (!auth.studentId) return errorResponse(ErrorCode.FORBIDDEN, 'Student identity required', 403)
+
       const { quiz_score, cert_id } = await req.json()
 
       if (quiz_score === undefined || !cert_id) {
-        return new Response(JSON.stringify({ error: 'Required: quiz_score, cert_id' }), {
-          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+        return errorResponse(ErrorCode.VALIDATION_ERROR, 'Required: quiz_score, cert_id', 400)
       }
 
-      // Get org settings for minimum passing score
-      const { data: org } = await adminClient
+      const { data: org } = await auth.adminClient
         .from('organizations')
         .select('settings')
-        .eq('id', student.organization_id)
+        .eq('id', auth.orgId)
         .single()
 
       const minScore = (org?.settings as Record<string, unknown>)?.ethics_min_score ?? 80
 
       if (quiz_score < (minScore as number)) {
-        return new Response(JSON.stringify({
-          error: 'Quiz score below minimum threshold',
-          minimum_required: minScore,
-          your_score: quiz_score,
-        }), {
-          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+        return errorResponse(ErrorCode.ETHICS_REQUIRED,
+          'Quiz score below minimum threshold', 400,
+          { minimum_required: minScore, your_score: quiz_score }
+        )
       }
 
-      const { error } = await adminClient
+      const { error } = await auth.adminClient
         .from('edu_students')
         .update({
           ethics_certified: true,
@@ -123,26 +68,20 @@ Deno.serve(async (req) => {
           ethics_quiz_score: quiz_score,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', student.id)
+        .eq('id', auth.studentId)
 
       if (error) throw error
 
-      return new Response(JSON.stringify({
+      return jsonResponse({
         success: true,
         ethics_certified: true,
         message: 'Ethics certification recorded. API access is now enabled.',
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    return errorResponse(ErrorCode.METHOD_NOT_ALLOWED, 'Method not allowed', 405)
   } catch (error) {
     console.error('education-ethics error:', error)
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    return errorResponse(ErrorCode.INTERNAL_ERROR, 'Internal server error', 500)
   }
 })

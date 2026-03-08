@@ -1,8 +1,6 @@
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-}
+import {
+  corsHeaders, errorResponse, cachedJsonResponse, ErrorCode,
+} from '../_shared/edu-auth.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -10,9 +8,7 @@ Deno.serve(async (req) => {
   }
 
   if (req.method !== 'GET') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    return errorResponse(ErrorCode.METHOD_NOT_ALLOWED, 'Method not allowed', 405)
   }
 
   try {
@@ -23,9 +19,7 @@ Deno.serve(async (req) => {
 
     const validFormats = ['apa', 'mla', 'chicago']
     if (!validFormats.includes(format)) {
-      return new Response(JSON.stringify({
-        error: `Invalid format. Use: ${validFormats.join(', ')}`
-      }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      return errorResponse(ErrorCode.VALIDATION_ERROR, `Invalid format. Use: ${validFormats.join(', ')}`, 400)
     }
 
     const year = new Date(accessDate).getFullYear()
@@ -49,19 +43,16 @@ Deno.serve(async (req) => {
         citation = ''
     }
 
-    return new Response(JSON.stringify({
+    // Citations are static — cache for 1 hour
+    return cachedJsonResponse({
       format,
       citation,
       dataset_version: datasetVersion,
       access_date: accessDate,
       note: 'This citation covers anonymized, synthetic data provided through the GLO Education API sandbox environment.',
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    }, 3600)
   } catch (error) {
     console.error('education-citation error:', error)
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    return errorResponse(ErrorCode.INTERNAL_ERROR, 'Internal server error', 500)
   }
 })

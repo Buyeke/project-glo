@@ -1,81 +1,8 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-}
-
-async function authenticateRequest(req: Request) {
-  const adminClient = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-  )
-
-  const apiKey = req.headers.get('x-api-key')
-  if (apiKey) {
-    const encoder = new TextEncoder()
-    const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(apiKey))
-    const keyHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
-
-    const { data: keyRecord } = await adminClient
-      .from('organization_api_keys')
-      .select('organization_id, scopes')
-      .eq('key_hash', keyHash)
-      .eq('is_active', true)
-      .single()
-
-    if (keyRecord) {
-      const { data: org } = await adminClient
-        .from('organizations')
-        .select('id, tier, settings')
-        .eq('id', keyRecord.organization_id)
-        .eq('tier', 'education')
-        .single()
-
-      if (org) {
-        return { orgId: org.id, org, role: 'api_key', userId: null, adminClient }
-      }
-    }
-  }
-
-  const authHeader = req.headers.get('Authorization')
-  if (!authHeader?.startsWith('Bearer ')) return null
-
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_ANON_KEY')!,
-    { global: { headers: { Authorization: authHeader } } }
-  )
-
-  const { data: claims, error } = await supabase.auth.getClaims(authHeader.replace('Bearer ', ''))
-  if (error || !claims?.claims?.sub) return null
-
-  const userId = claims.claims.sub as string
-
-  const { data: membership } = await adminClient
-    .from('organization_members')
-    .select('organization_id, role')
-    .eq('user_id', userId)
-    .single()
-
-  if (!membership) return null
-
-  const { data: org } = await adminClient
-    .from('organizations')
-    .select('id, tier, settings')
-    .eq('id', membership.organization_id)
-    .eq('tier', 'education')
-    .single()
-
-  if (!org) return null
-
-  return { orgId: org.id, org, role: membership.role, userId, adminClient }
-}
-
-function isFaculty(role: string) {
-  return ['owner', 'admin', 'faculty'].includes(role)
-}
+import {
+  authenticateEducationRequest, corsHeaders, isFaculty,
+  errorResponse, jsonResponse, paginatedResponse, parsePagination,
+  ErrorCode, requireScope, logAuditEvent,
+} from '../_shared/edu-auth.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -83,25 +10,20 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const auth = await authenticateRequest(req)
-    if (!auth) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
-    }
+    const auth = await authenticateEducationRequest(req)
+    if (!auth) return errorResponse(ErrorCode.UNAUTHORIZED, 'Unauthorized', 401)
 
     const url = new URL(req.url)
     const action = url.searchParams.get('action')
 
     // --- GET: list or detail ---
     if (req.method === 'GET') {
+      const scopeErr = requireScope(auth, 'education:read')
+      if (scopeErr) return scopeErr
+
       if (action === 'detail') {
         const id = url.searchParams.get('assignment_id')
-        if (!id) {
-          return new Response(JSON.stringify({ error: 'assignment_id required' }), {
-            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
-        }
+        if (!id) return errorResponse(ErrorCode.VALIDATION_ERROR, 'assignment_id required', 400)
 
         const { data, error } = await auth.adminClient
           .from('edu_assignments')
@@ -110,62 +32,59 @@ Deno.serve(async (req) => {
           .eq('organization_id', auth.orgId)
           .single()
 
-        if (error || !data) {
-          return new Response(JSON.stringify({ error: 'Assignment not found' }), {
-            status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
-        }
+        if (error || !data) return errorResponse(ErrorCode.NOT_FOUND, 'Assignment not found', 404)
 
-        // Also get project count for this assignment
         const { count } = await auth.adminClient
           .from('edu_projects')
           .select('id', { count: 'exact', head: true })
           .eq('assignment_id', id)
 
-        return new Response(JSON.stringify({ ...data, project_count: count || 0 }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+        return jsonResponse({ ...data, project_count: count || 0 })
       }
 
-      // Default: list assignments
+      // Default: list with pagination
+      const pagination = parsePagination(url)
+
+      let countQuery = auth.adminClient
+        .from('edu_assignments')
+        .select('id', { count: 'exact', head: true })
+        .eq('organization_id', auth.orgId)
+
       let query = auth.adminClient
         .from('edu_assignments')
         .select('*, edu_semesters(name)')
         .eq('organization_id', auth.orgId)
         .order('created_at', { ascending: false })
+        .range(pagination.offset, pagination.offset + pagination.limit - 1)
 
       const semesterId = url.searchParams.get('semester_id')
-      if (semesterId) query = query.eq('semester_id', semesterId)
+      if (semesterId) {
+        query = query.eq('semester_id', semesterId)
+        countQuery = countQuery.eq('semester_id', semesterId)
+      }
 
       const activeOnly = url.searchParams.get('active_only')
-      if (activeOnly === 'true') query = query.eq('is_active', true)
+      if (activeOnly === 'true') {
+        query = query.eq('is_active', true)
+        countQuery = countQuery.eq('is_active', true)
+      }
 
-      const { data, error } = await query
-      if (error) throw error
-
-      return new Response(JSON.stringify({ assignments: data || [] }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+      const [{ data }, { count }] = await Promise.all([query, countQuery])
+      return paginatedResponse(data || [], count || 0, pagination)
     }
 
     // --- POST: faculty-only mutations ---
     if (req.method === 'POST') {
-      if (!isFaculty(auth.role)) {
-        return new Response(JSON.stringify({ error: 'Faculty role required' }), {
-          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
-      }
+      if (!isFaculty(auth.role)) return errorResponse(ErrorCode.FORBIDDEN, 'Faculty role required', 403)
+
+      const scopeErr = requireScope(auth, 'education:write')
+      if (scopeErr) return scopeErr
 
       const body = await req.json()
 
-      // Create assignment
       if (action === 'create') {
         const { title, description, difficulty, semester_id, deadline, starter_query, rate_override_per_day } = body
-        if (!title) {
-          return new Response(JSON.stringify({ error: 'title required' }), {
-            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
-        }
+        if (!title) return errorResponse(ErrorCode.VALIDATION_ERROR, 'title required', 400)
 
         const { data, error } = await auth.adminClient
           .from('edu_assignments')
@@ -186,22 +105,17 @@ Deno.serve(async (req) => {
 
         if (error) throw error
 
-        return new Response(JSON.stringify(data), {
-          status: 201, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+        await logAuditEvent(auth.adminClient, auth.orgId, 'assignment', 'created', data.id, auth.userId, { title })
+
+        return jsonResponse(data, 201)
       }
 
-      // Update assignment
       if (action === 'update') {
         const { assignment_id, ...fields } = body
-        if (!assignment_id) {
-          return new Response(JSON.stringify({ error: 'assignment_id required' }), {
-            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
-        }
+        if (!assignment_id) return errorResponse(ErrorCode.VALIDATION_ERROR, 'assignment_id required', 400)
 
         const allowed = ['title', 'description', 'difficulty', 'deadline', 'starter_query', 'rate_override_per_day', 'is_active']
-        const updates: any = { updated_at: new Date().toISOString() }
+        const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
         for (const key of allowed) {
           if (fields[key] !== undefined) updates[key] = fields[key]
         }
@@ -214,45 +128,35 @@ Deno.serve(async (req) => {
 
         if (error) throw error
 
-        return new Response(JSON.stringify({ success: true }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+        await logAuditEvent(auth.adminClient, auth.orgId, 'assignment', 'updated', assignment_id, auth.userId, updates)
+
+        return jsonResponse({ success: true })
       }
 
-      // Activate / deactivate
       if (action === 'activate' || action === 'deactivate') {
         const { assignment_id } = body
-        if (!assignment_id) {
-          return new Response(JSON.stringify({ error: 'assignment_id required' }), {
-            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
-        }
+        if (!assignment_id) return errorResponse(ErrorCode.VALIDATION_ERROR, 'assignment_id required', 400)
 
+        const isActive = action === 'activate'
         const { error } = await auth.adminClient
           .from('edu_assignments')
-          .update({ is_active: action === 'activate', updated_at: new Date().toISOString() })
+          .update({ is_active: isActive, updated_at: new Date().toISOString() })
           .eq('id', assignment_id)
           .eq('organization_id', auth.orgId)
 
         if (error) throw error
 
-        return new Response(JSON.stringify({ success: true, is_active: action === 'activate' }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+        await logAuditEvent(auth.adminClient, auth.orgId, 'assignment', action, assignment_id, auth.userId)
+
+        return jsonResponse({ success: true, is_active: isActive })
       }
 
-      return new Response(JSON.stringify({ error: 'Unknown action' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+      return errorResponse(ErrorCode.VALIDATION_ERROR, 'Unknown action', 400)
     }
 
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    return errorResponse(ErrorCode.METHOD_NOT_ALLOWED, 'Method not allowed', 405)
   } catch (error) {
     console.error('education-assignments error:', error)
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    return errorResponse(ErrorCode.INTERNAL_ERROR, 'Internal server error', 500)
   }
 })
