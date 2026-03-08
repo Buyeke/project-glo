@@ -4,9 +4,11 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatDistanceToNow } from 'date-fns';
-import { MessageSquare, Globe, Target, TrendingUp } from 'lucide-react';
+import { MessageSquare, Globe, Target, TrendingUp, Download } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 interface ChatInteraction {
   id: string;
@@ -83,6 +85,44 @@ const ChatInteractionsPanel = () => {
     return <div className="p-4">Loading chat interactions...</div>;
   }
 
+  const exportChatLogs = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('chat_interactions')
+        .select('id, created_at, user_id, detected_language, original_message, response, matched_intent, matched_service, confidence_score, urgency_level, emotional_state, safety_concerns, requires_human_intervention')
+        .order('created_at', { ascending: false })
+        .limit(10000);
+
+      if (error) throw error;
+      if (!data?.length) {
+        toast({ title: 'No data to export' });
+        return;
+      }
+
+      const headers = ['Timestamp', 'User ID', 'Language', 'Message', 'Response', 'Intent', 'Service', 'Confidence', 'Urgency', 'Emotional State', 'Safety Concern', 'Needs Human'];
+      const esc = (v: any) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+      const rows = data.map(r => [
+        r.created_at, r.user_id || 'anonymous', r.detected_language, r.original_message, r.response,
+        r.matched_intent, r.matched_service, r.confidence_score, r.urgency_level, r.emotional_state,
+        r.safety_concerns ? 'Yes' : 'No', r.requires_human_intervention ? 'Yes' : 'No',
+      ].map(esc).join(','));
+
+      const csv = [headers.map(esc).join(','), ...rows].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `chatbot-logs-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast({ title: 'Export successful', description: 'Chat logs CSV downloaded' });
+    } catch (err: any) {
+      toast({ title: 'Export failed', description: err.message, variant: 'destructive' });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -135,10 +175,18 @@ const ChatInteractionsPanel = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent Chat Interactions</CardTitle>
-          <CardDescription>
-            Review recent conversations to improve AI responses
-          </CardDescription>
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <CardTitle>Recent Chat Interactions</CardTitle>
+              <CardDescription>
+                Review recent conversations to improve AI responses
+              </CardDescription>
+            </div>
+            <Button onClick={exportChatLogs} variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Export CSV
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-96">
