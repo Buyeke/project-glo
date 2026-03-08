@@ -32,7 +32,7 @@ const MobileHero = () => {
               </Link>
             </Button>
             <p className="text-xs text-muted-foreground">
-              Browse services anonymously · No login required
+              No login required · Browse anonymously
             </p>
           </div>
           
@@ -59,12 +59,6 @@ const MobileHero = () => {
                 <span>About Project GLO</span>
               </Link>
             </Button>
-          </div>
-          
-          {/* Trust Signal */}
-          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-4">
-            <Shield className="h-3.5 w-3.5 text-primary/60" aria-hidden="true" />
-            <span>Kenya-registered · Data encrypted · Services by independent partners</span>
           </div>
         </div>
       </div>
