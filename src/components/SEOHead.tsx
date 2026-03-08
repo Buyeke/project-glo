@@ -34,9 +34,9 @@ const SEOHead = ({ title, description, ogImage, ogType = 'website' }: SEOHeadPro
   const baseUrl = 'https://project-glo.lovable.app';
   const currentUrl = `${baseUrl}${location.pathname}`;
 
-  const pageSeo = pageMeta[location.pathname] || {};
-  const finalTitle = title || pageSeo.title || defaultMeta.title;
-  const finalDescription = description || pageSeo.description || defaultMeta.description;
+  const pageSeo = pageMeta[location.pathname] as { title: string; description: string } | undefined;
+  const finalTitle = title || pageSeo?.title || defaultMeta.title;
+  const finalDescription = description || pageSeo?.description || defaultMeta.description;
   const finalImage = ogImage || defaultMeta.ogImage;
   const absoluteImage = finalImage.startsWith('http') ? finalImage : `${baseUrl}${finalImage}`;
 
