@@ -1,73 +1,81 @@
-# Welcome to your Lovable project
+GLO – AI-Powered Case Management for Social Impact
 
-## Project info
+GLO is an AI-powered case management and coordination platform designed to help NGOs, governments, and humanitarian organizations manage social protection and crisis response more efficiently.
 
-**URL**: https://lovable.dev/projects/6f4bde81-af49-46b2-9d04-1ec7163a4a1b
+The platform enables organizations to intake cases, triage requests using AI, coordinate responses across multiple partners, and generate real-time impact analytics. GLO is designed to improve transparency, accountability, and coordination in social service delivery systems.
 
-## How can I edit this code?
+The project is developed by Glomera Operations Ltd and focuses on building digital public infrastructure that helps institutions serve vulnerable communities more effectively.
 
-There are several ways of editing your application.
+Key Features
 
-**Use Lovable**
+AI-powered case intake and triage
+Multi-organization case coordination
+Real-time impact and reporting dashboards
+Secure case tracking across organizations
+Blockchain-backed verification of key service delivery events
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/6f4bde81-af49-46b2-9d04-1ec7163a4a1b) and start prompting.
+Why GLO
 
-Changes made via Lovable will be committed automatically to this repo.
+Many social protection and humanitarian programs rely on fragmented systems such as spreadsheets or disconnected databases. This creates challenges in accountability, coordination, and transparency.
 
-**Use your preferred IDE**
+GLO provides a unified platform that enables organizations to manage cases collaboratively while maintaining clear audit trails of service delivery. By anchoring key case events on blockchain infrastructure, the system can provide tamper-resistant records that strengthen trust between implementing partners, donors, and governments.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Technology Stack
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+Frontend
+React
+TypeScript
+Vite
+TailwindCSS
+shadcn-ui
 
-Follow these steps:
+Backend
+Node.js APIs
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+Blockchain Layer
+Permissioned blockchain with public chain anchoring for verification of key case milestones.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+Getting Started
 
-# Step 3: Install the necessary dependencies.
-npm i
+Clone the repository:
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+git clone <YOUR_GITHUB_REPOSITORY_URL>
+
+Navigate to the project folder:
+
+cd projectglo
+
+Install dependencies:
+
+npm install
+
+Run the development server:
+
 npm run dev
-```
 
-**Edit a file directly in GitHub**
+The application will start locally with automatic reload.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Project Status
 
-**Use GitHub Codespaces**
+GLO is currently at the MVP stage and is being prepared for pilot deployments with NGOs and organizations working in social protection and humanitarian response.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Current development focuses on:
 
-## What technologies are used for this project?
+Improving AI-powered case triage
 
-This project is built with:
+Expanding case management workflows
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Integrating blockchain verification for service delivery records
 
-## How can I deploy this project?
+Preparing for pilot deployments
 
-Simply open [Lovable](https://lovable.dev/projects/6f4bde81-af49-46b2-9d04-1ec7163a4a1b) and click on Share -> Publish.
+Organization
 
-## Can I connect a custom domain to my Lovable project?
+Developed by Glomera Operations Ltd
 
-Yes, you can!
+Website
+https://projectglo.org
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+License
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+This repository is provided for evaluation and development purposes. Licensing details will be finalized as the project moves toward broader deployment.
