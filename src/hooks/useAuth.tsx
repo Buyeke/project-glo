@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { SessionManager } from '@/utils/sessionManager';
@@ -17,6 +17,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const notificationSentRef = useRef<string | null>(null);
 
   useEffect(() => {
     // Set up auth state listener
@@ -31,20 +32,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (session && event === 'SIGNED_IN') {
           SessionManager.startSessionMonitoring();
           
-          // Send auth notification email (fire-and-forget)
-          const isNewUser = session.user?.created_at && 
-            (Date.now() - new Date(session.user.created_at).getTime()) < 60000;
-          
-          supabase.functions.invoke('auth-notification', {
-            body: {
-              event_type: isNewUser ? 'signup' : 'login',
-              user_email: session.user?.email || 'unknown',
-              user_id: session.user?.id || 'unknown',
-              timestamp: new Date().toISOString(),
-            }
-          }).catch(err => console.error('Auth notification failed:', err));
+          // Send auth notification email only once per user session
+          const userId = session.user?.id;
+          if (userId && notificationSentRef.current !== userId) {
+            notificationSentRef.current = userId;
+            
+            const isNewUser = session.user?.created_at && 
+              (Date.now() - new Date(session.user.created_at).getTime()) < 60000;
+            
+            supabase.functions.invoke('auth-notification', {
+              body: {
+                event_type: isNewUser ? 'signup' : 'login',
+                user_email: session.user?.email || 'unknown',
+                user_id: userId,
+                timestamp: new Date().toISOString(),
+              }
+            }).catch(err => console.error('Auth notification failed:', err));
+          }
         } else if (event === 'SIGNED_OUT') {
           SessionManager.stopSessionMonitoring();
+          notificationSentRef.current = null;
         }
       }
     );
