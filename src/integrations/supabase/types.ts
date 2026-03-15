@@ -1302,6 +1302,140 @@ export type Database = {
           },
         ]
       }
+      lti_nonces: {
+        Row: {
+          expires_at: string
+          id: string
+          nonce: string
+          platform_id: string | null
+          used_at: string
+        }
+        Insert: {
+          expires_at?: string
+          id?: string
+          nonce: string
+          platform_id?: string | null
+          used_at?: string
+        }
+        Update: {
+          expires_at?: string
+          id?: string
+          nonce?: string
+          platform_id?: string | null
+          used_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lti_nonces_platform_id_fkey"
+            columns: ["platform_id"]
+            isOneToOne: false
+            referencedRelation: "lti_platforms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lti_platforms: {
+        Row: {
+          auth_login_url: string
+          auth_token_url: string
+          client_id: string
+          created_at: string
+          deployment_id: string
+          id: string
+          institution_name: string | null
+          is_active: boolean
+          issuer: string
+          jwks_url: string
+          updated_at: string
+        }
+        Insert: {
+          auth_login_url: string
+          auth_token_url: string
+          client_id: string
+          created_at?: string
+          deployment_id?: string
+          id?: string
+          institution_name?: string | null
+          is_active?: boolean
+          issuer: string
+          jwks_url: string
+          updated_at?: string
+        }
+        Update: {
+          auth_login_url?: string
+          auth_token_url?: string
+          client_id?: string
+          created_at?: string
+          deployment_id?: string
+          id?: string
+          institution_name?: string | null
+          is_active?: boolean
+          issuer?: string
+          jwks_url?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      lti_sessions: {
+        Row: {
+          ags_endpoint: string | null
+          course_context: Json | null
+          created_at: string
+          expires_at: string
+          id: string
+          lti_user_id: string
+          platform_id: string
+          resource_link: Json | null
+          roles: string[] | null
+          state: string | null
+          student_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          ags_endpoint?: string | null
+          course_context?: Json | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          lti_user_id: string
+          platform_id: string
+          resource_link?: Json | null
+          roles?: string[] | null
+          state?: string | null
+          student_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          ags_endpoint?: string | null
+          course_context?: Json | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          lti_user_id?: string
+          platform_id?: string
+          resource_link?: Json | null
+          roles?: string[] | null
+          state?: string | null
+          student_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lti_sessions_platform_id_fkey"
+            columns: ["platform_id"]
+            isOneToOne: false
+            referencedRelation: "lti_platforms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lti_sessions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "edu_students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       match_logs: {
         Row: {
           assessment_id: string
